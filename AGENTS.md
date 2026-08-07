@@ -25,6 +25,7 @@ When working in this codebase, use the existing style system and motion setup in
 - Game screens and logic: `src/components/game/`
 - Data and types: `src/types/`, `src/utils/`
 - App state is managed in `src/context/GameContext.tsx` and consumed by `src/components/game/FlagGame.tsx`
+- The UI supports dark mode through CSS variables in `src/styles/variables.css`
 - `GameResults` is now split into `src/components/game/GameResults.tsx`
 
 ### Best practices for code changes

@@ -1,0 +1,14 @@
+.switcher {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.75rem;
+	justify-content: flex-end;
+}
+
+.label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-weight: 700;
+	color: var(--color-text-secondary);
+}

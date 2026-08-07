@@ -5,10 +5,26 @@
     padding: clamp(0.5rem, 2vh, 1.5rem);
     place-items: center;
     overflow: hidden;
+    position: relative;
+}
+
+.themeToggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
 }
 
 @media (max-width: 30rem) {
     .application {
         padding: 0.4rem;
+    }
+
+    .themeToggle {
+        position: static;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 1rem;
     }
 }

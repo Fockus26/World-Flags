@@ -1,7 +1,8 @@
-import { GameProvider, useGame } from "../../context/GameContext";
+import { useGame } from "../../context/GameContext";
 import { GameConfiguration } from "./GameConfiguration";
 import { GameResults } from "./GameResults";
 import { GameSession } from "./GameSession";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 import styles from "./FlagGame.module.css";
 
 function FlagGameContent() {
@@ -26,10 +27,12 @@ function FlagGameContent() {
 
 export default function FlagGame() {
 	return (
-		<GameProvider>
-			<main className={styles.application}>
-				<FlagGameContent />
-			</main>
-		</GameProvider>
+		<main className={styles.application}>
+			<div className={styles.themeToggle}>
+				<ThemeSwitcher />
+			</div>
+
+			<FlagGameContent />
+		</main>
 	);
 }
