@@ -1,9 +1,10 @@
 import {
 	useEffect,
 	useRef,
-	type MouseEvent,
 } from "react";
-import styles from "./FlagGame.module.css";
+import { Button } from "../ui/Button";
+import { Modal } from "../ui/Modal";
+import modalStyles from "./ConfirmationModal.module.css";
 
 interface ConfirmationModalProps {
 	isOpen: boolean;
@@ -42,59 +43,44 @@ export function ConfirmationModal({
 		return null;
 	}
 
-	function handleOverlayClick(
-		event: MouseEvent<HTMLDivElement>,
-	) {
-		if (event.target === event.currentTarget) {
-			onCancel();
-		}
-	}
-
 	return (
-		<div
-			className={styles.modalOverlay}
-			role="presentation"
-			onMouseDown={handleOverlayClick}
+		<Modal
+			isOpen={isOpen}
+			onClose={onCancel}
+			ariaLabelledby="exit-modal-title"
+			ariaDescribedby="exit-modal-description"
 		>
-			<section
-				className={styles.modal}
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="exit-modal-title"
-				aria-describedby="exit-modal-description"
-			>
-				<div className={styles.modalIcon} aria-hidden="true">
-					!
-				</div>
+			<div className={modalStyles.modalIcon} aria-hidden="true">
+				!
+			</div>
 
-				<h2 id="exit-modal-title">
-					¿Abandonar la práctica?
-				</h2>
+			<h2 id="exit-modal-title">
+				¿Abandonar la práctica?
+			</h2>
 
-				<p id="exit-modal-description">
-					El progreso de esta partida se perderá y no se
-					guardará ninguna calificación.
-				</p>
+			<p id="exit-modal-description">
+				El progreso de esta partida se perderá y no se
+				guardará ninguna calificación.
+			</p>
 
-				<div className={styles.modalActions}>
-					<button
-						ref={cancelButtonRef}
-						className={styles.secondaryButton}
-						type="button"
-						onClick={onCancel}
-					>
-						Continuar practicando
-					</button>
+			<div className={modalStyles.modalActions}>
+				<Button
+					ref={cancelButtonRef}
+					variant="secondary"
+					type="button"
+					onClick={onCancel}
+				>
+					Continuar practicando
+				</Button>
 
-					<button
-						className={styles.dangerButton}
-						type="button"
-						onClick={onConfirm}
-					>
-						Sí, abandonar
-					</button>
-				</div>
-			</section>
-		</div>
+				<Button
+					variant="danger"
+					type="button"
+					onClick={onConfirm}
+				>
+					Sí, abandonar
+				</Button>
+			</div>
+		</Modal>
 	);
 }

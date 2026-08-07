@@ -3,8 +3,10 @@ import {
 	useRef,
 	useState,
 	type CSSProperties,
-	type FormEvent,
+	type SubmitEvent,
 } from "react";
+import { motion } from "framer-motion";
+import { motionVariants } from "../../styles/animations";
 import {
 	REGION_LABELS,
 	type AnswerStatus,
@@ -20,7 +22,9 @@ import {
 	getScoreMessage,
 } from "../../utils/score";
 import { ConfirmationModal } from "./ConfirmationModal";
-import styles from "./FlagGame.module.css";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import styles from "./GameSession.module.css";
 
 interface GameSessionProps {
 	countries: Country[];
@@ -70,7 +74,7 @@ export function GameSession({
         nextButtonRef.current?.focus();
     }, [answerStatus, currentIndex]);
 
-	function handleSubmit(event: FormEvent<HTMLFormElement>) {
+	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		if (
@@ -125,7 +129,12 @@ export function GameSession({
 
 	return (
 		<>
-			<section className={styles.game}>
+			<motion.section
+				className={styles.game}
+				variants={motionVariants.contentEnter}
+				initial="hidden"
+				animate="visible"
+			>
 				<header className={styles.gameHeader}>
 					<div>
 						<p className={styles.eyebrow}>
@@ -137,13 +146,13 @@ export function GameSession({
 						</p>
 					</div>
 
-					<button
-						className={styles.exitButton}
+					<Button
+						variant="exit"
 						type="button"
 						onClick={() => setIsExitModalOpen(true)}
 					>
 						Abandonar
-					</button>
+					</Button>
 				</header>
 
 				<div
@@ -164,96 +173,96 @@ export function GameSession({
 
 				<div className={styles.gameContent}>
 					<div className={styles.flagContainer}>
-						<img
-	                        key={currentCountry.code}
+						<motion.img
+							key={currentCountry.code}
 							className={styles.flag}
 							src={flagUrl}
 							alt="Bandera que debes identificar"
+							variants={motionVariants.flagEnter}
+							initial="hidden"
+							animate="visible"
 						/>
 					</div>
-
-					<form
-						className={styles.answerForm}
-						onSubmit={handleSubmit}
-					>
-						<label htmlFor="country-answer">
-							¿Qué país representa esta bandera?
-						</label>
-
-						<input
-							ref={inputRef}
-							id="country-answer"
-							name="answer"
-							type="text"
-							value={answer}
-							onChange={(event) =>
-								setAnswer(event.target.value)
-							}
-							disabled={isAnswerChecked}
-							autoComplete="off"
-							spellCheck={false}
-							placeholder="Escribe el nombre del país"
-						/>
-
-						<div className={styles.feedbackArea}>
-							{answerStatus === "correct" && (
-								<p
-									className={
-										styles.correctMessage
-									}
-								>
-									Correcto:{" "}
-									<strong>
-										{currentCountry.name}
-									</strong>
-								</p>
-							)}
-
-							{answerStatus === "incorrect" && (
-								<p
-									className={
-										styles.incorrectMessage
-									}
-								>
-									La respuesta correcta es{" "}
-									<strong>
-										{currentCountry.name}
-									</strong>
-									.
-								</p>
-							)}
-						</div>
-
-						{isAnswerChecked ? (
-							<button
-	                            ref={nextButtonRef}
-								className={styles.primaryButton}
-								type="button"
-								onClick={handleNextCountry}
+				<form
+					className={styles.answerForm}
+					onSubmit={handleSubmit}
+				>
+					<label htmlFor="country-answer">
+						¿Qué país representa esta bandera?
+					</label>
+					<Input
+						ref={inputRef}
+						id="country-answer"
+						name="answer"
+						type="text"
+						value={answer}
+						onChange={(event) =>
+							setAnswer(event.target.value)
+						}
+						disabled={isAnswerChecked}
+						autoComplete="off"
+						spellCheck={false}
+						placeholder="Escribe el nombre del país"
+					/>
+					<div className={styles.feedbackArea}>
+						{answerStatus === "correct" && (
+							<p
+								className={
+									styles.correctMessage
+								}
 							>
-								{isLastCountry
-									? "Ver resultado"
-									: "Siguiente bandera"}
-							</button>
-						) : (
-							<button
-								className={styles.primaryButton}
-								type="submit"
-								disabled={!answer.trim()}
-							>
-								Comprobar
-							</button>
+								Correcto:{" "}
+								<strong>
+									{currentCountry.name}
+								</strong>
+							</p>
 						)}
+
+						{answerStatus === "incorrect" && (
+							<p
+								className={
+									styles.incorrectMessage
+								}
+							>
+								La respuesta correcta es{" "}
+								<strong>
+									{currentCountry.name}
+								</strong>
+								.
+							</p>
+						)}
+					</div>
+
+					{isAnswerChecked ? (
+						<Button
+							ref={nextButtonRef}
+							variant="primary"
+							type="button"
+							onClick={handleNextCountry}
+						>
+							{isLastCountry
+								? "Ver resultado"
+								: "Siguiente bandera"}
+						</Button>
+					) : (
+						<Button
+							variant="primary"
+							type="submit"
+							disabled={!answer.trim()}
+						>
+							Comprobar
+						</Button>
+					)}
 					</form>
 				</div>
-			</section>
+		</motion.section>
 
-			<ConfirmationModal
-				isOpen={isExitModalOpen}
-				onCancel={() => setIsExitModalOpen(false)}
-				onConfirm={onExit}
-			/>
-		</>
+		<ConfirmationModal
+			isOpen={isExitModalOpen}
+			onCancel={() => setIsExitModalOpen(false)}
+			onConfirm={onExit}
+		/>
+	</>
 	);
 }
 
@@ -315,21 +324,21 @@ export function GameResults({
 			)}
 
 			<div className={styles.resultActions}>
-				<button
-					className={styles.secondaryButton}
+				<Button
+					variant="secondary"
 					type="button"
 					onClick={onExit}
 				>
 					Volver al inicio
-				</button>
+				</Button>
 
-				<button
-					className={styles.primaryButton}
+				<Button
+					variant="primary"
 					type="button"
 					onClick={onRestart}
 				>
 					Repetir práctica
-				</button>
+				</Button>
 			</div>
 		</section>
 	);

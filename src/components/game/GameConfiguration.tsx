@@ -1,8 +1,10 @@
 import {
 	useState,
 	type CSSProperties,
-	type FormEvent,
+	type SubmitEvent,
 } from "react";
+import { motion } from "framer-motion";
+import { motionVariants } from "../../styles/animations";
 
 import {
 	REGION_LABELS,
@@ -28,8 +30,10 @@ import {
 } from "../../utils/learning-storage";
 
 import { UserProfileEditor } from "./UserProfileEditor";
+import { Button } from "../ui/Button";
+import { Tooltip } from "../ui/Tooltip";
 
-import styles from "./FlagGame.module.css";
+import styles from "./GameConfiguration.module.css";
 
 interface GameConfigurationProps {
 	learningData: UserLearningData;
@@ -66,7 +70,7 @@ const avatarUrl =
 		learningData.profile.avatarSeed,
 	)}`;
 
-	function handleSubmit(event: FormEvent<HTMLFormElement>) {
+	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		const formData = new FormData(event.currentTarget);
@@ -87,8 +91,18 @@ const avatarUrl =
 
 	return (
         <>
-		<section className={styles.configuration}>
-            <div className={styles.userSummary}>
+		<motion.section
+			className={styles.configuration}
+			variants={motionVariants.contentEnter}
+			initial="hidden"
+			animate="visible"
+		>
+            <motion.div
+				className={styles.userSummary}
+				variants={motionVariants.contentEnter}
+				initial="hidden"
+				animate="visible"
+			>
 	<button
 		className={styles.profileButton}
 		type="button"
@@ -131,7 +145,7 @@ const avatarUrl =
 			{learnedCountries} de 196 países aprendidos
 		</small>
 	</div>
-</div>
+			</motion.div>
 
 			<header className={styles.header}>
 				<p className={styles.eyebrow}>
@@ -208,21 +222,16 @@ const score = calculateRegionAverage(recentScores);
 										</span>
 
 										{score !== null ? (
-											<span
-	className={styles.regionScore}
-	style={scoreStyle}
-	tabIndex={0}
-	aria-label="Promedio de las últimas tres partidas completadas"
->
-	{formatScore(score)}/10
-
-	<span
-		className={styles.scoreTooltip}
-		role="tooltip"
-	>
-		Promedio de tus últimas 3 partidas
-	</span>
-</span>
+											<Tooltip label="Promedio de tus últimas 3 partidas">
+												<span
+													className={styles.regionScore}
+													style={scoreStyle}
+													tabIndex={0}
+													aria-label="Promedio de las últimas tres partidas completadas"
+												>
+													{formatScore(score)}/10
+												</span>
+											</Tooltip>
 										) : (
 											<span
 												className={
@@ -270,14 +279,11 @@ const score = calculateRegionAverage(recentScores);
 					</div>
 				</fieldset>
 
-				<button
-					className={styles.primaryButton}
-					type="submit"
-				>
+				<Button variant="primary" type="submit">
 					Comenzar práctica
-				</button>
+				</Button>
 			</form>
-		</section>
+		</motion.section>
         {isProfileEditorOpen && (
             <UserProfileEditor
                 profile={learningData.profile}

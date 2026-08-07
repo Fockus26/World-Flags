@@ -1,0 +1,186 @@
+:root {
+    /* ===========================
+       Brand
+    =========================== */
+
+    --color-primary: #3157d5;
+    --color-primary-hover: #2445b5;
+    --color-primary-light: #6e8cff;
+
+    --color-primary-soft: #eef2ff;
+    --color-primary-soft-hover: #f7f9ff;
+
+    /* ===========================
+       Surfaces
+    =========================== */
+
+    --color-surface: #ffffff;
+    --color-surface-secondary: #f8f9fc;
+    --color-surface-muted: #f4f6f9;
+    --color-surface-disabled: #f1f3f6;
+
+    /* ===========================
+       Borders
+    =========================== */
+
+    --color-border: #d9dde5;
+    --color-border-light: #dfe3ea;
+    --color-border-lighter: #e0e4eb;
+    --color-border-soft: #e2e6ec;
+
+    --color-border-secondary: #d3d9e3;
+
+    --color-border-disabled: #aeb7c5;
+
+    --color-border-primary: #3157d5;
+    --color-border-primary-hover: #8da2e8;
+
+    --color-border-input-hover: #6f87d9;
+
+    --color-border-progress: #dfe4ed;
+
+    /* ===========================
+       Typography
+    =========================== */
+
+    --color-text: #172033;
+    --color-text-secondary: #263244;
+    --color-text-muted: #526070;
+    --color-text-light: #606c7c;
+    --color-text-disabled: #667284;
+    --color-text-subtle: #697586;
+    --color-text-placeholder: #7a8697;
+
+    --color-text-inverse: #ffffff;
+
+    /* ===========================
+       Success
+    =========================== */
+
+    --color-success: #17643a;
+    --color-success-bg: #e9f8ef;
+    --color-success-border: #b5e5c9;
+
+    /* ===========================
+       Danger
+    =========================== */
+
+    --color-danger: #c63838;
+    --color-danger-hover: #a92828;
+
+    --color-danger-text: #a62b2b;
+
+    --color-danger-bg: #fff0f0;
+    --color-danger-border: #efc1c1;
+
+    --color-danger-soft-border: #efb0b0;
+
+    /* ===========================
+       Neutral
+    =========================== */
+
+    --color-neutral: #4b5666;
+
+    /* ===========================
+       Progress
+    =========================== */
+
+    --color-progress-bg: #e8ebf0;
+
+    /* ===========================
+       Avatar
+    =========================== */
+
+    --color-avatar-bg: #e6eafa;
+
+    /* ===========================
+       Tooltip
+    =========================== */
+
+    --color-tooltip-bg: #172033;
+    --color-tooltip-text: #ffffff;
+
+    /* ===========================
+       Overlay
+    =========================== */
+
+    --color-overlay: rgb(15 23 42 / 58%);
+
+    /* ===========================
+       Checkerboard
+    =========================== */
+
+    --color-checker: #eef0f4;
+
+    /* ===========================
+       Radius
+    =========================== */
+
+    --radius-sm: .5rem;
+    --radius-md: .75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.5rem;
+    --radius-full: 999px;
+
+    /* ===========================
+       Shadows
+    =========================== */
+
+    --shadow-card: 0 1.25rem 4rem rgb(15 23 42 / 10%);
+
+    --shadow-primary:
+        0 .5rem 1.1rem rgb(49 87 213 / 20%);
+
+    --shadow-primary-hover:
+        0 .75rem 1.5rem rgb(49 87 213 / 28%);
+
+   --shadow-primary-outline: 0 0 0 2px rgb(49 87 213 / 12%);
+
+    --shadow-secondary:
+        0 .5rem 1rem rgb(15 23 42 / 8%);
+
+    --shadow-avatar:
+        0 .3rem .8rem rgb(15 23 42 / 12%);
+
+    --shadow-flag:
+        0 .75rem 1rem rgb(15 23 42 / 20%);
+
+    --shadow-flag-hover:
+        0 1rem 1.4rem rgb(15 23 42 / 28%);
+
+    --shadow-danger:
+        0 .65rem 1.25rem rgb(198 56 56 / 24%);
+
+    --shadow-modal:
+        0 1.5rem 5rem rgb(0 0 0 / 28%);
+
+    /* ===========================
+       Focus
+    =========================== */
+
+    --focus-primary:
+        0 0 0 3px rgb(49 87 213 / 15%);
+
+    --focus-outline:
+        3px solid rgb(49 87 213 / 24%);
+
+    --focus-option:
+        3px solid rgb(49 87 213 / 22%);
+    --color-modal-border: rgba(255, 255, 255, 0.45);
+    --shadow-primary-outline:
+        0 0 0 2px rgb(49 87 213 / 12%);
+
+    --shadow-avatar-active:
+        0 0 0 3px rgb(49 87 213 / 14%);
+
+    --score-background: var(--color-surface-secondary);
+    --score-color: var(--color-text-secondary);
+    /* ===========================
+       Transitions
+    =========================== */
+
+    --transition-fast: 160ms ease;
+    --transition: 180ms ease;
+    --transition-slow: 250ms ease;
+}

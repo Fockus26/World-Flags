@@ -1,0 +1,12 @@
+.modalIcon {
+	display: grid;
+	width: 3.5rem;
+	aspect-ratio: 1;
+	margin-inline: auto;
+	place-items: center;
+	border-radius: var(--radius-full);
+	background: var(--color-danger-bg);
+	color: var(--color-danger);
+	font-size: 1.75rem;
+	font-weight: 900;
+}

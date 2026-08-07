@@ -1,0 +1,98 @@
+.button {
+	display: inline-flex;
+	min-height: 2.9rem;
+	align-items: center;
+	justify-content: center;
+	padding: 0.7rem 1rem;
+	border: 1px solid transparent;
+	border-radius: var(--radius-md);
+	font: inherit;
+	font-weight: 800;
+	cursor: pointer;
+	transition:
+		background-color var(--transition),
+		border-color var(--transition),
+		color var(--transition),
+		box-shadow var(--transition),
+		transform var(--transition),
+		opacity var(--transition);
+}
+
+.button:focus-visible {
+	outline: var(--focus-outline);
+	outline-offset: 2px;
+}
+
+.primaryButton {
+	background: var(--color-primary);
+	color: var(--color-text-inverse);
+	box-shadow: var(--shadow-primary);
+}
+
+.primaryButton:hover:not(:disabled) {
+	background: var(--color-primary-hover);
+	box-shadow: var(--shadow-primary-hover);
+	transform: translateY(-2px);
+}
+
+.primaryButton:active:not(:disabled) {
+	transform: translateY(0) scale(0.98);
+}
+
+.primaryButton:disabled {
+	background: var(--color-border-disabled);
+	box-shadow: none;
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
+.secondaryButton {
+	border-color: var(--color-border-secondary);
+	background: var(--color-surface);
+	color: var(--color-text-secondary);
+	white-space: nowrap;
+}
+
+.secondaryButton:hover {
+	border-color: var(--color-border-disabled);
+	background: var(--color-surface-secondary);
+	box-shadow: var(--shadow-secondary);
+	transform: translateY(-2px);
+}
+
+.secondaryButton:active {
+	transform: translateY(0) scale(0.98);
+}
+
+.dangerButton {
+	background: var(--color-danger);
+	color: var(--color-text-inverse);
+}
+
+.dangerButton:hover {
+	background: var(--color-danger-hover);
+	box-shadow: var(--shadow-danger);
+	transform: translateY(-2px);
+}
+
+.dangerButton:active {
+	transform: translateY(0) scale(0.98);
+}
+
+.exitButton {
+	min-height: 2.5rem;
+	border-color: var(--color-border-light);
+	background: var(--color-surface-disabled);
+	color: var(--color-neutral);
+}
+
+.exitButton:hover {
+	border-color: var(--color-danger-soft-border);
+	background: var(--color-danger-bg);
+	color: var(--color-danger-text);
+	transform: translateY(-1px);
+}
+
+.exitButton:active {
+	transform: translateY(0) scale(0.98);
+}

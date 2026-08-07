@@ -1,22 +1,40 @@
-## Development
+## Claude assistant context for world-flags
 
-When starting the dev server, use background mode:
+This repo is an Astro + React project for a world flags quiz app.
+When working in this codebase, use the existing style system and motion setup instead of introducing new animation libraries or CSS keyframes.
 
-```
-astro dev --background
-```
+### Style system
+- Theme tokens are defined in `src/styles/variables.css`
+- Global CSS lives in `src/styles/global.css` and imports `variables.css`
+- Component styles use CSS Modules in `src/components/**/*.module.css`
+- Prefer CSS variables like `var(--color-primary)`, `var(--radius-lg)` and `var(--transition)`
+- Keep component styles consistent with the current design system and shared utility tokens
 
-Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+### Animation approach
+- Animations are centralized in `src/styles/animations.ts`
+- Use `motionVariants` and `motionTransition` for `framer-motion` variants
+- Components already using motion:
+  - `src/components/game/GameConfiguration.tsx`
+  - `src/components/game/GameSession.tsx`
+  - `src/components/ui/Modal.tsx`
+- Avoid direct CSS animations; add motion variants rather than keyframes
+- `framer-motion` is the source of truth for motion behavior
 
-## Documentation
+### Component structure
+- Shared UI primitives: `src/components/ui/`
+- Game screens and logic: `src/components/game/`
+- Data and types: `src/types/`, `src/utils/`
 
-Full documentation: https://docs.astro.build
+### Best practices for code changes
+- Keep motion and styling separated: variants in `src/styles/animations.ts`, layout/styles in CSS Modules
+- Maintain accessibility: forms, buttons, labels, modal ARIA attributes
+- Reuse existing patterns instead of adding duplicate styles or animation definitions
+- Use `bun` scripts for local workflows where possible
 
-Consult these guides before working on related tasks:
-
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+### Helpful file references
+- `src/styles/global.css`
+- `src/styles/variables.css`
+- `src/styles/animations.ts`
+- `src/components/ui/Modal.tsx`
+- `src/components/game/GameSession.tsx`
+- `src/components/game/GameConfiguration.tsx`

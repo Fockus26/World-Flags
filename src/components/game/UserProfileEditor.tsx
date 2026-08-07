@@ -1,13 +1,17 @@
 import {
 	useState,
-	type FormEvent,
+	type SubmitEvent,
 } from "react";
 import {
 	AVATAR_STYLES,
 	type AvatarStyle,
 	type UserProfile,
 } from "../../types/progress";
-import styles from "./FlagGame.module.css";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Modal } from "../ui/Modal";
+import modalStyles from "../ui/Modal.module.css";
+import styles from "./UserProfileEditor.module.css";
 
 interface UserProfileEditorProps {
 	profile: UserProfile;
@@ -46,7 +50,7 @@ export function UserProfileEditor({
 	);
 
 	function handleSubmit(
-		event: FormEvent<HTMLFormElement>,
+		event: SubmitEvent<HTMLFormElement>,
 	) {
 		event.preventDefault();
 
@@ -64,21 +68,14 @@ export function UserProfileEditor({
 	}
 
 	return (
-		<div
-			className={styles.modalOverlay}
-			role="presentation"
-			onMouseDown={(event) => {
-				if (event.target === event.currentTarget) {
-					onClose();
-				}
-			}}
+		<Modal
+			isOpen={true}
+			onClose={onClose}
+			className={styles.profileModal}
+			ariaLabelledby="profile-title"
 		>
 			<form
-				className={`${styles.modal} ${styles.profileModal}`}
 				onSubmit={handleSubmit}
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="profile-title"
 			>
 				<h2 id="profile-title">Editar perfil</h2>
 
@@ -88,7 +85,7 @@ export function UserProfileEditor({
 				>
 					Nombre
 
-					<input
+					<Input
 						id="profile-name"
 						type="text"
 						value={name}
@@ -165,24 +162,24 @@ export function UserProfileEditor({
 					Avatares generados con DiceBear.
 				</p>
 
-				<div className={styles.modalActions}>
-					<button
-						className={styles.secondaryButton}
+				<div className={modalStyles.modalActions}>
+					<Button
+						variant="secondary"
 						type="button"
 						onClick={onClose}
 					>
 						Cancelar
-					</button>
+					</Button>
 
-					<button
-						className={styles.primaryButton}
+					<Button
+						variant="primary"
 						type="submit"
 						disabled={!name.trim()}
 					>
 						Guardar perfil
-					</button>
+					</Button>
 				</div>
 			</form>
-		</div>
+		</Modal>
 	);
 }
