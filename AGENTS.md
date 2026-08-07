@@ -24,6 +24,8 @@ When working in this codebase, use the existing style system and motion setup in
 - Shared UI primitives: `src/components/ui/`
 - Game screens and logic: `src/components/game/`
 - Data and types: `src/types/`, `src/utils/`
+- App state is managed in `src/context/GameContext.tsx` and consumed by `src/components/game/FlagGame.tsx`
+- `GameResults` is now split into `src/components/game/GameResults.tsx`
 
 ### Best practices for code changes
 - Keep motion and styling separated: variants in `src/styles/animations.ts`, layout/styles in CSS Modules

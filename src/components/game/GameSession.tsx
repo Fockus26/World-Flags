@@ -2,7 +2,6 @@ import {
 	useEffect,
 	useRef,
 	useState,
-	type CSSProperties,
 	type SubmitEvent,
 } from "react";
 import { motion } from "framer-motion";
@@ -10,45 +9,29 @@ import { motionVariants } from "../../styles/animations";
 import {
 	REGION_LABELS,
 	type AnswerStatus,
-	type Country,
-	type GameResult,
-	type PracticeRegion,
 } from "../../types/country";
 import { isCorrectAnswer } from "../../utils/normalize-answer";
-import {
-	calculateScore,
-	getScoreBackgroundColor,
-	getScoreColor,
-	getScoreMessage,
-} from "../../utils/score";
+import { calculateScore } from "../../utils/score";
+import { useGame } from "../../context/GameContext";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import styles from "./GameSession.module.css";
 
-interface GameSessionProps {
-	countries: Country[];
-	region: PracticeRegion;
-	onExit: () => void;
-	onFinish: (result: GameResult) => void;
-    onCountryAttempt: (
-	countryCode: string,
-	isCorrect: boolean,
-) => void;
-}
+export function GameSession() {
+	const {
+		activeGame,
+		exitGame,
+		finishGame,
+		attemptCountry,
+	} = useGame();
 
-interface ScoreStyle extends CSSProperties {
-	"--score-color": string;
-	"--score-background": string;
-}
+	if (!activeGame) {
+		return null;
+	}
 
-export function GameSession({
-	countries,
-	region,
-	onExit,
-	onFinish,
-    onCountryAttempt
-}: GameSessionProps) {
+	const { countries, configuration } = activeGame;
+	const region = configuration.region;
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [answer, setAnswer] = useState("");
 	const [answerStatus, setAnswerStatus] =
@@ -58,7 +41,7 @@ export function GameSession({
 		useState(false);
 
 	const inputRef = useRef<HTMLInputElement>(null);
-    const nextButtonRef = useRef<HTMLButtonElement>(null);
+	const nextButtonRef = useRef<HTMLButtonElement>(null);
 
 	const currentCountry = countries[currentIndex];
 	const isAnswerChecked = answerStatus !== "idle";
@@ -90,7 +73,7 @@ export function GameSession({
 			currentCountry.name,
 		);
 
-        onCountryAttempt(currentCountry.code, isCorrect);
+		attemptCountry(currentCountry.code, isCorrect);
 
 		setAnswerStatus(
 			isCorrect ? "correct" : "incorrect",
@@ -105,7 +88,7 @@ export function GameSession({
 
 	function handleNextCountry() {
         if (isLastCountry) {
-            onFinish({
+            finishGame({
                 score: calculateScore(
                     correctAnswers,
                     countries.length,
@@ -260,86 +243,10 @@ export function GameSession({
 		<ConfirmationModal
 			isOpen={isExitModalOpen}
 			onCancel={() => setIsExitModalOpen(false)}
-			onConfirm={onExit}
+			onConfirm={exitGame}
 		/>
 	</>
 	);
 }
 
-interface GameResultsProps {
-	result: GameResult;
-	onRestart: () => void;
-	onExit: () => void;
-}
 
-export function GameResults({
-	result,
-	onRestart,
-	onExit,
-}: GameResultsProps) {
-	const scoreStyle: ScoreStyle = {
-		"--score-color": getScoreColor(result.score),
-		"--score-background": getScoreBackgroundColor(
-			result.score,
-		),
-	};
-
-	const percentage = Math.round(
-		(result.correctAnswers / result.totalCountries) * 100,
-	);
-
-	return (
-		<section className={styles.results}>
-			<p className={styles.eyebrow}>
-				Práctica terminada
-			</p>
-
-			<h1>{getScoreMessage(result.score)}</h1>
-
-			<div
-				className={styles.scoreCircle}
-				style={scoreStyle}
-			>
-				<strong>{result.score}</strong>
-				<span>/10</span>
-			</div>
-
-			<p className={styles.resultSummary}>
-				Acertaste{" "}
-				<strong>
-					{result.correctAnswers} de{" "}
-					{result.totalCountries}
-				</strong>{" "}
-				banderas, equivalente al {percentage}%.
-			</p>
-
-			{result.region !== "world" && (
-				<p className={styles.savedMessage}>
-					Esta calificación se guardó para{" "}
-					<strong>
-						{REGION_LABELS[result.region]}
-					</strong>
-					.
-				</p>
-			)}
-
-			<div className={styles.resultActions}>
-				<Button
-					variant="secondary"
-					type="button"
-					onClick={onExit}
-				>
-					Volver al inicio
-				</Button>
-
-				<Button
-					variant="primary"
-					type="button"
-					onClick={onRestart}
-				>
-					Repetir práctica
-				</Button>
-			</div>
-		</section>
-	);
-}

@@ -9,7 +9,6 @@ import { motionVariants } from "../../styles/animations";
 import {
 	REGION_LABELS,
 	REGIONS,
-	type GameConfiguration as GameConfigurationType,
 	type PracticeOrder,
 	type PracticeRegion,
 } from "../../types/country";
@@ -17,11 +16,6 @@ import {
 	getScoreBackgroundColor,
 	getScoreColor,
 } from "../../utils/score";
-    import type {
-	UserLearningData,
-	UserProfile,
-} from "../../types/progress";
-
 import {
 	calculateLearningProgress,
 	calculateRegionAverage,
@@ -32,43 +26,35 @@ import {
 import { UserProfileEditor } from "./UserProfileEditor";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
+import { useGame } from "../../context/GameContext";
 
 import styles from "./GameConfiguration.module.css";
-
-interface GameConfigurationProps {
-	learningData: UserLearningData;
-	onProfileSave: (profile: UserProfile) => void;
-	onStart: (configuration: GameConfigurationType) => void;
-}
 
 interface ScoreStyle extends CSSProperties {
 	"--score-color": string;
 	"--score-background": string;
 }
 
-export function GameConfiguration({
-	learningData,
-	onProfileSave,
-	onStart,
-}: GameConfigurationProps) {
-    const [isProfileEditorOpen, setIsProfileEditorOpen] =
-	useState(false);
+export function GameConfiguration() {
+	const { learningData, saveProfile, startGame } = useGame();
+	const [isProfileEditorOpen, setIsProfileEditorOpen] =
+		useState(false);
 
-const learnedCountries = countLearnedCountries(
-	learningData.countryHistory,
-);
+	const learnedCountries = countLearnedCountries(
+		learningData.countryHistory,
+	);
 
-const learningProgress = calculateLearningProgress(
-	learningData.countryHistory,
-	196,
-);
+	const learningProgress = calculateLearningProgress(
+		learningData.countryHistory,
+		196,
+	);
 
-const avatarUrl =
-	`https://api.dicebear.com/9.x/` +
-	`${learningData.profile.avatarStyle}/svg` +
-	`?seed=${encodeURIComponent(
-		learningData.profile.avatarSeed,
-	)}`;
+	const avatarUrl =
+		`https://api.dicebear.com/9.x/` +
+		`${learningData.profile.avatarStyle}/svg` +
+		`?seed=${encodeURIComponent(
+			learningData.profile.avatarSeed,
+		)}`;
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -83,7 +69,7 @@ const avatarUrl =
 			"order",
 		) as PracticeOrder;
 
-		onStart({
+		startGame({
 			region,
 			order,
 		});
@@ -289,7 +275,7 @@ const score = calculateRegionAverage(recentScores);
                 profile={learningData.profile}
                 onClose={() => setIsProfileEditorOpen(false)}
                 onSave={(profile) => {
-                    onProfileSave(profile);
+                    saveProfile(profile);
                     setIsProfileEditorOpen(false);
                 }}
             />
