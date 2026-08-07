@@ -56,6 +56,10 @@ export function GameConfiguration() {
 			learningData.profile.avatarSeed,
 		)}`;
 
+		const lastRegion = learningData.lastConfiguration?.region ?? "world";
+const lastOrder = learningData.lastConfiguration?.order ?? "alphabetical";
+
+
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 
@@ -159,7 +163,7 @@ export function GameConfiguration() {
 								type="radio"
 								name="region"
 								value="world"
-								defaultChecked
+  								defaultChecked={lastRegion === "world"}
 							/>
 
 							<span className={styles.optionContent}>
@@ -198,6 +202,7 @@ const score = calculateRegionAverage(recentScores);
 										type="radio"
 										name="region"
 										value={region}
+  										defaultChecked={lastRegion === region}
 									/>
 
 									<span
@@ -243,7 +248,7 @@ const score = calculateRegionAverage(recentScores);
 								type="radio"
 								name="order"
 								value="alphabetical"
-								defaultChecked
+								defaultChecked={lastOrder === "alphabetical"}
 							/>
 
 							<span className={styles.optionContent}>
@@ -256,6 +261,7 @@ const score = calculateRegionAverage(recentScores);
 								type="radio"
 								name="order"
 								value="random"
+								defaultChecked={lastOrder === "random"} 
 							/>
 
 							<span className={styles.optionContent}>

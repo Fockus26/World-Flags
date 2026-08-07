@@ -13,6 +13,7 @@ import {
   registerCountryAttempt,
   registerRegionGame,
   saveUserProfile,
+  saveLastConfiguration,
 } from "../utils/learning-storage";
 import type {
   Country,
@@ -71,6 +72,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const startGame = useCallback(
     (configuration: GameConfigurationType) => {
       setLastResult(null);
+
+      const updatedData = saveLastConfiguration(configuration); 
+      setLearningData(updatedData);
+
       setActiveGame({
         configuration,
         countries: prepareCountries(countries, configuration),

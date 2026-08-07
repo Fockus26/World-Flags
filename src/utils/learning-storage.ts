@@ -1,4 +1,4 @@
-import type { Region } from "../types/country";
+import type { GameConfiguration, Region } from "../types/country";
 import type {
 	CountriesLearningHistory,
 	UserLearningData,
@@ -19,6 +19,7 @@ const DEFAULT_DATA: UserLearningData = {
 	profile: DEFAULT_PROFILE,
 	countryHistory: {},
 	regionGameScores: {},
+	lastConfiguration: null,
 };
 
 export function getLearningData(): UserLearningData {
@@ -44,6 +45,7 @@ export function getLearningData(): UserLearningData {
 			},
 			countryHistory: parsedData.countryHistory ?? {},
 			regionGameScores: parsedData.regionGameScores ?? {},
+			lastConfiguration: parsedData.lastConfiguration ?? null,
 		};
 	} catch {
 		return DEFAULT_DATA;
@@ -67,6 +69,21 @@ export function saveUserProfile(
 	const updatedData: UserLearningData = {
 		...currentData,
 		profile,
+	};
+
+	saveLearningData(updatedData);
+
+	return updatedData;
+}
+
+export function saveLastConfiguration(
+	configuration: GameConfiguration,
+): UserLearningData {
+	const currentData = getLearningData();
+
+	const updatedData: UserLearningData = {
+		...currentData,
+		lastConfiguration: configuration,
 	};
 
 	saveLearningData(updatedData);
@@ -130,16 +147,8 @@ export function registerRegionGame(
 	return updatedData;
 }
 
-export function isCountryLearned(
-	attempts: boolean[],
-): boolean {
-	if (attempts.length < 2) {
-		return false;
-	}
-
-	const correctAttempts = attempts.filter(Boolean).length;
-
-	return correctAttempts >= 2;
+export function isCountryLearned(attempts: boolean[]): boolean {
+	return attempts.some(Boolean);
 }
 
 export function countLearnedCountries(

@@ -1,4 +1,4 @@
-import type { Region } from "./country";
+import type { GameConfiguration, Region } from "./country";
 
 export const AVATAR_STYLES = [
 	"adventurer",
@@ -33,4 +33,5 @@ export interface UserLearningData {
 	profile: UserProfile;
 	countryHistory: CountriesLearningHistory;
 	regionGameScores: RegionGameScores;
+  	lastConfiguration: GameConfiguration | null;
 }
