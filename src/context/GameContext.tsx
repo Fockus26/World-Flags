@@ -1,6 +1,5 @@
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useState,
@@ -14,11 +13,13 @@ import {
   registerRegionGame,
   saveUserProfile,
   saveLastConfiguration,
+  updateLastConfiguration,
 } from "../utils/learning-storage";
-import type {
-  Country,
-  GameConfiguration as GameConfigurationType,
-  GameResult,
+import {
+  DEFAULT_TIMER_DURATION,
+  type Country,
+  type GameConfiguration as GameConfigurationType,
+  type GameResult,
 } from "../types/country";
 import type {
   UserLearningData,
@@ -40,6 +41,7 @@ interface GameContextValue {
   restartGame: () => void;
   attemptCountry: (countryCode: string, isCorrect: boolean) => void;
   saveProfile: (profile: UserProfile) => void;
+  updateSettings: (partial: Partial<GameConfigurationType>) => void;
 }
 
 const GameContext = createContext<GameContextValue | undefined>(
@@ -69,22 +71,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setLearningData(getLearningData());
   }, []);
 
-  const startGame = useCallback(
-    (configuration: GameConfigurationType) => {
-      setLastResult(null);
+  const startGame = (configuration: GameConfigurationType) => {
+    setLastResult(null);
 
-      const updatedData = saveLastConfiguration(configuration); 
-      setLearningData(updatedData);
+    const updatedData = saveLastConfiguration(configuration);
+    setLearningData(updatedData);
 
-      setActiveGame({
-        configuration,
-        countries: prepareCountries(countries, configuration),
-      });
-    },
-    [],
-  );
+    setActiveGame({
+      configuration,
+      countries: prepareCountries(countries, configuration),
+    });
+  };
 
-  const finishGame = useCallback((result: GameResult) => {
+  const finishGame = (result: GameResult) => {
     setLastResult(result);
     setActiveGame(null);
 
@@ -96,14 +95,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
       setLearningData(updatedData);
     }
-  }, []);
+  };
 
-  const exitGame = useCallback(() => {
+  const exitGame = () => {
     setActiveGame(null);
     setLastResult(null);
-  }, []);
+  };
 
-  const restartGame = useCallback(() => {
+  const restartGame = () => {
     if (!lastResult) {
       return;
     }
@@ -111,28 +110,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
     startGame({
       region: lastResult.region,
       order: "random",
+      timerDuration:
+        learningData.lastConfiguration?.timerDuration ??
+        DEFAULT_TIMER_DURATION,
     });
-  }, [lastResult, startGame]);
+  };
 
-  const attemptCountry = useCallback(
-    (countryCode: string, isCorrect: boolean) => {
-      const updatedData = registerCountryAttempt(
-        countryCode,
-        isCorrect,
-      );
+  const attemptCountry = (countryCode: string, isCorrect: boolean) => {
+    const updatedData = registerCountryAttempt(
+      countryCode,
+      isCorrect,
+    );
 
-      setLearningData(updatedData);
-    },
-    [],
-  );
+    setLearningData(updatedData);
+  };
 
-  const saveProfile = useCallback(
-    (profile: UserProfile) => {
-      const updatedData = saveUserProfile(profile);
-      setLearningData(updatedData);
-    },
-    [],
-  );
+  const saveProfile = (profile: UserProfile) => {
+    const updatedData = saveUserProfile(profile);
+    setLearningData(updatedData);
+  };
+
+  const updateSettings = (partial: Partial<GameConfigurationType>) => {
+    const updatedData = updateLastConfiguration(partial);
+    setLearningData(updatedData);
+  };
 
   return (
     <GameContext.Provider
@@ -146,6 +147,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         restartGame,
         attemptCountry,
         saveProfile,
+        updateSettings
       }}
     >
       {children}

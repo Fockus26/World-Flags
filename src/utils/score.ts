@@ -13,20 +13,23 @@ export function calculateScore(
 	return Math.min(10, Math.max(1, rawScore));
 }
 
-export function getScoreColor(score: number): string {
+export function getScoreColor(score: number, isDark = false): string {
 	const normalizedScore = Math.min(10, Math.max(1, score));
 	const progress = (normalizedScore - 1) / 9;
 	const hue = Math.round(progress * 120);
+	const lightness = isDark ? 68 : 42;
 
-	return `hsl(${hue} 72% 42%)`;
+	return `hsl(${hue} 72% ${lightness}%)`;
 }
 
-export function getScoreBackgroundColor(score: number): string {
+export function getScoreBackgroundColor(score: number, isDark = false): string {
 	const normalizedScore = Math.min(10, Math.max(1, score));
 	const progress = (normalizedScore - 1) / 9;
 	const hue = Math.round(progress * 120);
+	const lightness = isDark ? 22 : 94;
+	const saturation = isDark ? 48 : 72;
 
-	return `hsl(${hue} 72% 94%)`;
+	return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
 export function getScoreMessage(score: number): string {

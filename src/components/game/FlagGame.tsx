@@ -28,10 +28,6 @@ function FlagGameContent() {
 export default function FlagGame() {
 	return (
 		<main className={styles.application}>
-			<div className={styles.themeToggle}>
-				<ThemeSwitcher />
-			</div>
-
 			<FlagGameContent />
 		</main>
 	);

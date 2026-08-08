@@ -1,4 +1,4 @@
-import type { GameConfiguration, Region } from "../types/country";
+import { DEFAULT_TIMER_DURATION, type GameConfiguration, type Region } from "../types/country";
 import type {
 	CountriesLearningHistory,
 	UserLearningData,
@@ -84,6 +84,28 @@ export function saveLastConfiguration(
 	const updatedData: UserLearningData = {
 		...currentData,
 		lastConfiguration: configuration,
+	};
+
+	saveLearningData(updatedData);
+
+	return updatedData;
+}
+
+export function updateLastConfiguration(
+	partial: Partial<GameConfiguration>,
+): UserLearningData {
+	const currentData = getLearningData();
+
+	const updatedData: UserLearningData = {
+		...currentData,
+		lastConfiguration: {
+			region: currentData.lastConfiguration?.region ?? "world",
+			order: currentData.lastConfiguration?.order ?? "alphabetical",
+			timerDuration:
+				currentData.lastConfiguration?.timerDuration ??
+				DEFAULT_TIMER_DURATION,
+			...partial,
+		},
 	};
 
 	saveLearningData(updatedData);

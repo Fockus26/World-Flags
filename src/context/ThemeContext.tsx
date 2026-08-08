@@ -2,7 +2,6 @@ import {
 	createContext,
 	useContext,
 	useEffect,
-	useMemo,
 	useState,
 	type ReactNode,
 } from "react";
@@ -85,10 +84,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 		localStorage.setItem("theme", theme);
 	}, [resolvedTheme, theme]);
 
-	const value = useMemo(
-		() => ({ theme, resolvedTheme, setTheme }),
-		[theme, resolvedTheme],
-	);
+	const value = { theme, resolvedTheme, setTheme };
 
 	return (
 		<ThemeContext.Provider value={value}>

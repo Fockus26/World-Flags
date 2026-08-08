@@ -7,9 +7,9 @@ import { motion } from "framer-motion";
 import { motionVariants } from "../../styles/animations";
 
 import {
+	DEFAULT_TIMER_DURATION, 
 	REGION_LABELS,
 	REGIONS,
-	type PracticeOrder,
 	type PracticeRegion,
 } from "../../types/country";
 import {
@@ -22,13 +22,16 @@ import {
 	countLearnedCountries,
 	formatScore,
 } from "../../utils/learning-storage";
+import { REGION_COUNTRY_COUNTS } from "../../utils/region-stats";
 
 import { UserProfileEditor } from "./UserProfileEditor";
+import { GameSettingsModal } from "./GameSettingsModal";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
 import { useGame } from "../../context/GameContext";
 
 import styles from "./GameConfiguration.module.css";
+import { useTheme } from "../../context/ThemeContext";
 
 interface ScoreStyle extends CSSProperties {
 	"--score-color": string;
@@ -36,9 +39,16 @@ interface ScoreStyle extends CSSProperties {
 }
 
 export function GameConfiguration() {
-	const { learningData, saveProfile, startGame } = useGame();
+const { resolvedTheme } = useTheme();
+const isDarkTheme = resolvedTheme === "dark";
+	const { learningData, saveProfile, startGame, updateSettings } = useGame();
 	const [isProfileEditorOpen, setIsProfileEditorOpen] =
 		useState(false);
+	const [isSettingsModalOpen, setIsSettingsModalOpen] =
+		useState(false);
+
+	const order = learningData.lastConfiguration?.order ?? "alphabetical";
+	const timerDuration = learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION;
 
 	const learnedCountries = countLearnedCountries(
 		learningData.countryHistory,
@@ -57,8 +67,6 @@ export function GameConfiguration() {
 		)}`;
 
 		const lastRegion = learningData.lastConfiguration?.region ?? "world";
-const lastOrder = learningData.lastConfiguration?.order ?? "alphabetical";
-
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -69,13 +77,10 @@ const lastOrder = learningData.lastConfiguration?.order ?? "alphabetical";
 			"region",
 		) as PracticeRegion;
 
-		const order = formData.get(
-			"order",
-		) as PracticeOrder;
-
 		startGame({
 			region,
 			order,
+			timerDuration,
 		});
 	}
 
@@ -87,12 +92,12 @@ const lastOrder = learningData.lastConfiguration?.order ?? "alphabetical";
 			initial="hidden"
 			animate="visible"
 		>
-            <motion.div
-				className={styles.userSummary}
-				variants={motionVariants.contentEnter}
-				initial="hidden"
-				animate="visible"
-			>
+           <motion.div
+	className={styles.userSummary}
+	variants={motionVariants.contentEnter}
+	initial="hidden"
+	animate="visible"
+>
 	<button
 		className={styles.profileButton}
 		type="button"
@@ -106,14 +111,16 @@ const lastOrder = learningData.lastConfiguration?.order ?? "alphabetical";
 
 		<span className={styles.profileText}>
 			<strong>{learningData.profile.name}</strong>
-			<small>Editar perfil</small>
 		</span>
 	</button>
 
 	<div className={styles.globalProgress}>
 		<div className={styles.globalProgressHeader}>
 			<span>Progreso global</span>
-			<strong>{learningProgress}%</strong>
+			<span className={styles.globalProgressStats}>
+				<strong>{learningProgress}%</strong>
+				<small>{learnedCountries}/196</small>
+			</span>
 		</div>
 
 		<div
@@ -125,29 +132,24 @@ const lastOrder = learningData.lastConfiguration?.order ?? "alphabetical";
 		>
 			<div
 				className={styles.globalProgressValue}
-				style={{
-					width: `${learningProgress}%`,
-				}}
+				style={{ width: `${learningProgress}%` }}
 			/>
 		</div>
-
-		<small>
-			{learnedCountries} de 196 países aprendidos
-		</small>
 	</div>
-			</motion.div>
+	
+	<Button
+		variant="secondary"
+		type="button"
+		className={styles.settingsButton}
+		aria-label="Configuración"
+		onClick={() => setIsSettingsModalOpen(true)}
+	>
+		⚙️
+	</Button>
+</motion.div>
 
 			<header className={styles.header}>
-				<p className={styles.eyebrow}>
-					Entrenamiento de geografía
-				</p>
-
 				<h1>Aprende las banderas del mundo</h1>
-
-				<p>
-					Selecciona una región y el orden de las
-					banderas.
-				</p>
 			</header>
 
 			<form
@@ -155,120 +157,73 @@ const lastOrder = learningData.lastConfiguration?.order ?? "alphabetical";
 				onSubmit={handleSubmit}
 			>
 				<fieldset className={styles.fieldset}>
-					<legend>Países</legend>
+					<legend>Continentes</legend>
 
 					<div className={styles.regionGrid}>
-						<label className={styles.option}>
-							<input
-								type="radio"
-								name="region"
-								value="world"
-  								defaultChecked={lastRegion === "world"}
-							/>
+	<label className={styles.option}>
+		<input
+			type="radio"
+			name="region"
+			value="world"
+			defaultChecked={lastRegion === "world"}
+		/>
+		<span className={styles.optionContent}>
+			<span className={styles.optionTop}>
+				<span className={styles.optionName}>Todo el mundo</span>
+			</span>
+			<span className={styles.optionMeta}>196 países</span>
+		</span>
+	</label>
 
-							<span className={styles.optionContent}>
-								<span>Todo el mundo</span>
+	{REGIONS.map((region) => {
+		const recentScores = learningData.regionGameScores[region];
+		const score = calculateRegionAverage(recentScores);
+		const countryCount = REGION_COUNTRY_COUNTS[region];
 
-								<span className={styles.countryCount}>
-									196
-								</span>
-							</span>
-						</label>
+		const scoreStyle: ScoreStyle | undefined =
+	score !== null
+		? {
+				"--score-color": getScoreColor(score, isDarkTheme), 
+				"--score-background": getScoreBackgroundColor(score, isDarkTheme), 
+			}
+		: undefined;
 
-						{REGIONS.map((region) => {
-							const recentScores =
-	learningData.regionGameScores[region];
+		return (
+			<label className={styles.option} key={region} style={scoreStyle}>
+				<input
+					type="radio"
+					name="region"
+					value={region}
+					defaultChecked={lastRegion === region}
+				/>
 
-const score = calculateRegionAverage(recentScores);
+				<span className={styles.optionContent}>
+					<span className={styles.optionTop}>
+						<span className={styles.optionName}>
+							{REGION_LABELS[region]}
+						</span>
 
-							const scoreStyle: ScoreStyle | undefined =
-								score !== null
-									? {
-											"--score-color":
-												getScoreColor(score),
-											"--score-background":
-												getScoreBackgroundColor(
-													score,
-												),
-										}
-									: undefined;
-
-							return (
-								<label
-									className={styles.option}
-									key={region}
+						{score !== null && (
+							<Tooltip label="Promedio de tus últimas 3 partidas">
+								<span
+									className={styles.optionScoreValue}
+									tabIndex={0}
+									aria-label="Promedio de las últimas tres partidas completadas"
 								>
-									<input
-										type="radio"
-										name="region"
-										value={region}
-  										defaultChecked={lastRegion === region}
-									/>
+									{formatScore(score)}/10
+								</span>
+							</Tooltip>
+						)}
+					</span>
 
-									<span
-										className={styles.optionContent}
-									>
-										<span>
-											{REGION_LABELS[region]}
-										</span>
-
-										{score !== null ? (
-											<Tooltip label="Promedio de tus últimas 3 partidas">
-												<span
-													className={styles.regionScore}
-													style={scoreStyle}
-													tabIndex={0}
-													aria-label="Promedio de las últimas tres partidas completadas"
-												>
-													{formatScore(score)}/10
-												</span>
-											</Tooltip>
-										) : (
-											<span
-												className={
-													styles.notPracticed
-												}
-											>
-												Sin nota
-											</span>
-										)}
-									</span>
-								</label>
-							);
-						})}
-					</div>
-				</fieldset>
-
-				<fieldset className={styles.fieldset}>
-					<legend>Orden</legend>
-
-					<div className={styles.orderGrid}>
-						<label className={styles.option}>
-							<input
-								type="radio"
-								name="order"
-								value="alphabetical"
-								defaultChecked={lastOrder === "alphabetical"}
-							/>
-
-							<span className={styles.optionContent}>
-								<span>Alfabético</span>
-							</span>
-						</label>
-
-						<label className={styles.option}>
-							<input
-								type="radio"
-								name="order"
-								value="random"
-								defaultChecked={lastOrder === "random"} 
-							/>
-
-							<span className={styles.optionContent}>
-								<span>Aleatorio</span>
-							</span>
-						</label>
-					</div>
+					<span className={styles.optionMeta}>
+						{countryCount} países
+					</span>
+				</span>
+			</label>
+		);
+	})}
+</div>
 				</fieldset>
 
 				<Button variant="primary" type="submit">
@@ -276,16 +231,23 @@ const score = calculateRegionAverage(recentScores);
 				</Button>
 			</form>
 		</motion.section>
-        {isProfileEditorOpen && (
-            <UserProfileEditor
-                profile={learningData.profile}
-                onClose={() => setIsProfileEditorOpen(false)}
-                onSave={(profile) => {
-                    saveProfile(profile);
-                    setIsProfileEditorOpen(false);
-                }}
-            />
-        )}
+		<UserProfileEditor
+			isOpen={isProfileEditorOpen}
+			profile={learningData.profile}
+			onClose={() => setIsProfileEditorOpen(false)}
+			onSave={(profile) => {
+				saveProfile(profile);
+				setIsProfileEditorOpen(false);
+			}}
+		/>
+		<GameSettingsModal
+			isOpen={isSettingsModalOpen}
+			onClose={() => setIsSettingsModalOpen(false)}
+			order={order}
+			onOrderChange={(value) => updateSettings({ order: value })}
+			timerDuration={timerDuration}
+			onTimerDurationChange={(value) => updateSettings({ timerDuration: value })} 
+		/>
 </>
 	);
 }

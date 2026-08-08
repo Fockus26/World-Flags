@@ -10,6 +10,7 @@ import {
 	REGION_LABELS,
 	type AnswerStatus,
 } from "../../types/country";
+import { Timer } from "./Timer";
 import { isCorrectAnswer } from "../../utils/normalize-answer";
 import { calculateScore } from "../../utils/score";
 import { useGame } from "../../context/GameContext";
@@ -32,6 +33,7 @@ export function GameSession() {
 
 	const { countries, configuration } = activeGame;
 	const region = configuration.region;
+	const timerDuration = configuration.timerDuration;
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [answer, setAnswer] = useState("");
 	const [answerStatus, setAnswerStatus] =
@@ -39,6 +41,7 @@ export function GameSession() {
 	const [correctAnswers, setCorrectAnswers] = useState(0);
 	const [isExitModalOpen, setIsExitModalOpen] =
 		useState(false);
+	const [timeLeft, setTimeLeft] = useState<number>(timerDuration);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 	const nextButtonRef = useRef<HTMLButtonElement>(null);
@@ -56,6 +59,36 @@ export function GameSession() {
 
         nextButtonRef.current?.focus();
     }, [answerStatus, currentIndex]);
+
+		useEffect(() => {
+		setTimeLeft(timerDuration);
+	}, [currentIndex, timerDuration]);
+
+	const handleTimeout = () => {
+		if (!currentCountry || answerStatus !== "idle") {
+			return;
+		}
+
+		attemptCountry(currentCountry.code, false);
+		setAnswerStatus("incorrect");
+	};
+
+	useEffect(() => {
+		if (answerStatus !== "idle") {
+			return;
+		}
+
+		if (timeLeft <= 0) {
+			handleTimeout();
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setTimeLeft((currentValue) => currentValue - 1);
+		}, 1000);
+
+		return () => window.clearTimeout(timeoutId);
+	}, [timeLeft, answerStatus, handleTimeout]);
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -128,6 +161,8 @@ export function GameSession() {
 							{currentIndex + 1} / {countries.length}
 						</p>
 					</div>
+
+					<Timer timeLeft={timeLeft} totalDuration={timerDuration} /> 
 
 					<Button
 						variant="exit"

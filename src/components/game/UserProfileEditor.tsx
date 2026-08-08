@@ -1,4 +1,5 @@
 import {
+	useEffect,
 	useState,
 	type SubmitEvent,
 } from "react";
@@ -14,6 +15,7 @@ import modalStyles from "../ui/Modal.module.css";
 import styles from "./UserProfileEditor.module.css";
 
 interface UserProfileEditorProps {
+	isOpen: boolean;
 	profile: UserProfile;
 	onSave: (profile: UserProfile) => void;
 	onClose: () => void;
@@ -38,6 +40,7 @@ function getAvatarUrl(
 }
 
 export function UserProfileEditor({
+	isOpen,
 	profile,
 	onSave,
 	onClose,
@@ -48,6 +51,16 @@ export function UserProfileEditor({
 	const [avatarSeed, setAvatarSeed] = useState(
 		profile.avatarSeed,
 	);
+
+	useEffect(() => {
+		if (!isOpen) {
+			return;
+		}
+
+		setName(profile.name);
+		setAvatarStyle(profile.avatarStyle);
+		setAvatarSeed(profile.avatarSeed);
+	}, [isOpen, profile]);
 
 	function handleSubmit(
 		event: SubmitEvent<HTMLFormElement>,
@@ -69,7 +82,7 @@ export function UserProfileEditor({
 
 	return (
 		<Modal
-			isOpen={true}
+			isOpen={isOpen}
 			onClose={onClose}
 			className={styles.profileModal}
 			ariaLabelledby="profile-title"

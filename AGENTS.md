@@ -1,43 +1,15 @@
 ## Claude assistant context for world-flags
 
-This repo is an Astro + React project for a world flags quiz app.
-When working in this codebase, use the existing style system and motion setup instead of introducing new animation libraries or CSS keyframes.
+Astro + React + TypeScript + Bun. Quiz de banderas con progreso tipo Anki.
 
-### Style system
-- Theme tokens are defined in `src/styles/variables.css`
-- Global CSS lives in `src/styles/global.css` and imports `variables.css`
-- Component styles use CSS Modules in `src/components/**/*.module.css`
-- Prefer CSS variables like `var(--color-primary)`, `var(--radius-lg)` and `var(--transition)`
-- Keep component styles consistent with the current design system and shared utility tokens
+### Antes de tocar código, lee según la tarea:
+- Estilos/design system → docs/design-system.md
+- Animaciones → docs/design-system.md#animations
+- Estado global / progreso persistido → docs/state-management.md
+- Agregar features de juego (regiones, orden, scoring) → docs/features.md
 
-### Animation approach
-- Animations are centralized in `src/styles/animations.ts`
-- Use `motionVariants` and `motionTransition` for `framer-motion` variants
-- Components already using motion:
-  - `src/components/game/GameConfiguration.tsx`
-  - `src/components/game/GameSession.tsx`
-  - `src/components/ui/Modal.tsx`
-- Avoid direct CSS animations; add motion variants rather than keyframes
-- `framer-motion` is the source of truth for motion behavior
-
-### Component structure
-- Shared UI primitives: `src/components/ui/`
-- Game screens and logic: `src/components/game/`
-- Data and types: `src/types/`, `src/utils/`
-- App state is managed in `src/context/GameContext.tsx` and consumed by `src/components/game/FlagGame.tsx`
-- The UI supports dark mode through CSS variables in `src/styles/variables.css`
-- `GameResults` is now split into `src/components/game/GameResults.tsx`
-
-### Best practices for code changes
-- Keep motion and styling separated: variants in `src/styles/animations.ts`, layout/styles in CSS Modules
-- Maintain accessibility: forms, buttons, labels, modal ARIA attributes
-- Reuse existing patterns instead of adding duplicate styles or animation definitions
-- Use `bun` scripts for local workflows where possible
-
-### Helpful file references
-- `src/styles/global.css`
-- `src/styles/variables.css`
-- `src/styles/animations.ts`
-- `src/components/ui/Modal.tsx`
-- `src/components/game/GameSession.tsx`
-- `src/components/game/GameConfiguration.tsx`
+### Reglas rápidas (aplican siempre)
+- No introduzcas librerías de animación nuevas ni CSS keyframes: todo motion vive en `src/styles/animations.ts`
+- Estilos con CSS Modules + variables de `src/styles/variables.css`, nunca hardcodear colores/spacing
+- Cualquier dato persistido va a través de `src/utils/learning-storage.ts` (localStorage), no acceso directo a `window.localStorage` desde componentes
+- `bun` para todo (install/dev/build)

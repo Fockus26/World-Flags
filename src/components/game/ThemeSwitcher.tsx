@@ -1,30 +1,31 @@
-import { Select } from "../ui/Select";
 import { useTheme } from "../../context/ThemeContext";
 import styles from "./ThemeSwitcher.module.css";
 
 const themeOptions = [
-	{ value: "light", label: "☀️ Claro" },
-	{ value: "dark", label: "🌙 Oscuro" },
-	{ value: "system", label: "🖥️ Sistema" },
-];
+	{ value: "light", icon: "☀️", label: "Claro" },
+	{ value: "dark", icon: "🌙", label: "Oscuro" },
+	{ value: "system", icon: "🖥️", label: "Sistema" },
+] as const;
 
 export function ThemeSwitcher() {
 	const { theme, setTheme } = useTheme();
 
 	return (
-		<div className={styles.switcher}>
-			<label htmlFor="theme-select" className={styles.label}>
-				Tema
-			</label>
-			<Select
-				id="theme-select"
-				value={theme}
-				onChange={(event) =>
-					setTheme(event.target.value as "light" | "dark" | "system")
-				}
-				options={themeOptions}
-				aria-label="Seleccionar tema"
-			/>
+		<div className={styles.switcher} role="group" aria-label="Seleccionar tema">
+			{themeOptions.map((option) => (
+				<button
+					key={option.value}
+					type="button"
+					className={`${styles.themeButton}${
+						theme === option.value ? ` ${styles.themeButtonActive}` : ""
+					}`}
+					aria-pressed={theme === option.value}
+					onClick={() => setTheme(option.value)}
+				>
+					<span aria-hidden="true">{option.icon}</span>
+					<span>{option.label}</span>
+				</button>
+			))}
 		</div>
 	);
 }

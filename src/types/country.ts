@@ -1,3 +1,9 @@
+export const TIMER_DURATIONS = [5, 10, 15] as const;
+
+export type TimerDuration = (typeof TIMER_DURATIONS)[number];
+
+export const DEFAULT_TIMER_DURATION: TimerDuration = 10;
+
 export const REGIONS = [
 	"north-america",
 	"central-america",
@@ -24,6 +30,7 @@ export interface Country {
 export interface GameConfiguration {
 	region: PracticeRegion;
 	order: PracticeOrder;
+	timerDuration: TimerDuration;
 }
 
 export interface GameResult {
