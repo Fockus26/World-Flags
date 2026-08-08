@@ -1,158 +1,92 @@
 .userSummary {
-	display: grid;
-	flex-shrink: 0;
-	grid-template-columns: minmax(0, auto) minmax(14rem, 1fr) auto;
-	gap: 1rem;
+	display: flex;
 	align-items: center;
-	margin-bottom: 1rem;
-	padding: 0.75rem;
+	gap: 0.85rem;
+	width: 100%;
 	border: 1px solid var(--color-border-lighter);
-	border-radius: var(--radius-lg);
-	background: var(--color-surface-secondary);
-}
-
-.settingsButton {
-	display: flex;
-	width: 2.35rem;
-	height: 2.35rem;
-	flex-shrink: 0;
-	align-items: center;
-	justify-content: center;
-	padding: 0;
-	border-color: var(--color-border-light);
-	background: var(--color-surface-disabled);
-	color: var(--color-neutral);
-	font-size: 1rem;
-}
-
-.settingsButton:hover {
-	border-color: var(--color-border-disabled);
-	background: var(--color-surface-secondary);
-	color: var(--color-text-secondary);
-	transform: translateY(-1px);
-}
-
-.profileButton {
-	display: flex;
-	align-items: center;
-	gap: 0.7rem;
-	padding: 0.4rem;
-	border: 0;
 	border-radius: var(--radius-md);
-	background: transparent;
-	color: inherit;
-	text-align: left;
+	background: var(--color-surface, #fff);
+	padding: 0.65rem 0.9rem;
 	cursor: pointer;
+	text-align: left;
 	transition:
-		background-color var(--transition),
+		border-color var(--transition),
+		box-shadow var(--transition),
 		transform var(--transition);
 }
 
-.profileButton:hover {
-	background: var(--color-primary-soft);
-	transform: translateY(-1px);
+.userSummary:hover {
+	box-shadow: var(--shadow-secondary);
+	transform: translateY(-2px);
+}
+
+.userSummary:focus-visible {
+	outline: var(--focus-outline);
+	outline-offset: 2px;
 }
 
 .profileAvatar {
-	width: 3.25rem;
-	height: 3.25rem;
 	flex-shrink: 0;
-	border: 2px solid var(--color-surface);
-	border-radius: 50%;
-	background: var(--color-avatar-bg);
-	box-shadow: var(--shadow-avatar);
+	width: 3rem;
+	height: 3rem;
+	border-radius: var(--radius-md);
 	object-fit: cover;
 }
 
-.profileText {
-	display: grid;
+.profileInfo {
+	display: flex;
 	min-width: 0;
-	gap: 0.15rem;
+	flex: 1;
+	flex-direction: column;
+	gap: 0.35rem;
 }
 
-.profileText strong {
+.profileNameRow {
+	display: flex;
+	align-items: baseline;
+	gap: 0.5rem;
+	min-width: 0;
+}
+
+.profileNameRow strong {
 	overflow: hidden;
+	font-size: 0.95rem;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.globalProgress {
-	display: grid;
-	gap: 0.4rem;
+.accountBadge {
+	flex-shrink: 0;
+	color: var(--color-text-subtle);
+	font-size: 0.7rem;
+	font-weight: 600;
 }
 
-.globalProgressHeader {
+.globalProgress {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: 1rem;
-	font-size: 0.85rem;
-}
-
-.globalProgressHeader strong {
-	color: var(--color-primary);
+	gap: 0.5rem;
 }
 
 .globalProgressBar {
-	height: 0.55rem;
+	flex: 1;
+	height: 0.4rem;
 	overflow: hidden;
-	border-radius: var(--radius-full);
-	background: var(--color-border-progress);
+	border-radius: var(--radius-sm);
+	background: var(--color-border-lighter);
 }
 
 .globalProgressValue {
 	height: 100%;
-	border-radius: inherit;
-	background: linear-gradient(
-		90deg,
-		var(--color-primary),
-		var(--color-primary-light)
-	);
-	transition: width 500ms ease;
+	border-radius: var(--radius-sm);
+	background: var(--color-text);
+	transition: width var(--transition);
 }
 
 .globalProgressStats {
-	display: flex;
-	align-items: baseline;
-	gap: 0.4rem;
-}
-
-.globalProgressStats small {
+	flex-shrink: 0;
 	color: var(--color-text-subtle);
 	font-size: 0.72rem;
-}
-
-@media (max-width: 44rem) {
-	.userSummary {
-		grid-template-columns: minmax(0, 1fr) auto;
-		grid-template-areas:
-			"profile settings"
-			"progress progress";
-		gap: 0.65rem;
-	}
-
-	.profileButton {
-		grid-area: profile;
-		width: 100%;
-	}
-
-	.settingsButton {
-		grid-area: settings;
-	}
-
-	.globalProgress {
-		grid-area: progress;
-	}
-}
-
-@media (max-width: 30rem) {
-	.userSummary {
-		margin-bottom: 0.6rem;
-		padding: 0.55rem;
-	}
-
-	.profileAvatar {
-		width: 2.8rem;
-		height: 2.8rem;
-	}
+	font-weight: 600;
+	white-space: nowrap;
 }

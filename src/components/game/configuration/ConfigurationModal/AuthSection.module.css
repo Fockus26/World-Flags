@@ -1,0 +1,90 @@
+.authSection {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.guestNotice {
+	margin: 0;
+	color: var(--color-text-subtle);
+	font-size: 0.8rem;
+}
+
+.accountStatus {
+	margin: 0;
+	font-size: 0.85rem;
+}
+
+.modeSwitch {
+	display: flex;
+	gap: 0.4rem;
+	border: none;
+	margin: 0;
+	padding: 0;
+}
+
+.modeButton {
+	flex: 1;
+	border: 1px solid var(--color-border-lighter);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	padding: 0.4rem;
+	color: var(--color-text-subtle);
+	font: inherit;
+	font-size: 0.78rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition:
+		background-color var(--transition-fast),
+		color var(--transition-fast);
+}
+
+.modeButtonActive {
+	background: var(--color-text);
+	color: var(--color-surface, #fff);
+}
+
+.authForm {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	font-size: 0.85rem;
+	font-weight: 700;
+}
+
+.error {
+	margin: 0;
+	color: var(--color-danger, #d64545);
+	font-size: 0.78rem;
+	font-weight: 600;
+}
+
+.divider {
+	position: relative;
+	margin: 0.25rem 0;
+	text-align: center;
+}
+
+.divider span {
+	position: relative;
+	z-index: 1;
+	background: var(--color-surface, #fff);
+	padding: 0 0.5rem;
+	color: var(--color-text-subtle);
+	font-size: 0.72rem;
+}
+
+.divider::before {
+	position: absolute;
+	top: 50%;
+	right: 0;
+	left: 0;
+	border-top: 1px solid var(--color-border-lighter);
+	content: "";
+}

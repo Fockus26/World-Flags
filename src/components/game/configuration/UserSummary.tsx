@@ -1,83 +1,62 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/Button";
 import { motionVariants } from "@/styles/animations";
 import styles from "./UserSummary.module.css";
 
 interface UserSummaryProps {
 	name: string;
 	avatarUrl: string;
+	accountLabel: string;
 	learningProgress: number;
 	learnedCountries: number;
 	totalCountries: number;
-	onEditProfile: () => void;
-	onOpenSettings: () => void;
+	onOpenModal: () => void;
 }
 
 export function UserSummary({
 	name,
 	avatarUrl,
+	accountLabel,
 	learningProgress,
 	learnedCountries,
 	totalCountries,
-	onEditProfile,
-	onOpenSettings,
+	onOpenModal,
 }: UserSummaryProps) {
 	return (
-		<motion.div
+		<motion.button
+			type="button"
 			className={styles.userSummary}
 			variants={motionVariants.contentEnter}
 			initial="hidden"
 			animate="visible"
+			aria-label={`${name}, progreso ${learningProgress} por ciento. Abrir perfil y configuración.`}
+			onClick={onOpenModal}
 		>
-			<button
-				className={styles.profileButton}
-				type="button"
-				onClick={onEditProfile}
-			>
-				<img
-					className={styles.profileAvatar}
-					src={avatarUrl}
-					alt={`Avatar de ${name}`}
-				/>
-				<span className={styles.profileText}>
+			<img className={styles.profileAvatar} src={avatarUrl} alt="" aria-hidden="true" />
+
+			<span className={styles.profileInfo}>
+				<span className={styles.profileNameRow}>
 					<strong>{name}</strong>
+					<span className={styles.accountBadge}>{accountLabel}</span>
 				</span>
-			</button>
 
-			<div className={styles.globalProgress}>
-				<div className={styles.globalProgressHeader}>
-					<span>Progreso global</span>
-					<span className={styles.globalProgressStats}>
-						<strong>{learningProgress}%</strong>
-						<small>
-							{learnedCountries}/{totalCountries}
-						</small>
+				<span className={styles.globalProgress}>
+					<span
+						className={styles.globalProgressBar}
+						role="progressbar"
+						aria-valuemin={0}
+						aria-valuemax={100}
+						aria-valuenow={learningProgress}
+					>
+						<span
+							className={styles.globalProgressValue}
+							style={{ width: `${learningProgress}%` }}
+						/>
 					</span>
-				</div>
-
-				<div
-					className={styles.globalProgressBar}
-					role="progressbar"
-					aria-valuemin={0}
-					aria-valuemax={100}
-					aria-valuenow={learningProgress}
-				>
-					<div
-						className={styles.globalProgressValue}
-						style={{ width: `${learningProgress}%` }}
-					/>
-				</div>
-			</div>
-
-			<Button
-				variant="secondary"
-				type="button"
-				className={styles.settingsButton}
-				aria-label="Configuración"
-				onClick={onOpenSettings}
-			>
-				⚙️
-			</Button>
-		</motion.div>
+					<span className={styles.globalProgressStats}>
+						{learningProgress}% · {learnedCountries}/{totalCountries}
+					</span>
+				</span>
+			</span>
+		</motion.button>
 	);
 }

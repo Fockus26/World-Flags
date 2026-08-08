@@ -1,35 +1,30 @@
 import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/context/AuthContext";
 import { useGame } from "@/context/GameContext";
 import { motionVariants } from "@/styles/animations";
 import { DEFAULT_TIMER_DURATION, type PracticeRegion } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
-import {
-	calculateLearningProgress,
-	countLearnedCountries,
-} from "@/utils/learning-storage";
+import { calculateLearningProgress, countLearnedCountries } from "@/utils/learning-storage";
 import styles from "./Configuration.module.css";
+import { AccountTab } from "./ConfigurationModal/AccountTab";
+import { ConfigurationModal } from "./ConfigurationModal/ConfigurationModal";
 import { RegionSelector } from "./RegionSelector";
-import { SettingsModal } from "./SettingsModal";
-import { UserEditorModal } from "./UserEditorModal/UserEditorModal";
 import { UserSummary } from "./UserSummary";
 
 export function Configuration() {
 	const { learningData, saveProfile, startGame, updateSettings } = useGame();
-	const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
-	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+	const [isConfigurationModalOpen, setIsConfigurationModalOpen] = useState(false);
+	const { status, user } = useAuth();
+	const accountLabel = status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
 
 	const order = learningData.lastConfiguration?.order ?? "alphabetical";
-	const timerDuration =
-		learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION;
+	const timerDuration = learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION;
 	const lastRegion = learningData.lastConfiguration?.region ?? "world";
 
 	const learnedCountries = countLearnedCountries(learningData.countryHistory);
-	const learningProgress = calculateLearningProgress(
-		learningData.countryHistory,
-		196,
-	);
+	const learningProgress = calculateLearningProgress(learningData.countryHistory, 196);
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -52,11 +47,11 @@ export function Configuration() {
 						learningData.profile.avatarStyle,
 						learningData.profile.avatarSeed,
 					)}
+					accountLabel={accountLabel}
 					learningProgress={learningProgress}
 					learnedCountries={learnedCountries}
 					totalCountries={196}
-					onEditProfile={() => setIsProfileEditorOpen(true)}
-					onOpenSettings={() => setIsSettingsModalOpen(true)}
+					onOpenModal={() => setIsConfigurationModalOpen(true)}
 				/>
 
 				<header className={styles.header}>
@@ -74,25 +69,15 @@ export function Configuration() {
 				</form>
 			</motion.section>
 
-			<UserEditorModal
-				isOpen={isProfileEditorOpen}
+			<ConfigurationModal
+				isOpen={isConfigurationModalOpen}
+				onClose={() => setIsConfigurationModalOpen(false)}
 				profile={learningData.profile}
-				onClose={() => setIsProfileEditorOpen(false)}
-				onSave={(profile) => {
-					saveProfile(profile);
-					setIsProfileEditorOpen(false);
-				}}
-			/>
-
-			<SettingsModal
-				isOpen={isSettingsModalOpen}
-				onClose={() => setIsSettingsModalOpen(false)}
+				onSaveProfile={saveProfile}
 				order={order}
 				onOrderChange={(value) => updateSettings({ order: value })}
 				timerDuration={timerDuration}
-				onTimerDurationChange={(value) =>
-					updateSettings({ timerDuration: value })
-				}
+				onTimerDurationChange={(value) => updateSettings({ timerDuration: value })}
 			/>
 		</>
 	);

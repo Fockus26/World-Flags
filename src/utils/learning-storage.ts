@@ -10,8 +10,8 @@ import type {
 } from "@/types/progress";
 
 const STORAGE_KEY = "world-flags-learning-data";
-const MAX_COUNTRY_ATTEMPTS = 3;
-const MAX_REGION_GAMES = 3;
+export const MAX_COUNTRY_ATTEMPTS = 3;
+export const MAX_REGION_GAMES = 3;
 
 const DEFAULT_PROFILE: UserProfile = {
 	name: "Explorador",
@@ -56,6 +56,10 @@ export function getLearningData(): UserLearningData {
 
 export function saveLearningData(data: UserLearningData): void {
 	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+export function clearLearningData(): void {
+	window.localStorage.removeItem(STORAGE_KEY);
 }
 
 export function saveUserProfile(profile: UserProfile): UserLearningData {

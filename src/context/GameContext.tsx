@@ -1,10 +1,5 @@
-import {
-	createContext,
-	type ReactNode,
-	useContext,
-	useEffect,
-	useState,
-} from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { countries } from "@/data/countries";
 import {
 	type Country,
@@ -13,11 +8,14 @@ import {
 	type GameResult,
 } from "@/types/country";
 import type { UserLearningData, UserProfile } from "@/types/progress";
+import { pushLearningData, syncOnLogin } from "@/utils/cloud-storage";
 import {
+	clearLearningData,
 	getLearningData,
 	registerCountryAttempt,
 	registerRegionGame,
 	saveLastConfiguration,
+	saveLearningData,
 	saveUserProfile,
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
@@ -54,15 +52,47 @@ export function useGame() {
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
-	const [learningData, setLearningData] = useState<UserLearningData>(() =>
-		getLearningData(),
-	);
+	const [learningData, setLearningData] = useState<UserLearningData>(() => getLearningData());
 	const [activeGame, setActiveGame] = useState<ActiveGame | null>(null);
 	const [lastResult, setLastResult] = useState<GameResult | null>(null);
 
 	useEffect(() => {
 		setLearningData(getLearningData());
 	}, []);
+
+	const { user, status } = useAuth();
+	const hasSyncedRef = useRef(false);
+	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+	useEffect(() => {
+		if (status !== "authenticated" || !user || hasSyncedRef.current) return;
+
+		hasSyncedRef.current = true;
+
+		syncOnLogin(user.id, getLearningData()).then((merged) => {
+			saveLearningData(merged);
+			setLearningData(merged);
+		});
+	}, [status, user]);
+
+	useEffect(() => {
+		if (status !== "guest" || !hasSyncedRef.current) return;
+
+		hasSyncedRef.current = false;
+		clearLearningData();
+		setLearningData(getLearningData());
+	}, [status]);
+
+	useEffect(() => {
+		if (status !== "authenticated" || !user) return;
+
+		clearTimeout(pushTimeoutRef.current);
+		pushTimeoutRef.current = setTimeout(() => {
+			pushLearningData(user.id, learningData);
+		}, 800);
+
+		return () => clearTimeout(pushTimeoutRef.current);
+	}, [learningData, status, user]);
 
 	const startGame = (configuration: GameConfigurationType) => {
 		setLastResult(null);
@@ -100,8 +130,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		startGame({
 			region: lastResult.region,
 			order: "random",
-			timerDuration:
-				learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			timerDuration: learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
 		});
 	};
 
