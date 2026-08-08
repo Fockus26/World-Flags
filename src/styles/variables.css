@@ -1,293 +1,263 @@
 :root {
-    /* ===========================
+	/* ===========================
        Brand
     =========================== */
 
-    --color-primary: #3157d5;
-    --color-primary-hover: #2445b5;
-    --color-primary-light: #6e8cff;
+	--color-primary: #3157d5;
+	--color-primary-hover: #2445b5;
+	--color-primary-light: #6e8cff;
 
-    --color-primary-soft: #eef2ff;
-    --color-primary-soft-hover: #f7f9ff;
+	--color-primary-soft: #eef2ff;
+	--color-primary-soft-hover: #f7f9ff;
 
-    /* ===========================
+	/* ===========================
        Surfaces
     =========================== */
 
-    --color-surface: #ffffff;
-    --color-surface-secondary: #f8f9fc;
-    --color-surface-muted: #f4f6f9;
-    --color-surface-disabled: #f1f3f6;
+	--color-surface: #ffffff;
+	--color-surface-secondary: #f8f9fc;
+	--color-surface-muted: #f4f6f9;
+	--color-surface-disabled: #f1f3f6;
 
-    /* ===========================
+	/* ===========================
        Borders
     =========================== */
 
-    --color-border: #d9dde5;
-    --color-border-light: #dfe3ea;
-    --color-border-lighter: #e0e4eb;
-    --color-border-soft: #e2e6ec;
+	--color-border: #d9dde5;
+	--color-border-light: #dfe3ea;
+	--color-border-lighter: #e0e4eb;
+	--color-border-soft: #e2e6ec;
 
-    --color-border-secondary: #d3d9e3;
+	--color-border-secondary: #d3d9e3;
 
-    --color-border-disabled: #aeb7c5;
+	--color-border-disabled: #aeb7c5;
 
-    --color-border-primary: #3157d5;
-    --color-border-primary-hover: #8da2e8;
+	--color-border-primary: #3157d5;
+	--color-border-primary-hover: #8da2e8;
 
-    --color-border-input-hover: #6f87d9;
+	--color-border-input-hover: #6f87d9;
 
-    --color-border-progress: #dfe4ed;
+	--color-border-progress: #dfe4ed;
 
-    /* ===========================
+	/* ===========================
        Typography
     =========================== */
 
-    --color-text: #172033;
-    --color-text-secondary: #263244;
-    --color-text-muted: #526070;
-    --color-text-light: #606c7c;
-    --color-text-disabled: #667284;
-    --color-text-subtle: #697586;
-    --color-text-placeholder: #7a8697;
+	--color-text: #172033;
+	--color-text-secondary: #263244;
+	--color-text-muted: #526070;
+	--color-text-light: #606c7c;
+	--color-text-disabled: #667284;
+	--color-text-subtle: #697586;
+	--color-text-placeholder: #7a8697;
 
-    --color-text-inverse: #ffffff;
+	--color-text-inverse: #ffffff;
 
-    /* ===========================
+	/* ===========================
        Success
     =========================== */
 
-    --color-success: #17643a;
-    --color-success-bg: #e9f8ef;
-    --color-success-border: #b5e5c9;
+	--color-success: #17643a;
+	--color-success-bg: #e9f8ef;
+	--color-success-border: #b5e5c9;
 
-    /* ===========================
+	/* ===========================
        Danger
     =========================== */
 
-    --color-danger: #c63838;
-    --color-danger-hover: #a92828;
+	--color-danger: #c63838;
+	--color-danger-hover: #a92828;
 
-    --color-danger-text: #a62b2b;
+	--color-danger-text: #a62b2b;
 
-    --color-danger-bg: #fee2e2;
-    --color-danger-border: #efc1c1;
+	--color-danger-bg: #fee2e2;
+	--color-danger-border: #efc1c1;
 
-    --color-danger-soft-border: #efb0b0;
+	--color-danger-soft-border: #efb0b0;
 
-    /* ===========================
+	/* ===========================
        Neutral
     =========================== */
 
-    --color-neutral: #4b5666;
+	--color-neutral: #4b5666;
 
-    /* ===========================
+	/* ===========================
        Progress
     =========================== */
 
-    --color-progress-bg: #e8ebf0;
+	--color-progress-bg: #e8ebf0;
 
-    /* ===========================
+	/* ===========================
        Avatar
     =========================== */
 
-    --color-avatar-bg: #e6eafa;
+	--color-avatar-bg: #e6eafa;
 
-    /* ===========================
+	/* ===========================
        Tooltip
     =========================== */
 
-    --color-tooltip-bg: #172033;
-    --color-tooltip-text: #ffffff;
+	--color-tooltip-bg: #172033;
+	--color-tooltip-text: #ffffff;
 
-    /* ===========================
+	/* ===========================
        Overlay
     =========================== */
 
-    --color-overlay: rgb(15 23 42 / 58%);
+	--color-overlay: rgb(15 23 42 / 58%);
 
-    /* ===========================
+	/* ===========================
        Checkerboard
     =========================== */
 
-    --color-checker: #eef0f4;
+	--color-checker: #eef0f4;
 
-    /* ===========================
+	/* ===========================
        Radius
     =========================== */
 
-    --radius-sm: .5rem;
-    --radius-md: .75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.25rem;
-    --radius-2xl: 1.5rem;
-    --radius-full: 999px;
+	--radius-sm: 0.5rem;
+	--radius-md: 0.75rem;
+	--radius-lg: 1rem;
+	--radius-xl: 1.25rem;
+	--radius-2xl: 1.5rem;
+	--radius-full: 999px;
 
-    /* ===========================
+	/* ===========================
        Shadows
     =========================== */
 
-    --shadow-card: 0 1.25rem 4rem rgb(15 23 42 / 10%);
+	--shadow-card: 0 1.25rem 4rem rgb(15 23 42 / 10%);
 
-    --shadow-primary:
-        0 .5rem 1.1rem rgb(49 87 213 / 20%);
+	--shadow-primary: 0 0.5rem 1.1rem rgb(49 87 213 / 20%);
 
-    --shadow-primary-hover:
-        0 .75rem 1.5rem rgb(49 87 213 / 28%);
+	--shadow-primary-hover: 0 0.75rem 1.5rem rgb(49 87 213 / 28%);
 
-   --shadow-primary-outline: 0 0 0 2px rgb(49 87 213 / 12%);
+	--shadow-primary-outline: 0 0 0 2px rgb(49 87 213 / 12%);
 
-    --shadow-secondary:
-        0 .5rem 1rem rgb(15 23 42 / 8%);
+	--shadow-secondary: 0 0.5rem 1rem rgb(15 23 42 / 8%);
 
-    --shadow-avatar:
-        0 .3rem .8rem rgb(15 23 42 / 12%);
+	--shadow-avatar: 0 0.3rem 0.8rem rgb(15 23 42 / 12%);
 
-    --shadow-flag:
-        0 .75rem 1rem rgb(15 23 42 / 20%);
+	--shadow-flag: 0 0.75rem 1rem rgb(15 23 42 / 20%);
 
-    --shadow-flag-hover:
-        0 1rem 1.4rem rgb(15 23 42 / 28%);
+	--shadow-flag-hover: 0 1rem 1.4rem rgb(15 23 42 / 28%);
 
-    --shadow-danger:
-        0 .65rem 1.25rem rgb(198 56 56 / 24%);
+	--shadow-danger: 0 0.65rem 1.25rem rgb(198 56 56 / 24%);
 
-    --shadow-modal:
-        0 1.5rem 5rem rgb(0 0 0 / 28%);
+	--shadow-modal: 0 1.5rem 5rem rgb(0 0 0 / 28%);
 
-    /* ===========================
+	/* ===========================
        Focus
     =========================== */
 
-    --focus-primary:
-        0 0 0 3px rgb(49 87 213 / 15%);
+	--focus-primary: 0 0 0 3px rgb(49 87 213 / 15%);
 
-    --focus-outline:
-        3px solid rgb(49 87 213 / 24%);
+	--focus-outline: 3px solid rgb(255 255 255 / 24%);
 
-    --focus-option:
-        3px solid rgb(49 87 213 / 22%);
-    --color-modal-border: rgba(255, 255, 255, 0.45);
-    --shadow-primary-outline:
-        0 0 0 2px rgb(49 87 213 / 12%);
+	--focus-option: 3px solid rgb(49 87 213 / 22%);
+	--color-modal-border: rgba(255, 255, 255, 0.45);
 
-    --shadow-avatar-active:
-        0 0 0 3px rgb(49 87 213 / 14%);
+	--shadow-avatar-active: 0 0 0 3px rgb(49 87 213 / 14%);
 
-    --score-background: var(--color-surface-secondary);
-    --score-color: var(--color-text-secondary);
-    /* ===========================
+	--score-background: var(--color-surface-secondary);
+	--score-color: var(--color-text-secondary);
+	/* ===========================
        Transitions
     =========================== */
 
-    --transition-fast: 160ms ease;
-    --transition: 180ms ease;
-    --transition-slow: 250ms ease;
+	--transition-fast: 160ms ease;
+	--transition: 180ms ease;
+	--transition-slow: 250ms ease;
 }
 @media (prefers-color-scheme: dark) {
-:root:not([data-theme]) {
-    --color-surface: #111827;
-    --color-surface-secondary: #1f2937;
-    --color-surface-muted: #0f172a;
-    --color-surface-disabled: #1e293b;
+	:root:not([data-theme]) {
+		--color-surface: #111827;
+		--color-surface-secondary: #1f2937;
+		--color-surface-muted: #0f172a;
+		--color-surface-disabled: #1e293b;
 
-    --color-border: #334155;
-    --color-border-light: #475569;
-    --color-border-lighter: #334155;
-    --color-border-soft: #334155;
-    --color-border-secondary: #475569;
-    --color-border-disabled: #64748b;
-    --color-border-primary: #8da2e8;
-    --color-border-primary-hover: #9fb7ff;
-    --color-border-input-hover: #94a3b8;
-    --color-border-progress: #334155;
+		--color-border: #334155;
+		--color-border-light: #475569;
+		--color-border-lighter: #334155;
+		--color-border-soft: #334155;
+		--color-border-secondary: #475569;
+		--color-border-disabled: #64748b;
+		--color-border-primary: #8da2e8;
+		--color-border-primary-hover: #9fb7ff;
+		--color-border-input-hover: #94a3b8;
+		--color-border-progress: #334155;
 
-    --color-text: #f8fafc;
-    --color-text-secondary: #e2e8f0;
-    --color-text-muted: #94a3b8;
-    --color-text-light: #cbd5e1;
-    --color-text-disabled: #94a3b8;
-    --color-text-subtle: #94a3b8;
-    --color-text-placeholder: #94a3b8;
+		--color-text: #f8fafc;
+		--color-text-secondary: #e2e8f0;
+		--color-text-muted: #94a3b8;
+		--color-text-light: #cbd5e1;
+		--color-text-disabled: #94a3b8;
+		--color-text-subtle: #94a3b8;
+		--color-text-placeholder: #94a3b8;
 
-    --color-primary-soft: #1f2b5a;
-    --color-primary-soft-hover: #273c8f;
-    --color-progress-bg: #1e293b;
-    --color-avatar-bg: #111827;
-    --color-tooltip-bg: #f8fafc;
-    --color-tooltip-text: #0f172a;
-    --color-overlay: rgb(15 23 42 / 70%);
-    --color-checker: #1e293b;
+		--color-primary-soft: #1f2b5a;
+		--color-primary-soft-hover: #273c8f;
+		--color-progress-bg: #1e293b;
+		--color-avatar-bg: #111827;
+		--color-tooltip-bg: #f8fafc;
+		--color-tooltip-text: #0f172a;
+		--color-overlay: rgb(15 23 42 / 70%);
+		--color-checker: #1e293b;
 
-    --shadow-card: 0 1.25rem 4rem rgb(0 0 0 / 25%);
-    --shadow-primary:
-        0 .5rem 1.1rem rgb(49 87 213 / 16%);
-    --shadow-primary-hover:
-        0 .75rem 1.5rem rgb(49 87 213 / 22%);
-    --shadow-secondary:
-        0 .5rem 1rem rgb(0 0 0 / 12%);
-    --shadow-avatar:
-        0 .3rem .8rem rgb(0 0 0 / 18%);
-    --shadow-flag:
-        0 .75rem 1rem rgb(0 0 0 / 24%);
-    --shadow-flag-hover:
-        0 1rem 1.4rem rgb(0 0 0 / 28%);
-    --shadow-danger:
-        0 .65rem 1.25rem rgb(198 56 56 / 24%);
-    --shadow-modal:
-        0 1.5rem 5rem rgb(0 0 0 / 35%);
-}
+		--shadow-card: 0 1.25rem 4rem rgb(0 0 0 / 25%);
+		--shadow-primary: 0 0.5rem 1.1rem rgb(49 87 213 / 16%);
+		--shadow-primary-hover: 0 0.75rem 1.5rem rgb(49 87 213 / 22%);
+		--shadow-secondary: 0 0.5rem 1rem rgb(0 0 0 / 12%);
+		--shadow-avatar: 0 0.3rem 0.8rem rgb(0 0 0 / 18%);
+		--shadow-flag: 0 0.75rem 1rem rgb(0 0 0 / 24%);
+		--shadow-flag-hover: 0 1rem 1.4rem rgb(0 0 0 / 28%);
+		--shadow-danger: 0 0.65rem 1.25rem rgb(198 56 56 / 24%);
+		--shadow-modal: 0 1.5rem 5rem rgb(0 0 0 / 35%);
+	}
 }
 
 :root[data-theme="dark"] {
-    --color-surface: #111827;
-    --color-surface-secondary: #1f2937;
-    --color-surface-muted: #0f172a;
-    --color-surface-disabled: #1e293b;
+	--color-surface: #111827;
+	--color-surface-secondary: #1f2937;
+	--color-surface-muted: #0f172a;
+	--color-surface-disabled: #1e293b;
 
-    --color-border: #334155;
-    --color-border-light: #475569;
-    --color-border-lighter: #334155;
-    --color-border-soft: #334155;
-    --color-border-secondary: #475569;
-    --color-border-disabled: #64748b;
-    --color-border-primary: #8da2e8;
-    --color-border-primary-hover: #9fb7ff;
-    --color-border-input-hover: #94a3b8;
-    --color-border-progress: #334155;
+	--color-border: #334155;
+	--color-border-light: #475569;
+	--color-border-lighter: #334155;
+	--color-border-soft: #334155;
+	--color-border-secondary: #475569;
+	--color-border-disabled: #64748b;
+	--color-border-primary: #8da2e8;
+	--color-border-primary-hover: #9fb7ff;
+	--color-border-input-hover: #94a3b8;
+	--color-border-progress: #334155;
 
-    --color-text: #f8fafc;
-    --color-text-secondary: #e2e8f0;
-    --color-text-muted: #94a3b8;
-    --color-text-light: #cbd5e1;
-    --color-text-disabled: #94a3b8;
-    --color-text-subtle: #94a3b8;
-    --color-text-placeholder: #94a3b8;
+	--color-text: #f8fafc;
+	--color-text-secondary: #e2e8f0;
+	--color-text-muted: #94a3b8;
+	--color-text-light: #cbd5e1;
+	--color-text-disabled: #94a3b8;
+	--color-text-subtle: #94a3b8;
+	--color-text-placeholder: #94a3b8;
 
-    --color-primary-soft: #1f2b5a;
-    --color-primary-soft-hover: #273c8f;
-    --color-progress-bg: #1e293b;
-    --color-avatar-bg: #111827;
-    --color-tooltip-bg: #f8fafc;
-    --color-tooltip-text: #0f172a;
-    --color-overlay: rgb(15 23 42 / 70%);
-    --color-checker: #1e293b;
+	--color-primary-soft: #1f2b5a;
+	--color-primary-soft-hover: #273c8f;
+	--color-progress-bg: #1e293b;
+	--color-avatar-bg: #111827;
+	--color-tooltip-bg: #f8fafc;
+	--color-tooltip-text: #0f172a;
+	--color-overlay: rgb(15 23 42 / 70%);
+	--color-checker: #1e293b;
 
-    --shadow-card: 0 1.25rem 4rem rgb(0 0 0 / 25%);
-    --shadow-primary:
-        0 .5rem 1.1rem rgb(49 87 213 / 16%);
-    --shadow-primary-hover:
-        0 .75rem 1.5rem rgb(49 87 213 / 22%);
-    --shadow-secondary:
-        0 .5rem 1rem rgb(0 0 0 / 12%);
-    --shadow-avatar:
-        0 .3rem .8rem rgb(0 0 0 / 18%);
-    --shadow-flag:
-        0 .75rem 1rem rgb(0 0 0 / 24%);
-    --shadow-flag-hover:
-        0 1rem 1.4rem rgb(0 0 0 / 28%);
-    --shadow-danger:
-        0 .65rem 1.25rem rgb(198 56 56 / 24%);
-    --shadow-modal:
-        0 1.5rem 5rem rgb(0 0 0 / 35%);
+	--shadow-card: 0 1.25rem 4rem rgb(0 0 0 / 25%);
+	--shadow-primary: 0 0.5rem 1.1rem rgb(49 87 213 / 16%);
+	--shadow-primary-hover: 0 0.75rem 1.5rem rgb(49 87 213 / 22%);
+	--shadow-secondary: 0 0.5rem 1rem rgb(0 0 0 / 12%);
+	--shadow-avatar: 0 0.3rem 0.8rem rgb(0 0 0 / 18%);
+	--shadow-flag: 0 0.75rem 1rem rgb(0 0 0 / 24%);
+	--shadow-flag-hover: 0 1rem 1.4rem rgb(0 0 0 / 28%);
+	--shadow-danger: 0 0.65rem 1.25rem rgb(198 56 56 / 24%);
+	--shadow-modal: 0 1.5rem 5rem rgb(0 0 0 / 35%);
 }

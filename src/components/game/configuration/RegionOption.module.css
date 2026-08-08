@@ -1,0 +1,116 @@
+.option {
+	position: relative;
+	display: flex;
+	min-width: 0;
+	min-height: 4.75rem;
+	align-items: center;
+	border: 1px solid var(--color-border-lighter);
+	border-left: 4px solid var(--score-color);
+	border-radius: var(--radius-md);
+	background: var(--score-background);
+	cursor: pointer;
+	transition:
+		border-color var(--transition),
+		background-color var(--transition),
+		box-shadow var(--transition),
+		transform var(--transition);
+}
+
+.option:hover {
+	border-top-color: var(--score-color);
+	border-right-color: var(--score-color);
+	border-bottom-color: var(--score-color);
+	box-shadow: var(--shadow-secondary);
+	transform: translateY(-2px);
+}
+
+.option:has(input:checked) {
+	border-top-color: var(--score-color);
+	border-right-color: var(--score-color);
+	border-bottom-color: var(--score-color);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--score-color) 30%, transparent);
+}
+
+.option:has(input:focus-visible) {
+	outline: var(--focus-option);
+	outline-offset: 2px;
+}
+
+.option input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.optionContent {
+	display: flex;
+	width: 100%;
+	min-width: 0;
+	flex-direction: column;
+	gap: 0.25rem;
+	padding: 0.75rem 0.85rem;
+}
+
+.optionTop {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	min-width: 0;
+}
+
+.optionName {
+	overflow: hidden;
+	color: var(--score-color);
+	font-size: 0.92rem;
+	font-weight: 800;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.optionScoreValue {
+	flex-shrink: 0;
+	color: var(--score-color);
+	font-size: 0.78rem;
+	font-weight: 900;
+	transition: transform var(--transition);
+	border-radius: var(--radius-sm);
+}
+
+.option:hover .optionScoreValue {
+	transform: scale(1.08);
+}
+
+.optionMeta {
+	color: var(--color-text-subtle);
+	font-size: 0.72rem;
+	font-weight: 600;
+}
+
+@media (max-width: 44rem) {
+	.optionContent {
+		font-size: 0.82rem;
+	}
+}
+
+@media (max-width: 30rem) {
+	.option {
+		min-height: 4.1rem;
+	}
+
+	.optionContent {
+		padding: 0.6rem 0.65rem;
+	}
+}
+
+@media (max-height: 43rem) {
+	.option {
+		min-height: 3.9rem;
+	}
+
+	.optionContent {
+		padding-block: 0.45rem;
+	}
+}

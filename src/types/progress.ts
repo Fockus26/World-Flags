@@ -20,18 +20,13 @@ export interface CountryLearningHistory {
 	attempts: boolean[];
 }
 
-export type CountriesLearningHistory = Record<
-	string,
-	CountryLearningHistory
->;
+export type CountriesLearningHistory = Record<string, CountryLearningHistory>;
 
-export type RegionGameScores = Partial<
-	Record<Region, number[]>
->;
+export type RegionGameScores = Partial<Record<Region, number[]>>;
 
 export interface UserLearningData {
 	profile: UserProfile;
 	countryHistory: CountriesLearningHistory;
 	regionGameScores: RegionGameScores;
-  	lastConfiguration: GameConfiguration | null;
+	lastConfiguration: GameConfiguration | null;
 }

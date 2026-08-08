@@ -56,8 +56,8 @@
 }
 
 .savedMessage {
-	margin-top: 0.75rem !important;
-	color: var(--color-text-subtle) !important;
+	margin-top: 0.75rem;
+	color: var(--color-text-subtle);
 	font-size: 0.9rem;
 }
 

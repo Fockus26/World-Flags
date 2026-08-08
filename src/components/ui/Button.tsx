@@ -1,14 +1,9 @@
-import { forwardRef, type ButtonHTMLAttributes } from "react";
+import { type ButtonHTMLAttributes, forwardRef } from "react";
 import styles from "./Button.module.css";
 
-type ButtonVariant =
-	| "primary"
-	| "secondary"
-	| "danger"
-	| "exit";
+type ButtonVariant = "primary" | "secondary" | "danger" | "exit";
 
-export interface ButtonProps
-	extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	variant?: ButtonVariant;
 }
 
@@ -20,10 +15,7 @@ const variantClass: Record<ButtonVariant, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-	function Button(
-		{ variant = "primary", className, ...props },
-		ref,
-	) {
+	function Button({ variant = "primary", className, ...props }, ref) {
 		return (
 			<button
 				{...props}

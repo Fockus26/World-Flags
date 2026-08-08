@@ -37,6 +37,12 @@ body {
 		var(--color-surface-muted);
 }
 
+button {
+	appearance: none;
+	border: none;
+	background: transparent;
+}
+
 button,
 input {
 	font: inherit;
@@ -49,10 +55,10 @@ input:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    * {
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-    }
+	* {
+		scroll-behavior: auto;
+		transition-duration: 0.01ms;
+		animation-duration: 0.01ms;
+		animation-iteration-count: 1;
+	}
 }

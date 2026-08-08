@@ -6,9 +6,7 @@ export function calculateScore(
 		return 1;
 	}
 
-	const rawScore = Math.round(
-		(correctAnswers / totalCountries) * 10,
-	);
+	const rawScore = Math.round((correctAnswers / totalCountries) * 10);
 
 	return Math.min(10, Math.max(1, rawScore));
 }

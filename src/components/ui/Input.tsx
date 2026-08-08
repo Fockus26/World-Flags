@@ -1,4 +1,4 @@
-import { forwardRef, type ComponentPropsWithoutRef } from "react";
+import { type ComponentPropsWithoutRef, forwardRef } from "react";
 import styles from "./Input.module.css";
 
 export const Input = forwardRef<
@@ -9,9 +9,7 @@ export const Input = forwardRef<
 		<input
 			{...props}
 			ref={ref}
-			className={`${styles.input}${
-				className ? ` ${className}` : ""
-			}`}
+			className={`${styles.input}${className ? ` ${className}` : ""}`}
 		/>
 	);
 });

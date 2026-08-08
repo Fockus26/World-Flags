@@ -17,20 +17,13 @@ export function Timer({ timeLeft, totalDuration }: TimerProps) {
 
 	return (
 		<div
-			className={`${styles.timer}${
-				isDanger ? ` ${styles.timerDanger}` : ""
-			}`}
+			className={`${styles.timer}${isDanger ? ` ${styles.timerDanger}` : ""}`}
 			role="timer"
 			aria-live="polite"
 			aria-label={`${timeLeft} segundos restantes`}
 		>
 			<svg className={styles.ring} viewBox="0 0 60 60" aria-hidden="true">
-				<circle
-					className={styles.ringTrack}
-					cx="30"
-					cy="30"
-					r={RADIUS}
-				/>
+				<circle className={styles.ringTrack} cx="30" cy="30" r={RADIUS} />
 				<motion.circle
 					className={styles.ringValue}
 					cx="30"

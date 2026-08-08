@@ -1,28 +1,23 @@
-import { useGame } from "../../context/GameContext";
-import { GameConfiguration } from "./GameConfiguration";
-import { GameResults } from "./GameResults";
-import { GameSession } from "./GameSession";
-import { ThemeSwitcher } from "./ThemeSwitcher";
+import { useGame } from "@/context/GameContext";
+import { Configuration } from "./configuration/Configuration";
 import styles from "./FlagGame.module.css";
+import { Results } from "./Results";
+import { Session } from "./session/Session";
 
 function FlagGameContent() {
 	const { activeGame, lastResult, exitGame, restartGame } = useGame();
 
 	if (activeGame) {
-		return <GameSession />;
+		return <Session />;
 	}
 
 	if (lastResult) {
 		return (
-			<GameResults
-				result={lastResult}
-				onRestart={restartGame}
-				onExit={exitGame}
-			/>
+			<Results result={lastResult} onRestart={restartGame} onExit={exitGame} />
 		);
 	}
 
-	return <GameConfiguration />;
+	return <Configuration />;
 }
 
 export default function FlagGame() {

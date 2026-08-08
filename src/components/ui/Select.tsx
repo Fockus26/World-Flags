@@ -1,4 +1,4 @@
-import { forwardRef, type ComponentPropsWithoutRef } from "react";
+import { type ComponentPropsWithoutRef, forwardRef } from "react";
 import styles from "./Select.module.css";
 
 export interface SelectOption {
@@ -6,8 +6,7 @@ export interface SelectOption {
 	label: string;
 }
 
-export interface SelectProps
-	extends ComponentPropsWithoutRef<"select"> {
+export interface SelectProps extends ComponentPropsWithoutRef<"select"> {
 	options: SelectOption[];
 }
 

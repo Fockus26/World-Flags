@@ -1,14 +1,14 @@
-import { Modal } from "../ui/Modal";
-import { Button } from "../ui/Button";
-import { ThemeSwitcher } from "./ThemeSwitcher";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 import {
-	TIMER_DURATIONS,
 	type PracticeOrder,
+	TIMER_DURATIONS,
 	type TimerDuration,
-} from "../../types/country";
-import styles from "./GameSettingsModal.module.css";
+} from "@/types/country";
+import styles from "./SettingsModal.module.css";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
-interface GameSettingsModalProps {
+interface SettingsModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	order: PracticeOrder;
@@ -17,14 +17,14 @@ interface GameSettingsModalProps {
 	onTimerDurationChange: (duration: TimerDuration) => void;
 }
 
-export function GameSettingsModal({
+export function SettingsModal({
 	isOpen,
 	onClose,
 	order,
 	onOrderChange,
 	timerDuration,
 	onTimerDurationChange,
-}: GameSettingsModalProps) {
+}: SettingsModalProps) {
 	return (
 		<Modal
 			isOpen={isOpen}

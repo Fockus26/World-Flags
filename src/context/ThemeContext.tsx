@@ -1,9 +1,9 @@
 import {
 	createContext,
+	type ReactNode,
 	useContext,
 	useEffect,
 	useState,
-	type ReactNode,
 } from "react";
 
 type ThemeMode = "light" | "dark" | "system";
@@ -16,9 +16,7 @@ interface ThemeContextValue {
 	setTheme: (theme: ThemeMode) => void;
 }
 
-const ThemeContext = createContext<ThemeContextValue | undefined>(
-	undefined,
-);
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function useTheme() {
 	const context = useContext(ThemeContext);
@@ -32,13 +30,10 @@ export function useTheme() {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
 	const [theme, setTheme] = useState<ThemeMode>("system");
-	const [systemPrefersDark, setSystemPrefersDark] =
-		useState(false);
+	const [systemPrefersDark, setSystemPrefersDark] = useState(false);
 
 	useEffect(() => {
-		const storedTheme = localStorage.getItem("theme") as
-			| ThemeMode
-			| null;
+		const storedTheme = localStorage.getItem("theme") as ThemeMode | null;
 
 		if (
 			storedTheme === "light" ||
@@ -49,16 +44,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 			return;
 		}
 
-		const mediaQuery = window.matchMedia(
-			"(prefers-color-scheme: dark)",
-		);
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 		setSystemPrefersDark(mediaQuery.matches);
 	}, []);
 
 	useEffect(() => {
-		const mediaQuery = window.matchMedia(
-			"(prefers-color-scheme: dark)",
-		);
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 		const handleChange = (event: MediaQueryListEvent) => {
 			setSystemPrefersDark(event.matches);
@@ -73,11 +64,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const resolvedTheme: ResolvedTheme =
-		theme === "system"
-			? systemPrefersDark
-				? "dark"
-				: "light"
-			: theme;
+		theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
 
 	useEffect(() => {
 		document.documentElement.dataset.theme = resolvedTheme;
@@ -87,8 +74,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 	const value = { theme, resolvedTheme, setTheme };
 
 	return (
-		<ThemeContext.Provider value={value}>
-			{children}
-		</ThemeContext.Provider>
+		<ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 	);
 }

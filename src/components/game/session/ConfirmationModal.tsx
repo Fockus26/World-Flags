@@ -1,9 +1,6 @@
-import {
-	useEffect,
-	useRef,
-} from "react";
-import { Button } from "../ui/Button";
-import { Modal } from "../ui/Modal";
+import { useEffect, useRef } from "react";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 import modalStyles from "./ConfirmationModal.module.css";
 
 interface ConfirmationModalProps {
@@ -54,13 +51,11 @@ export function ConfirmationModal({
 				!
 			</div>
 
-			<h2 id="exit-modal-title">
-				¿Abandonar la práctica?
-			</h2>
+			<h2 id="exit-modal-title">¿Abandonar la práctica?</h2>
 
 			<p id="exit-modal-description">
-				El progreso de esta partida se perderá y no se
-				guardará ninguna calificación.
+				El progreso de esta partida se perderá y no se guardará ninguna
+				calificación.
 			</p>
 
 			<div className={modalStyles.modalActions}>
@@ -73,11 +68,7 @@ export function ConfirmationModal({
 					Continuar practicando
 				</Button>
 
-				<Button
-					variant="danger"
-					type="button"
-					onClick={onConfirm}
-				>
+				<Button variant="danger" type="button" onClick={onConfirm}>
 					Sí, abandonar
 				</Button>
 			</div>

@@ -1,9 +1,13 @@
-import { DEFAULT_TIMER_DURATION, type GameConfiguration, type Region } from "../types/country";
+import {
+	DEFAULT_TIMER_DURATION,
+	type GameConfiguration,
+	type Region,
+} from "@/types/country";
 import type {
 	CountriesLearningHistory,
 	UserLearningData,
 	UserProfile,
-} from "../types/progress";
+} from "@/types/progress";
 
 const STORAGE_KEY = "world-flags-learning-data";
 const MAX_COUNTRY_ATTEMPTS = 3;
@@ -34,9 +38,7 @@ export function getLearningData(): UserLearningData {
 			return DEFAULT_DATA;
 		}
 
-		const parsedData = JSON.parse(
-			storedData,
-		) as Partial<UserLearningData>;
+		const parsedData = JSON.parse(storedData) as Partial<UserLearningData>;
 
 		return {
 			profile: {
@@ -52,18 +54,11 @@ export function getLearningData(): UserLearningData {
 	}
 }
 
-export function saveLearningData(
-	data: UserLearningData,
-): void {
-	window.localStorage.setItem(
-		STORAGE_KEY,
-		JSON.stringify(data),
-	);
+export function saveLearningData(data: UserLearningData): void {
+	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-export function saveUserProfile(
-	profile: UserProfile,
-): UserLearningData {
+export function saveUserProfile(profile: UserProfile): UserLearningData {
 	const currentData = getLearningData();
 
 	const updatedData: UserLearningData = {
@@ -102,8 +97,7 @@ export function updateLastConfiguration(
 			region: currentData.lastConfiguration?.region ?? "world",
 			order: currentData.lastConfiguration?.order ?? "alphabetical",
 			timerDuration:
-				currentData.lastConfiguration?.timerDuration ??
-				DEFAULT_TIMER_DURATION,
+				currentData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
 			...partial,
 		},
 	};
@@ -122,10 +116,9 @@ export function registerCountryAttempt(
 	const previousAttempts =
 		currentData.countryHistory[countryCode]?.attempts ?? [];
 
-	const attempts = [
-		...previousAttempts,
-		isCorrect,
-	].slice(-MAX_COUNTRY_ATTEMPTS);
+	const attempts = [...previousAttempts, isCorrect].slice(
+		-MAX_COUNTRY_ATTEMPTS,
+	);
 
 	const updatedData: UserLearningData = {
 		...currentData,
@@ -148,13 +141,9 @@ export function registerRegionGame(
 ): UserLearningData {
 	const currentData = getLearningData();
 
-	const previousScores =
-		currentData.regionGameScores[region] ?? [];
+	const previousScores = currentData.regionGameScores[region] ?? [];
 
-	const regionScores = [
-		...previousScores,
-		score,
-	].slice(-MAX_REGION_GAMES);
+	const regionScores = [...previousScores, score].slice(-MAX_REGION_GAMES);
 
 	const updatedData: UserLearningData = {
 		...currentData,
@@ -191,9 +180,7 @@ export function calculateLearningProgress(
 
 	const learnedCountries = countLearnedCountries(history);
 
-	return Math.round(
-		(learnedCountries / totalCountries) * 100,
-	);
+	return Math.round((learnedCountries / totalCountries) * 100);
 }
 
 export function calculateRegionAverage(
@@ -203,16 +190,11 @@ export function calculateRegionAverage(
 		return null;
 	}
 
-	const total = scores.reduce(
-		(accumulator, score) => accumulator + score,
-		0,
-	);
+	const total = scores.reduce((accumulator, score) => accumulator + score, 0);
 
 	return Math.round((total / scores.length) * 10) / 10;
 }
 
 export function formatScore(score: number): string {
-	return Number.isInteger(score)
-		? score.toFixed(0)
-		: score.toFixed(1);
+	return Number.isInteger(score) ? score.toFixed(0) : score.toFixed(1);
 }

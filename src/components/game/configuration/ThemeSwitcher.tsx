@@ -1,4 +1,4 @@
-import { useTheme } from "../../context/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
 import styles from "./ThemeSwitcher.module.css";
 
 const themeOptions = [
@@ -11,7 +11,7 @@ export function ThemeSwitcher() {
 	const { theme, setTheme } = useTheme();
 
 	return (
-		<div className={styles.switcher} role="group" aria-label="Seleccionar tema">
+		<fieldset className={styles.switcher} aria-label="Seleccionar tema">
 			{themeOptions.map((option) => (
 				<button
 					key={option.value}
@@ -26,6 +26,6 @@ export function ThemeSwitcher() {
 					<span>{option.label}</span>
 				</button>
 			))}
-		</div>
+		</fieldset>
 	);
 }

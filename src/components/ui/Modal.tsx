@@ -1,10 +1,6 @@
-import {
-	useEffect,
-	type MouseEvent,
-	type ReactNode,
-} from "react";
 import { motion } from "framer-motion";
-import { motionVariants } from "../../styles/animations";
+import { type MouseEvent, type ReactNode, useEffect } from "react";
+import { motionVariants } from "@/styles/animations";
 import styles from "./Modal.module.css";
 
 interface ModalProps {
@@ -64,9 +60,7 @@ export function Modal({
 			animate="visible"
 		>
 			<motion.section
-				className={`${styles.modal}${
-					className ? ` ${className}` : ""
-				}`}
+				className={`${styles.modal}${className ? ` ${className}` : ""}`}
 				role={role}
 				aria-modal="true"
 				aria-labelledby={ariaLabelledby}
