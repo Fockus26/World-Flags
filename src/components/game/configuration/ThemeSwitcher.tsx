@@ -1,3 +1,4 @@
+import { OptionTile } from "@/components/ui/OptionTile";
 import { useTheme } from "@/context/ThemeContext";
 import styles from "./ThemeSwitcher.module.css";
 
@@ -11,21 +12,18 @@ export function ThemeSwitcher() {
 	const { theme, setTheme } = useTheme();
 
 	return (
-		<fieldset className={styles.switcher} aria-label="Seleccionar tema">
+		<div className={styles.themeGrid}>
 			{themeOptions.map((option) => (
-				<button
+				<OptionTile
 					key={option.value}
-					type="button"
-					className={`${styles.themeButton}${
-						theme === option.value ? ` ${styles.themeButtonActive}` : ""
-					}`}
-					aria-pressed={theme === option.value}
-					onClick={() => setTheme(option.value)}
+					name="settings-theme"
+					value={option.value}
+					checked={theme === option.value}
+					onChange={() => setTheme(option.value)}
 				>
-					<span aria-hidden="true">{option.icon}</span>
-					<span>{option.label}</span>
-				</button>
+					<span aria-hidden="true">{option.icon}</span> {option.label}
+				</OptionTile>
 			))}
-		</fieldset>
+		</div>
 	);
 }

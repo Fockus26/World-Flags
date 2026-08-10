@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import modalStyles from "./ConfirmationModal.module.css";
+import styles from "./ConfirmationModal.module.css";
 
 interface ConfirmationModalProps {
 	isOpen: boolean;
@@ -9,11 +9,7 @@ interface ConfirmationModalProps {
 	onConfirm: () => void;
 }
 
-export function ConfirmationModal({
-	isOpen,
-	onCancel,
-	onConfirm,
-}: ConfirmationModalProps) {
+export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationModalProps) {
 	const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
 	useEffect(() => {
@@ -47,24 +43,18 @@ export function ConfirmationModal({
 			ariaLabelledby="exit-modal-title"
 			ariaDescribedby="exit-modal-description"
 		>
-			<div className={modalStyles.modalIcon} aria-hidden="true">
+			<div className={styles.modalIcon} aria-hidden="true">
 				!
 			</div>
 
 			<h2 id="exit-modal-title">¿Abandonar la práctica?</h2>
 
 			<p id="exit-modal-description">
-				El progreso de esta partida se perderá y no se guardará ninguna
-				calificación.
+				El progreso de esta partida se perderá y no se guardará ninguna calificación.
 			</p>
 
-			<div className={modalStyles.modalActions}>
-				<Button
-					ref={cancelButtonRef}
-					variant="secondary"
-					type="button"
-					onClick={onCancel}
-				>
+			<div className={styles.modalActions}>
+				<Button ref={cancelButtonRef} variant="secondary" type="button" onClick={onCancel}>
 					Continuar practicando
 				</Button>
 

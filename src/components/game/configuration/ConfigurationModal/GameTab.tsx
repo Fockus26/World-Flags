@@ -1,4 +1,6 @@
 import { ThemeSwitcher } from "@/components/game/configuration/ThemeSwitcher";
+import { Fieldset } from "@/components/ui/Fieldset";
+import { OptionTile } from "@/components/ui/OptionTile";
 import { type PracticeOrder, TIMER_DURATIONS, type TimerDuration } from "@/types/country";
 import styles from "./GameTab.module.css";
 
@@ -17,51 +19,46 @@ export function GameTab({
 }: GameTabProps) {
 	return (
 		<div className={styles.gameTab}>
-			<fieldset className={styles.fieldset}>
-				<legend>Orden</legend>
+			<Fieldset legend="Orden">
 				<div className={styles.optionGrid}>
-					<label className={styles.option}>
-						<input
-							type="radio"
-							name="settings-order"
-							checked={order === "alphabetical"}
-							onChange={() => onOrderChange("alphabetical")}
-						/>
-						<span>Alfabético</span>
-					</label>
-					<label className={styles.option}>
-						<input
-							type="radio"
-							name="settings-order"
-							checked={order === "random"}
-							onChange={() => onOrderChange("random")}
-						/>
-						<span>Aleatorio</span>
-					</label>
+					<OptionTile
+						name="settings-order"
+						value="alphabetical"
+						checked={order === "alphabetical"}
+						onChange={() => onOrderChange("alphabetical")}
+					>
+						Alfabético
+					</OptionTile>
+					<OptionTile
+						name="settings-order"
+						value="random"
+						checked={order === "random"}
+						onChange={() => onOrderChange("random")}
+					>
+						Aleatorio
+					</OptionTile>
 				</div>
-			</fieldset>
+			</Fieldset>
 
-			<fieldset className={styles.fieldset}>
-				<legend>Temporizador</legend>
+			<Fieldset legend="Temporizador">
 				<div className={styles.timerGrid}>
 					{TIMER_DURATIONS.map((duration) => (
-						<label className={styles.option} key={duration}>
-							<input
-								type="radio"
-								name="settings-timer"
-								checked={timerDuration === duration}
-								onChange={() => onTimerDurationChange(duration)}
-							/>
-							<span>{duration}s</span>
-						</label>
+						<OptionTile
+							key={duration}
+							name="settings-timer"
+							value={String(duration)}
+							checked={timerDuration === duration}
+							onChange={() => onTimerDurationChange(duration)}
+						>
+							{duration}s
+						</OptionTile>
 					))}
 				</div>
-			</fieldset>
+			</Fieldset>
 
-			<fieldset className={styles.fieldset}>
-				<legend>Tema</legend>
+			<Fieldset legend="Tema">
 				<ThemeSwitcher />
-			</fieldset>
+			</Fieldset>
 		</div>
 	);
 }

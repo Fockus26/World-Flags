@@ -1,17 +1,28 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { Fieldset } from "@/components/ui/Fieldset";
 import { Input } from "@/components/ui/Input";
-import type { AvatarStyle, UserProfile } from "@/types/progress";
+import { Select } from "@/components/ui/Select";
+import { motionVariants } from "@/styles/animations";
+import { AVATAR_STYLES, type AvatarStyle, type UserProfile } from "@/types/progress";
 import styles from "./AccountTab.module.css";
 import { AuthSection } from "./AuthSection";
-import { AvatarSeedPicker } from "./AvatarSeedPicker";
-import { AvatarStylePicker } from "./AvatarStylePicker";
+import { Avatar } from "./Avatar";
 
 interface AccountTabProps {
 	profile: UserProfile;
 	onSaveProfile: (profile: UserProfile) => void;
 }
 
+type AccountView = "profile" | "session";
+
+const AVATAR_STYLE_OPTIONS = AVATAR_STYLES.map((style) => ({
+	value: style,
+	label: style,
+}));
+
 export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
+	const [view, setView] = useState<AccountView>("profile");
 	const [name, setName] = useState(profile.name);
 
 	useEffect(() => {
@@ -41,30 +52,67 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 
 	return (
 		<div className={styles.accountTab}>
-			<label className={styles.nameField} htmlFor="profile-name">
-				Nombre
-				<Input
-					id="profile-name"
-					type="text"
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					onBlur={handleNameBlur}
-					maxLength={24}
-				/>
-			</label>
+			<button
+				type="button"
+				className={styles.viewToggle}
+				onClick={() =>
+					setView((current) => (current === "profile" ? "session" : "profile"))
+				}
+			>
+				{view === "profile" ? "Gestionar sesión →" : "← Volver a personalización"}
+			</button>
 
-			<AvatarStylePicker value={profile.avatarStyle} onChange={handleAvatarStyleChange} />
-			<AvatarSeedPicker
-				avatarStyle={profile.avatarStyle}
-				value={profile.avatarSeed}
-				onChange={handleAvatarSeedChange}
-			/>
+			<motion.div className={styles.viewSwitcher}>
+				<AnimatePresence mode="wait" initial={false}>
+					{view === "profile" ? (
+						<motion.div
+							key="profile"
+							className={styles.viewContent}
+							variants={motionVariants.tabContentSwitch}
+							initial="hidden"
+							animate="visible"
+							exit="hidden"
+						>
+							<Input
+								id="profile-name"
+								label="Nombre"
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								onBlur={handleNameBlur}
+								maxLength={24}
+							/>
 
-			<p className={styles.avatarAttribution}>Avatares generados con DiceBear.</p>
-
-			<hr className={styles.divider} />
-
-			<AuthSection />
+							<Fieldset legend="Avatar" hideLegend>
+								<Select
+									id="avatar-style-select"
+									label="Avatar"
+									options={AVATAR_STYLE_OPTIONS}
+									value={profile.avatarStyle}
+									onChange={(value) =>
+										handleAvatarStyleChange(value as AvatarStyle)
+									}
+								/>
+								<Avatar
+									avatarStyle={profile.avatarStyle}
+									value={profile.avatarSeed}
+									onChange={handleAvatarSeedChange}
+								/>
+							</Fieldset>
+						</motion.div>
+					) : (
+						<motion.div
+							key="session"
+							className={styles.viewContent}
+							variants={motionVariants.tabContentSwitch}
+							initial="hidden"
+							animate="visible"
+							exit="hidden"
+						>
+							<AuthSection />
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</motion.div>
 		</div>
 	);
 }

@@ -1,6 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { motionVariants } from "@/styles/animations";
 import type { PracticeOrder, TimerDuration } from "@/types/country";
 import type { UserProfile } from "@/types/progress";
 import { AccountTab } from "./AccountTab";
@@ -41,6 +43,7 @@ export function ConfigurationModal({
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
+			animateHeight
 			className={styles.configurationModal}
 			ariaLabelledby="user-modal-title"
 		>
@@ -60,46 +63,59 @@ export function ConfigurationModal({
 						id={`tab-${tab.id}`}
 						aria-selected={activeTab === tab.id}
 						aria-controls={`panel-${tab.id}`}
-						className={
-							activeTab === tab.id
-								? `${styles.tabButton} ${styles.tabButtonActive}`
-								: styles.tabButton
-						}
+						className={styles.tabButton}
 						onClick={() => setActiveTab(tab.id)}
 					>
 						{tab.label}
+						{activeTab === tab.id && (
+							<motion.span
+								className={styles.tabIndicator}
+								layoutId="configurationTabIndicator"
+								transition={{ type: "spring", stiffness: 500, damping: 40 }}
+							/>
+						)}
 					</button>
 				))}
 			</div>
 
-			<div
-				id="panel-account"
-				role="tabpanel"
-				aria-labelledby="tab-account"
-				hidden={activeTab !== "account"}
-				className={styles.tabPanel}
-			>
-				{activeTab === "account" && (
-					<AccountTab profile={profile} onSaveProfile={onSaveProfile} />
-				)}
-			</div>
-
-			<div
-				id="panel-game"
-				role="tabpanel"
-				aria-labelledby="tab-game"
-				hidden={activeTab !== "game"}
-				className={styles.tabPanel}
-			>
-				{activeTab === "game" && (
-					<GameTab
-						order={order}
-						onOrderChange={onOrderChange}
-						timerDuration={timerDuration}
-						onTimerDurationChange={onTimerDurationChange}
-					/>
-				)}
-			</div>
+			<motion.div className={styles.tabPanelWrapper}>
+				<AnimatePresence mode="wait" initial={false}>
+					{activeTab === "account" ? (
+						<motion.div
+							key="account"
+							id="panel-account"
+							role="tabpanel"
+							aria-labelledby="tab-account"
+							className={styles.tabPanel}
+							variants={motionVariants.tabContentSwitch}
+							initial="hidden"
+							animate="visible"
+							exit="hidden"
+						>
+							<AccountTab profile={profile} onSaveProfile={onSaveProfile} />
+						</motion.div>
+					) : (
+						<motion.div
+							key="game"
+							id="panel-game"
+							role="tabpanel"
+							aria-labelledby="tab-game"
+							className={styles.tabPanel}
+							variants={motionVariants.tabContentSwitch}
+							initial="hidden"
+							animate="visible"
+							exit="hidden"
+						>
+							<GameTab
+								order={order}
+								onOrderChange={onOrderChange}
+								timerDuration={timerDuration}
+								onTimerDurationChange={onTimerDurationChange}
+							/>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</motion.div>
 		</Modal>
 	);
 }

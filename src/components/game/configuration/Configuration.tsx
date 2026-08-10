@@ -6,7 +6,10 @@ import { useGame } from "@/context/GameContext";
 import { motionVariants } from "@/styles/animations";
 import { DEFAULT_TIMER_DURATION, type PracticeRegion } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
-import { calculateLearningProgress, countLearnedCountries } from "@/utils/learning-storage";
+import {
+	calculateLearningProgress,
+	countLearnedCountries,
+} from "@/utils/learning-storage";
 import styles from "./Configuration.module.css";
 import { AccountTab } from "./ConfigurationModal/AccountTab";
 import { ConfigurationModal } from "./ConfigurationModal/ConfigurationModal";
@@ -15,16 +18,22 @@ import { UserSummary } from "./UserSummary";
 
 export function Configuration() {
 	const { learningData, saveProfile, startGame, updateSettings } = useGame();
-	const [isConfigurationModalOpen, setIsConfigurationModalOpen] = useState(false);
+	const [isConfigurationModalOpen, setIsConfigurationModalOpen] =
+		useState(false);
 	const { status, user } = useAuth();
-	const accountLabel = status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
+	const accountLabel =
+		status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
 
 	const order = learningData.lastConfiguration?.order ?? "alphabetical";
-	const timerDuration = learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION;
+	const timerDuration =
+		learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION;
 	const lastRegion = learningData.lastConfiguration?.region ?? "world";
 
 	const learnedCountries = countLearnedCountries(learningData.countryHistory);
-	const learningProgress = calculateLearningProgress(learningData.countryHistory, 196);
+	const learningProgress = calculateLearningProgress(
+		learningData.countryHistory,
+		196,
+	);
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -77,7 +86,9 @@ export function Configuration() {
 				order={order}
 				onOrderChange={(value) => updateSettings({ order: value })}
 				timerDuration={timerDuration}
-				onTimerDurationChange={(value) => updateSettings({ timerDuration: value })}
+				onTimerDurationChange={(value) =>
+					updateSettings({ timerDuration: value })
+				}
 			/>
 		</>
 	);

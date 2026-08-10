@@ -4,6 +4,29 @@
 	gap: 1rem;
 }
 
+.viewToggle {
+	align-self: flex-start;
+	border: none;
+	background: transparent;
+	padding: 0;
+	color: var(--color-primary);
+	font: inherit;
+	font-size: 0.8rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition: color var(--transition-fast);
+}
+
+.viewToggle:hover {
+	color: var(--color-primary-hover);
+}
+
+.viewContent {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
 .nameField {
 	display: flex;
 	flex-direction: column;
@@ -12,14 +35,17 @@
 	font-weight: 700;
 }
 
-.avatarAttribution {
+.avatarFieldset {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	border: none;
 	margin: 0;
-	color: var(--color-text-subtle);
-	font-size: 0.7rem;
+	padding: 0;
 }
 
-.divider {
-	margin: 0;
-	border: none;
-	border-top: 1px solid var(--color-border-lighter);
+.avatarFieldset legend {
+	padding: 0;
+	font-size: 0.85rem;
+	font-weight: 700;
 }

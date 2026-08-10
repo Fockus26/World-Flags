@@ -8,8 +8,12 @@ interface AuthContextValue {
 	user: User | null;
 	status: AuthStatus;
 	signInWithGoogle: () => Promise<void>;
-	signUpWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
+	signUpWithEmail: (
+		email: string,
+		password: string,
+	) => Promise<{ error: string | null; needsEmailConfirmation: boolean }>;
 	signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
+	resendConfirmationEmail: (email: string) => Promise<{ error: string | null }>;
 	signOut: () => Promise<void>;
 }
 
@@ -54,7 +58,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	};
 
 	const signUpWithEmail = async (email: string, password: string) => {
-		const { error } = await supabase.auth.signUp({ email, password });
+		const { data, error } = await supabase.auth.signUp({ email, password });
+
+		if (error) {
+			return { error: error.message, needsEmailConfirmation: false };
+		}
+
+		const isExistingAccount = data.user?.identities?.length === 0;
+		if (isExistingAccount) {
+			return {
+				error: "Ya existe una cuenta con este correo. Intenta iniciar sesión.",
+				needsEmailConfirmation: false,
+			};
+		}
+
+		return { error: null, needsEmailConfirmation: !data.session };
+	};
+
+	const resendConfirmationEmail = async (email: string) => {
+		const { error } = await supabase.auth.resend({ type: "signup", email });
 		return { error: error?.message ?? null };
 	};
 
@@ -76,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				user,
 				status,
 				signInWithGoogle,
+				resendConfirmationEmail,
 				signUpWithEmail,
 				signInWithEmail,
 				signOut,

@@ -9,10 +9,6 @@
 	font-weight: 800;
 }
 
-.feedbackArea {
-	min-height: 2.75rem;
-}
-
 .correctMessage,
 .incorrectMessage {
 	margin: 0;

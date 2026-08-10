@@ -31,7 +31,12 @@ export function UserSummary({
 			aria-label={`${name}, progreso ${learningProgress} por ciento. Abrir perfil y configuración.`}
 			onClick={onOpenModal}
 		>
-			<img className={styles.profileAvatar} src={avatarUrl} alt="" aria-hidden="true" />
+			<img
+				className={styles.profileAvatar}
+				src={avatarUrl}
+				alt=""
+				aria-hidden="true"
+			/>
 
 			<span className={styles.profileInfo}>
 				<span className={styles.profileNameRow}>

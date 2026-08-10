@@ -54,6 +54,27 @@ export const motionVariants = {
 			transition: motionTransition(0.18),
 		},
 	},
+	tabContentSwitch: {
+		hidden: { opacity: 0, x: 8 },
+		visible: {
+			opacity: 1,
+			x: 0,
+			transition: motionTransition(0.2),
+		},
+	},
+	dropdownAppear: {
+		hidden: { opacity: 0, y: -4, scale: 0.98 },
+		visible: {
+			opacity: 1,
+			y: 0,
+			scale: 1,
+			transition: motionTransition(0.14),
+		},
+	},
+	rotateArrow: {
+		closed: { rotate: 0 },
+		open: { rotate: 180 },
+	},
 };
 
 export function createMotionVariant(
@@ -71,3 +92,9 @@ export function createMotionVariant(
 		},
 	};
 }
+
+export const spinTransition = {
+	repeat: Infinity,
+	duration: 1,
+	ease: "linear",
+} as const;

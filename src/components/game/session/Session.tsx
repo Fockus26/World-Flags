@@ -3,11 +3,7 @@ import { type SubmitEvent, useEffect, useState } from "react";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { useGame } from "@/context/GameContext";
 import { motionVariants } from "@/styles/animations";
-import {
-	type AnswerStatus,
-	DEFAULT_TIMER_DURATION,
-	REGION_LABELS,
-} from "@/types/country";
+import { type AnswerStatus, DEFAULT_TIMER_DURATION, REGION_LABELS } from "@/types/country";
 import { isCorrectAnswer } from "@/utils/normalize-answer";
 import { calculateScore } from "@/utils/score";
 import { AnswerForm } from "./AnswerForm";
@@ -19,8 +15,7 @@ export function Session() {
 	const { activeGame, exitGame, finishGame, attemptCountry } = useGame();
 
 	const countries = activeGame?.countries ?? [];
-	const timerDuration =
-		activeGame?.configuration.timerDuration ?? DEFAULT_TIMER_DURATION;
+	const timerDuration = activeGame?.configuration.timerDuration ?? DEFAULT_TIMER_DURATION;
 
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [answer, setAnswer] = useState("");
@@ -93,6 +88,7 @@ export function Session() {
 		setCurrentIndex((currentValue) => currentValue + 1);
 		setAnswer("");
 		setAnswerStatus("idle");
+		setTimeLeft(timerDuration);
 	}
 
 	return (

@@ -12,5 +12,6 @@ export const AVATAR_SEEDS = [
 ];
 
 export function getAvatarUrl(style: AvatarStyle, seed: string): string {
-	return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
+	const avatarStyle = style.toLowerCase();
+	return `https://api.dicebear.com/9.x/${avatarStyle}/svg?seed=${encodeURIComponent(seed)}`;
 }

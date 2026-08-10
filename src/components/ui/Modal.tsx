@@ -1,7 +1,16 @@
 import { motion } from "framer-motion";
-import { type MouseEvent, type ReactNode, useEffect } from "react";
-import { motionVariants } from "@/styles/animations";
+import {
+	type MouseEvent,
+	type ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
+import { motionTransition, motionVariants } from "@/styles/animations";
 import styles from "./Modal.module.css";
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 interface ModalProps {
 	isOpen: boolean;
@@ -11,6 +20,7 @@ interface ModalProps {
 	role?: string;
 	ariaLabelledby?: string;
 	ariaDescribedby?: string;
+	animateHeight?: boolean;
 }
 
 export function Modal({
@@ -21,7 +31,11 @@ export function Modal({
 	role = "dialog",
 	ariaLabelledby,
 	ariaDescribedby,
+	animateHeight = false,
 }: ModalProps) {
+	const contentRef = useRef<HTMLDivElement>(null);
+	const [height, setHeight] = useState<number | undefined>(undefined);
+
 	useEffect(() => {
 		if (!isOpen) {
 			return;
@@ -34,11 +48,27 @@ export function Modal({
 		}
 
 		document.addEventListener("keydown", handleKeyDown);
-
-		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
-		};
+		return () => document.removeEventListener("keydown", handleKeyDown);
 	}, [isOpen, onClose]);
+
+	useIsomorphicLayoutEffect(() => {
+		if (!animateHeight || !isOpen || !contentRef.current) {
+			return;
+		}
+
+		const element = contentRef.current;
+		setHeight(element.getBoundingClientRect().height);
+
+		const observer = new ResizeObserver((entries) => {
+			const newHeight = entries[0]?.contentRect.height;
+			if (newHeight) {
+				setHeight(newHeight);
+			}
+		});
+
+		observer.observe(element);
+		return () => observer.disconnect();
+	}, [animateHeight, isOpen]);
 
 	if (!isOpen) {
 		return null;
@@ -69,7 +99,17 @@ export function Modal({
 				initial="hidden"
 				animate="visible"
 			>
-				{children}
+				{animateHeight ? (
+					<motion.div
+						className={styles.heightAnimator}
+						animate={{ height: height ?? "auto" }}
+						transition={motionTransition(0.25)}
+					>
+						<div ref={contentRef}>{children}</div>
+					</motion.div>
+				) : (
+					children
+				)}
 			</motion.section>
 		</motion.div>
 	);

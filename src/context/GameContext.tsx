@@ -1,4 +1,11 @@
-import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
+import {
+	createContext,
+	type ReactNode,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { useAuth } from "@/context/AuthContext";
 import { countries } from "@/data/countries";
 import {
@@ -52,7 +59,9 @@ export function useGame() {
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
-	const [learningData, setLearningData] = useState<UserLearningData>(() => getLearningData());
+	const [learningData, setLearningData] = useState<UserLearningData>(() =>
+		getLearningData(),
+	);
 	const [activeGame, setActiveGame] = useState<ActiveGame | null>(null);
 	const [lastResult, setLastResult] = useState<GameResult | null>(null);
 
@@ -62,7 +71,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	const { user, status } = useAuth();
 	const hasSyncedRef = useRef(false);
-	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+		undefined,
+	);
 
 	useEffect(() => {
 		if (status !== "authenticated" || !user || hasSyncedRef.current) return;
@@ -130,7 +141,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		startGame({
 			region: lastResult.region,
 			order: "random",
-			timerDuration: learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			timerDuration:
+				learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
 		});
 	};
 

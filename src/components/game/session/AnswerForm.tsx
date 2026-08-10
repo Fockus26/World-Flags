@@ -1,6 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { type SubmitEvent, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { motionVariants } from "@/styles/animations";
 import type { AnswerStatus } from "@/types/country";
 import styles from "./AnswerForm.module.css";
 
@@ -52,26 +54,35 @@ export function AnswerForm({
 				placeholder="Escribe el nombre del país"
 			/>
 
-			<div className={styles.feedbackArea}>
+			<AnimatePresence mode="wait">
 				{answerStatus === "correct" && (
-					<p className={styles.correctMessage}>
+					<motion.p
+						key="correct"
+						className={styles.correctMessage}
+						variants={motionVariants.feedbackEnter}
+						initial="hidden"
+						animate="visible"
+						exit="hidden"
+					>
 						Correcto: <strong>{countryName}</strong>
-					</p>
+					</motion.p>
 				)}
 				{answerStatus === "incorrect" && (
-					<p className={styles.incorrectMessage}>
+					<motion.p
+						key="incorrect"
+						className={styles.incorrectMessage}
+						variants={motionVariants.feedbackEnter}
+						initial="hidden"
+						animate="visible"
+						exit="hidden"
+					>
 						La respuesta correcta es <strong>{countryName}</strong>.
-					</p>
+					</motion.p>
 				)}
-			</div>
+			</AnimatePresence>
 
 			{isAnswerChecked ? (
-				<Button
-					ref={nextButtonRef}
-					variant="primary"
-					type="button"
-					onClick={onNext}
-				>
+				<Button ref={nextButtonRef} variant="primary" type="button" onClick={onNext}>
 					{isLastCountry ? "Ver resultado" : "Siguiente bandera"}
 				</Button>
 			) : (
