@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { motionVariants } from "@/styles/animations";
 import styles from "./AuthSection.module.css";
 import { EmailConfirmationPending } from "./EmailConfirmationPending";

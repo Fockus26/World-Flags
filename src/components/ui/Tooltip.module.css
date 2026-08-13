@@ -6,7 +6,6 @@
 .tooltipBubble {
 	position: absolute;
 	z-index: 20;
-	right: 0;
 	bottom: calc(100% + 0.55rem);
 	width: max-content;
 	max-width: 13rem;
@@ -25,10 +24,17 @@
 		transform var(--transition-fast);
 }
 
+.right {
+	right: -0.75rem;
+}
+
+.left {
+	left: -0.75rem;
+}
+
 .tooltipBubble::after {
 	position: absolute;
 	top: 100%;
-	right: 1rem;
 	width: 0;
 	height: 0;
 	border: 0.35rem solid transparent;
@@ -36,8 +42,17 @@
 	content: "";
 }
 
+.right::after {
+	right: 1rem;
+}
+
+.left::after {
+	left: 1rem;
+}
+
 .tooltip:hover .tooltipBubble,
 .tooltip:focus-within .tooltipBubble {
+	pointer-events: auto;
 	opacity: 1;
 	transform: translateY(0) scale(1);
 }

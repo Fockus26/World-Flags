@@ -1,4 +1,4 @@
-import { useGame } from "@/context/GameContext";
+import { useGame } from "@/hooks/useGame";
 import { Configuration } from "./configuration/Configuration";
 import styles from "./FlagGame.module.css";
 import { Results } from "./Results";

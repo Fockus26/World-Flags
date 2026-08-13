@@ -95,7 +95,10 @@ export function GameTab({
 				legend={
 					<span className={styles.legendWithTooltip}>
 						Dificultad
-						<Tooltip label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico').">
+						<Tooltip
+							position="left"
+							label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')."
+						>
 							<span className={styles.infoIcon} aria-hidden="true">
 								?
 							</span>

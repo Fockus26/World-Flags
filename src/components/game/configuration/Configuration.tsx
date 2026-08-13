@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { useAuth } from "@/context/AuthContext";
-import { useGame } from "@/context/GameContext";
 import { countries } from "@/data/countries";
+import { useAuth } from "@/hooks/useAuth";
+import { useGame } from "@/hooks/useGame";
 import { motionVariants } from "@/styles/animations";
 import {
 	DEFAULT_DIFFICULTY,

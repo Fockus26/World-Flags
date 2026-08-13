@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { type SubmitEvent, useEffect, useState } from "react";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
-import { useGame } from "@/context/GameContext";
+import { useGame } from "@/hooks/useGame";
 import { motionVariants } from "@/styles/animations";
 import { type AnswerStatus, DEFAULT_TIMER_DURATION, REGION_LABELS } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
