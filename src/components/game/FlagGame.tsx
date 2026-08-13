@@ -1,6 +1,5 @@
 import { useGame } from "@/hooks/useGame";
 import { Configuration } from "./configuration/Configuration";
-import styles from "./FlagGame.module.css";
 import { Results } from "./Results";
 import { DailyPractice } from "./session/DailyPractice";
 import { Session } from "./session/Session";
@@ -26,7 +25,7 @@ function FlagGameContent() {
 
 export default function FlagGame() {
 	return (
-		<main className={styles.application}>
+		<main className="relative grid h-dvh w-full place-items-center overflow-hidden p-[clamp(0.5rem,2vh,1.5rem)] max-[30rem]:p-[0.4rem]">
 			<FlagGameContent />
 		</main>
 	);

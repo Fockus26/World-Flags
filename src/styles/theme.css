@@ -1,0 +1,121 @@
+@theme inline {
+	/* ===========================
+	   Brand
+	=========================== */
+
+	--color-primary: var(--app-color-primary);
+	--color-primary-hover: var(--app-color-primary-hover);
+	--color-primary-light: var(--app-color-primary-light);
+	--color-primary-soft: var(--app-color-primary-soft);
+	--color-primary-soft-hover: var(--app-color-primary-soft-hover);
+
+	/* ===========================
+	   Surfaces
+	=========================== */
+
+	--color-surface: var(--app-color-surface);
+	--color-surface-secondary: var(--app-color-surface-secondary);
+	--color-surface-muted: var(--app-color-surface-muted);
+	--color-surface-disabled: var(--app-color-surface-disabled);
+
+	/* ===========================
+	   Borders
+	=========================== */
+
+	--color-border: var(--app-color-border);
+	--color-border-light: var(--app-color-border-light);
+	--color-border-lighter: var(--app-color-border-lighter);
+	--color-border-soft: var(--app-color-border-soft);
+	--color-border-secondary: var(--app-color-border-secondary);
+	--color-border-disabled: var(--app-color-border-disabled);
+	--color-border-primary: var(--app-color-border-primary);
+	--color-border-primary-hover: var(--app-color-border-primary-hover);
+	--color-border-input-hover: var(--app-color-border-input-hover);
+	--color-border-progress: var(--app-color-border-progress);
+	--color-modal-border: var(--app-color-modal-border);
+
+	/* ===========================
+	   Typography
+	=========================== */
+
+	--color-text: var(--app-color-text);
+	--color-text-secondary: var(--app-color-text-secondary);
+	--color-text-muted: var(--app-color-text-muted);
+	--color-text-light: var(--app-color-text-light);
+	--color-text-disabled: var(--app-color-text-disabled);
+	--color-text-subtle: var(--app-color-text-subtle);
+	--color-text-placeholder: var(--app-color-text-placeholder);
+	--color-text-inverse: var(--app-color-text-inverse);
+
+	/* ===========================
+	   Success
+	=========================== */
+
+	--color-success: var(--app-color-success);
+	--color-success-bg: var(--app-color-success-bg);
+	--color-success-border: var(--app-color-success-border);
+
+	/* ===========================
+	   Danger
+	=========================== */
+
+	--color-danger: var(--app-color-danger);
+	--color-danger-hover: var(--app-color-danger-hover);
+	--color-danger-text: var(--app-color-danger-text);
+	--color-danger-bg: var(--app-color-danger-bg);
+	--color-danger-border: var(--app-color-danger-border);
+	--color-danger-soft-border: var(--app-color-danger-soft-border);
+
+	/* ===========================
+	   Neutral
+	=========================== */
+
+	--color-neutral: var(--app-color-neutral);
+	--color-neutral-hover: var(--app-color-neutral-hover);
+
+	/* ===========================
+	   Progress
+	=========================== */
+
+	--color-progress-bg: var(--app-color-progress-bg);
+
+	/* ===========================
+	   Avatar
+	=========================== */
+
+	--color-avatar-bg: var(--app-color-avatar-bg);
+
+	/* ===========================
+	   Tooltip
+	=========================== */
+
+	--color-tooltip-bg: var(--app-color-tooltip-bg);
+	--color-tooltip-text: var(--app-color-tooltip-text);
+
+	/* ===========================
+	   Overlay
+	=========================== */
+
+	--color-overlay: var(--app-color-overlay);
+
+	/* ===========================
+	   Checkerboard
+	=========================== */
+
+	--color-checker: var(--app-color-checker);
+
+	/* ===========================
+	   Focus
+	=========================== */
+
+	--focus-primary: var(--app-focus-primary);
+	--focus-outline: var(--app-focus-outline);
+	--focus-option: var(--app-focus-option);
+
+	/* ===========================
+	   Score
+	=========================== */
+
+	--score-background: var(--app-score-background);
+	--score-color: var(--app-score-color);
+}

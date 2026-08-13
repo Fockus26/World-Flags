@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import styles from "./Timer.module.css";
 
 const DANGER_THRESHOLD = 3;
 const RADIUS = 26;
@@ -17,18 +16,34 @@ export function Timer({ timeLeft, totalDuration }: TimerProps) {
 
 	return (
 		<div
-			className={`${styles.timer}${isDanger ? ` ${styles.timerDanger}` : ""}`}
+			className={`relative flex size-14 shrink-0 items-center justify-center ${
+				isDanger ? "text-danger-text" : ""
+			}`}
 			role="timer"
 			aria-live="polite"
 			aria-label={`${timeLeft} segundos restantes`}
 		>
-			<svg className={styles.ring} viewBox="0 0 60 60" aria-hidden="true">
-				<circle className={styles.ringTrack} cx="30" cy="30" r={RADIUS} />
-				<motion.circle
-					className={styles.ringValue}
+			<svg
+				className="absolute inset-0 size-full -rotate-90"
+				viewBox="0 0 60 60"
+				aria-hidden="true"
+			>
+				<circle
+					className="fill-none stroke-(--color-progress-bg)"
 					cx="30"
 					cy="30"
 					r={RADIUS}
+					strokeWidth="5"
+				/>
+				<motion.circle
+					className={`fill-none stroke-(--color-primary) ${
+						isDanger ? "stroke-(--color-danger)" : ""
+					}`}
+					cx="30"
+					cy="30"
+					r={RADIUS}
+					strokeWidth="5"
+					strokeLinecap="round"
 					strokeDasharray={CIRCUMFERENCE}
 					animate={{ strokeDashoffset: dashOffset }}
 					transition={{ duration: 0.9, ease: "linear" }}
@@ -36,11 +51,12 @@ export function Timer({ timeLeft, totalDuration }: TimerProps) {
 			</svg>
 
 			<motion.span
-				className={styles.value}
+				className="relative text-[1.1rem] font-extrabold tabular-nums text-text transition-colors duration-180 ease-in-out"
 				key={timeLeft}
 				initial={{ opacity: 0.4, scale: 0.85 }}
 				animate={{ opacity: 1, scale: 1 }}
 				transition={{ duration: 0.18 }}
+				style={isDanger ? { color: "var(--color-danger-text)" } : undefined}
 			>
 				{timeLeft}
 			</motion.span>

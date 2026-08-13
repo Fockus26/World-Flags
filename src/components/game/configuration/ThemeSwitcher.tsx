@@ -1,6 +1,5 @@
 import { OptionTile } from "@/components/ui/OptionTile";
 import { useTheme } from "@/hooks/useTheme";
-import styles from "./ThemeSwitcher.module.css";
 
 const themeOptions = [
 	{ value: "light", icon: "☀️", label: "Claro" },
@@ -12,7 +11,7 @@ export function ThemeSwitcher() {
 	const { theme, setTheme } = useTheme();
 
 	return (
-		<div className={styles.themeGrid}>
+		<div className="grid grid-cols-3 gap-2">
 			{themeOptions.map((option) => (
 				<OptionTile
 					key={option.value}

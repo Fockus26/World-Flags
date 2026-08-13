@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/Button";
-import styles from "./Header.module.css";
 import { Timer } from "./Timer";
 
 interface HeaderProps {
@@ -19,12 +18,16 @@ export function Header({
 	timerDuration,
 	onExit,
 }: HeaderProps) {
+	const progress = ((currentIndex + 1) / totalCountries) * 100;
+
 	return (
 		<>
-			<header className={styles.header}>
+			<header className="flex shrink-0 items-center justify-between gap-4">
 				<div>
-					<p className={styles.eyebrow}>{regionLabel}</p>
-					<p className={styles.progress}>
+					<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-primary">
+						{regionLabel}
+					</p>
+					<p className="m-[0.2rem_0_0] text-[clamp(1rem,2.5vh,1.3rem)] font-extrabold text-text">
 						{currentIndex + 1} / {totalCountries}
 					</p>
 				</div>
@@ -38,10 +41,13 @@ export function Header({
 				</Button>
 			</header>
 
-			<div className={styles.progressBar} aria-hidden="true">
+			<div
+				className="mt-[clamp(0.6rem,1.5vh,1rem)] h-2 shrink-0 overflow-hidden rounded-full bg-progress-bg"
+				aria-hidden="true"
+			>
 				<div
-					className={styles.progressBarValue}
-					style={{ width: `${((currentIndex + 1) / totalCountries) * 100}%` }}
+					className="h-full rounded-[inherit] bg-primary transition-[width] duration-250 ease-in-out"
+					style={{ width: `${progress}%` }}
 				/>
 			</div>
 		</>

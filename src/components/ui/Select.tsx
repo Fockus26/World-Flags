@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { NavArrowDown } from "iconoir-react";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import { motionTransition, motionVariants } from "@/styles/animations";
-import styles from "./Select.module.css";
 
 export interface SelectOption {
 	value: string;
@@ -23,6 +22,33 @@ interface SelectProps {
 }
 
 const MotionNavArrowDown = motion(NavArrowDown);
+
+const rootClass = "relative w-full";
+const triggerBaseClass =
+	"flex min-h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border-secondary bg-surface px-4 py-3 font-[inherit] text-text-secondary transition-[border-color,background-color,color,box-shadow] duration-180 ease-in-out hover:border-border-primary focus-visible:border-primary aria-expanded:border-primary";
+
+const triggerArrowClass = "size-4 shrink-0 self-center text-text-secondary";
+
+const primaryTriggerClass = "border-primary font-extrabold text-primary";
+
+const listboxClass =
+	"absolute top-[calc(100%+0.4rem)] left-0 z-20 m-0 max-h-56 w-full list-none overflow-y-auto rounded-md border border-border bg-surface p-0 shadow-(--shadow-secondary)";
+
+const optionClass =
+	"cursor-pointer px-3 py-2 text-sm text-text-secondary transition-colors duration-160 ease-in-out aria-selected:font-bold aria-selected:text-primary";
+
+const optionActiveClass = "bg-primary-soft";
+
+const triggerWithLabelClass = "min-h-15 items-stretch px-4 pt-6 pb-2";
+
+const triggerContentClass = "relative flex min-w-0 flex-1 flex-col justify-end text-left";
+
+const floatingLabelClass =
+	"pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 text-[0.95rem] leading-none text-text-subtle transition-[top,transform,font-size,color] duration-160 ease-in-out";
+
+const floatingLabelFloatedClass = "top-[-1.05rem] translate-y-0 text-[0.68rem] font-bold";
+
+const triggerValueClass = "min-h-[1.2em] overflow-hidden text-ellipsis whitespace-nowrap";
 
 export function Select({
 	options,
@@ -81,6 +107,7 @@ export function Select({
 		if (!option) {
 			return;
 		}
+
 		onChange(option.value);
 		setIsOpen(false);
 		triggerRef.current?.focus();
@@ -90,52 +117,65 @@ export function Select({
 		switch (event.key) {
 			case "ArrowDown":
 				event.preventDefault();
+
 				if (!isOpen) {
 					openAtCurrentValue();
 					return;
 				}
+
 				setActiveIndex((current) => Math.min(current + 1, options.length - 1));
 				return;
+
 			case "ArrowUp":
 				event.preventDefault();
+
 				if (!isOpen) {
 					openAtCurrentValue();
 					return;
 				}
+
 				setActiveIndex((current) => Math.max(current - 1, 0));
 				return;
+
 			case "Home":
 				if (!isOpen) return;
+
 				event.preventDefault();
 				setActiveIndex(0);
 				return;
+
 			case "End":
 				if (!isOpen) return;
+
 				event.preventDefault();
 				setActiveIndex(options.length - 1);
 				return;
+
 			case "Enter":
 			case " ":
 				event.preventDefault();
+
 				if (isOpen) {
 					selectOption(activeIndex);
 				} else {
 					openAtCurrentValue();
 				}
 				return;
+
 			case "Escape":
 				if (isOpen) {
 					event.preventDefault();
 					setIsOpen(false);
 				}
 				return;
+
 			default:
 				return;
 		}
 	}
 
 	return (
-		<div className={`${styles.selectRoot}${className ? ` ${className}` : ""}`} ref={rootRef}>
+		<div className={`${rootClass}${className ? ` ${className}` : ""}`} ref={rootRef}>
 			<button
 				ref={triggerRef}
 				type="button"
@@ -147,36 +187,41 @@ export function Select({
 				aria-activedescendant={isOpen ? `${listboxId}-option-${activeIndex}` : undefined}
 				aria-label={label ? undefined : ariaLabel}
 				aria-labelledby={label ? labelId : undefined}
-				className={`${styles.trigger}${label ? ` ${styles.triggerWithLabel}` : ""} ${
-					variant === "primary" ? styles.primaryTrigger : styles.secondaryTrigger
-				}`}
+				className={`${triggerBaseClass}${
+					label ? ` ${triggerWithLabelClass}` : ""
+				}${variant === "primary" ? ` ${primaryTriggerClass}` : ""}`}
 				onClick={() => (isOpen ? setIsOpen(false) : openAtCurrentValue())}
 				onKeyDown={handleTriggerKeyDown}
 			>
-				<span className={styles.triggerContent}>
+				<span className={triggerContentClass}>
 					{label && (
 						<span
 							id={labelId}
-							className={`${styles.floatingLabel}${isFloated ? ` ${styles.floatingLabelFloated}` : ""}`}
+							className={`${floatingLabelClass}${
+								isFloated ? ` ${floatingLabelFloatedClass}` : ""
+							}`}
 						>
 							{label}
 						</span>
 					)}
-					<span className={styles.triggerValue}>{selectedOption?.label ?? ""}</span>
+
+					<span className={triggerValueClass}>{selectedOption?.label ?? ""}</span>
 				</span>
+
 				<MotionNavArrowDown
-					className={styles.triggerArrow}
+					className={triggerArrowClass}
 					variants={motionVariants.rotateArrow}
 					animate={isOpen ? "open" : "closed"}
 					transition={motionTransition(0.07)}
 				/>
 			</button>
+
 			<AnimatePresence>
 				{isOpen && (
 					<motion.ul
 						id={listboxId}
 						role="listbox"
-						className={styles.listbox}
+						className={listboxClass}
 						aria-label={ariaLabel}
 						variants={motionVariants.dropdownAppear}
 						initial="hidden"
@@ -189,11 +234,9 @@ export function Select({
 								id={`${listboxId}-option-${index}`}
 								role="option"
 								aria-selected={option.value === value}
-								className={
-									index === activeIndex
-										? `${styles.option} ${styles.optionActive}`
-										: styles.option
-								}
+								className={`${optionClass}${
+									index === activeIndex ? ` ${optionActiveClass}` : ""
+								}`}
 								onMouseEnter={() => setActiveIndex(index)}
 								onClick={() => selectOption(index)}
 							>

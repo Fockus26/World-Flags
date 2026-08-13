@@ -8,7 +8,6 @@ import { useGame } from "@/hooks/useGame";
 import { motionVariants } from "@/styles/animations";
 import type { ReviewGrade } from "@/types/progress";
 import { GradeButtons } from "../../ui/GradeButtons";
-import styles from "./DailyPractice.module.css";
 
 interface DailyPracticeProps {
 	countryCodes: string[];
@@ -71,7 +70,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 	return (
 		<>
 			<motion.section
-				className={styles.dailyPractice}
+				className="flex w-full flex-col items-center gap-6"
 				variants={motionVariants.contentEnter}
 				initial="hidden"
 				animate="visible"
@@ -83,20 +82,24 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 					onExit={() => setIsExitModalOpen(true)}
 				/>
 
-				<div className={styles.content}>
+				<div className="flex w-full flex-col items-center gap-5">
 					<FlagDisplay countryCode={currentCountry.code} />
 
 					<AnimatePresence mode="wait">
 						{!isRevealed ? (
 							<motion.p
 								key="hint"
-								className={styles.hint}
+								className="text-center text-[0.95rem] text-text-muted"
 								variants={motionVariants.feedbackEnter}
 								initial="hidden"
 								animate="visible"
 								exit="hidden"
 							>
-								Presiona <kbd>Espacio</kbd> para revelar
+								Presiona{" "}
+								<kbd className="rounded-sm border border-border bg-surface-muted px-2 py-[0.15rem] text-[0.85rem]">
+									Espacio
+								</kbd>{" "}
+								para revelar
 							</motion.p>
 						) : (
 							<motion.div
@@ -106,7 +109,9 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 								animate="visible"
 								exit="hidden"
 							>
-								<p className={styles.countryName}>{currentCountry.name}</p>
+								<p className="mb-4 text-center text-[1.4rem] font-extrabold text-text">
+									{currentCountry.name}
+								</p>
 								<GradeButtons onGrade={handleGrade} />
 							</motion.div>
 						)}

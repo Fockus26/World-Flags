@@ -10,7 +10,6 @@ import { calculateScore } from "@/utils/score";
 import { AnswerForm } from "./AnswerForm";
 import { FlagDisplay } from "./FlagDisplay";
 import { Header } from "./Header";
-import styles from "./Session.module.css";
 
 const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 	"1": "again",
@@ -137,7 +136,7 @@ export function Session() {
 	return (
 		<>
 			<motion.section
-				className={styles.game}
+				className="flex h-[min(100%,50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-2xl border border-border bg-surface p-[clamp(1rem,2.5vh,2rem)] shadow-(--shadow-card) max-[44rem]:rounded-lg max-[30rem]:p-[0.85rem] max-[43rem]:py-3"
 				variants={motionVariants.contentEnter}
 				initial="hidden"
 				animate="visible"
@@ -151,7 +150,7 @@ export function Session() {
 					onExit={() => setIsExitModalOpen(true)}
 				/>
 
-				<div className={styles.gameContent}>
+				<div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-[clamp(0.75rem,2vh,1.5rem)] max-[30rem]:gap-[0.65rem]">
 					<FlagDisplay countryCode={currentCountry.code} />
 					<AnswerForm
 						countryName={currentCountry.name}
