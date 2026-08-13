@@ -1,16 +1,20 @@
 import {
+	DEFAULT_GAME_MODE,
 	DEFAULT_TIMER_DURATION,
 	type GameConfiguration,
 	type Region,
 } from "@/types/country";
 import type {
 	CountriesLearningHistory,
+	ReviewGrade,
+	ReviewState,
 	UserLearningData,
 	UserProfile,
 } from "@/types/progress";
+import { calculateNextReview, isDue } from "@/utils/spaced-repetition";
 
 const STORAGE_KEY = "world-flags-learning-data";
-export const MAX_COUNTRY_ATTEMPTS = 3;
+
 export const MAX_REGION_GAMES = 3;
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -25,6 +29,16 @@ const DEFAULT_DATA: UserLearningData = {
 	regionGameScores: {},
 	lastConfiguration: null,
 };
+
+function migrateCountryHistory(
+	history: CountriesLearningHistory | undefined,
+): CountriesLearningHistory {
+	if (!history) return {};
+
+	return Object.fromEntries(
+		Object.entries(history).map(([code, entry]) => [code, { review: entry.review ?? null }]),
+	);
+}
 
 export function getLearningData(): UserLearningData {
 	if (typeof window === "undefined") {
@@ -45,7 +59,7 @@ export function getLearningData(): UserLearningData {
 				...DEFAULT_PROFILE,
 				...parsedData.profile,
 			},
-			countryHistory: parsedData.countryHistory ?? {},
+			countryHistory: migrateCountryHistory(parsedData.countryHistory),
 			regionGameScores: parsedData.regionGameScores ?? {},
 			lastConfiguration: parsedData.lastConfiguration ?? null,
 		};
@@ -75,9 +89,7 @@ export function saveUserProfile(profile: UserProfile): UserLearningData {
 	return updatedData;
 }
 
-export function saveLastConfiguration(
-	configuration: GameConfiguration,
-): UserLearningData {
+export function saveLastConfiguration(configuration: GameConfiguration): UserLearningData {
 	const currentData = getLearningData();
 
 	const updatedData: UserLearningData = {
@@ -90,9 +102,7 @@ export function saveLastConfiguration(
 	return updatedData;
 }
 
-export function updateLastConfiguration(
-	partial: Partial<GameConfiguration>,
-): UserLearningData {
+export function updateLastConfiguration(partial: Partial<GameConfiguration>): UserLearningData {
 	const currentData = getLearningData();
 
 	const updatedData: UserLearningData = {
@@ -100,8 +110,9 @@ export function updateLastConfiguration(
 		lastConfiguration: {
 			region: currentData.lastConfiguration?.region ?? "world",
 			order: currentData.lastConfiguration?.order ?? "alphabetical",
-			timerDuration:
-				currentData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			timerDuration: currentData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			difficulty: currentData.lastConfiguration?.difficulty ?? "hard",
+			mode: currentData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE,
 			...partial,
 		},
 	};
@@ -111,38 +122,11 @@ export function updateLastConfiguration(
 	return updatedData;
 }
 
-export function registerCountryAttempt(
-	countryCode: string,
-	isCorrect: boolean,
-): UserLearningData {
-	const currentData = getLearningData();
-
-	const previousAttempts =
-		currentData.countryHistory[countryCode]?.attempts ?? [];
-
-	const attempts = [...previousAttempts, isCorrect].slice(
-		-MAX_COUNTRY_ATTEMPTS,
-	);
-
-	const updatedData: UserLearningData = {
-		...currentData,
-		countryHistory: {
-			...currentData.countryHistory,
-			[countryCode]: {
-				attempts,
-			},
-		},
-	};
-
-	saveLearningData(updatedData);
-
-	return updatedData;
+export function registerCountryAttempt(countryCode: string, isCorrect: boolean): UserLearningData {
+	return saveReviewResult(countryCode, isCorrect ? "good" : "again");
 }
 
-export function registerRegionGame(
-	region: Region,
-	score: number,
-): UserLearningData {
+export function registerRegionGame(region: Region, score: number): UserLearningData {
 	const currentData = getLearningData();
 
 	const previousScores = currentData.regionGameScores[region] ?? [];
@@ -162,16 +146,12 @@ export function registerRegionGame(
 	return updatedData;
 }
 
-export function isCountryLearned(attempts: boolean[]): boolean {
-	return attempts.some(Boolean);
+export function isCountryLearned(review: ReviewState | null): boolean {
+	return review !== null && review.repetitions > 0;
 }
 
-export function countLearnedCountries(
-	history: CountriesLearningHistory,
-): number {
-	return Object.values(history).filter(({ attempts }) =>
-		isCountryLearned(attempts),
-	).length;
+export function countLearnedCountries(history: CountriesLearningHistory): number {
+	return Object.values(history).filter(({ review }) => isCountryLearned(review)).length;
 }
 
 export function calculateLearningProgress(
@@ -187,9 +167,7 @@ export function calculateLearningProgress(
 	return Math.round((learnedCountries / totalCountries) * 100);
 }
 
-export function calculateRegionAverage(
-	scores: number[] | undefined,
-): number | null {
+export function calculateRegionAverage(scores: number[] | undefined): number | null {
 	if (!scores?.length) {
 		return null;
 	}
@@ -201,4 +179,27 @@ export function calculateRegionAverage(
 
 export function formatScore(score: number): string {
 	return Number.isInteger(score) ? score.toFixed(0) : score.toFixed(1);
+}
+
+export function saveReviewResult(countryCode: string, grade: ReviewGrade): UserLearningData {
+	const currentData = getLearningData();
+	const previousReview = currentData.countryHistory[countryCode]?.review ?? null;
+
+	const updatedData: UserLearningData = {
+		...currentData,
+		countryHistory: {
+			...currentData.countryHistory,
+			[countryCode]: { review: calculateNextReview(previousReview, grade) },
+		},
+	};
+
+	saveLearningData(updatedData);
+	return updatedData;
+}
+
+export function getDueCountries(
+	history: CountriesLearningHistory,
+	countryCodes: string[],
+): string[] {
+	return countryCodes.filter((code) => isDue(history[code]?.review ?? null));
 }

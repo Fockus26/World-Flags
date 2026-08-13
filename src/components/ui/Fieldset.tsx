@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import styles from "./Fieldset.module.css";
 
 interface FieldsetProps {
-	legend: string;
+	legend: ReactNode;
 	hideLegend?: boolean;
 	children: ReactNode;
 	className?: string;

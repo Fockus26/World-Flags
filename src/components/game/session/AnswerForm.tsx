@@ -1,9 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { type SubmitEvent, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
+import { GradeButtons } from "@/components/ui/GradeButtons";
 import { Input } from "@/components/ui/Input";
 import { motionVariants } from "@/styles/animations";
-import type { AnswerStatus } from "@/types/country";
+import type { AnswerStatus, GameMode } from "@/types/country";
+import type { ReviewGrade } from "@/types/progress";
 import styles from "./AnswerForm.module.css";
 
 interface AnswerFormProps {
@@ -14,6 +16,8 @@ interface AnswerFormProps {
 	isLastCountry: boolean;
 	onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 	onNext: () => void;
+	mode: GameMode;
+	onGrade: (grade: ReviewGrade) => void;
 }
 
 export function AnswerForm({
@@ -24,6 +28,8 @@ export function AnswerForm({
 	isLastCountry,
 	onSubmit,
 	onNext,
+	mode,
+	onGrade,
 }: AnswerFormProps) {
 	const isAnswerChecked = answerStatus !== "idle";
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -54,12 +60,12 @@ export function AnswerForm({
 				placeholder="Escribe el nombre del país"
 			/>
 
-			<AnimatePresence mode="wait">
+			<AnimatePresence mode="popLayout">
 				{answerStatus === "correct" && (
 					<motion.p
 						key="correct"
 						className={styles.correctMessage}
-						variants={motionVariants.feedbackEnter}
+						variants={motionVariants.answerFeedbackEnter}
 						initial="hidden"
 						animate="visible"
 						exit="hidden"
@@ -71,7 +77,7 @@ export function AnswerForm({
 					<motion.p
 						key="incorrect"
 						className={styles.incorrectMessage}
-						variants={motionVariants.feedbackEnter}
+						variants={motionVariants.answerFeedbackEnter}
 						initial="hidden"
 						animate="visible"
 						exit="hidden"
@@ -81,7 +87,15 @@ export function AnswerForm({
 				)}
 			</AnimatePresence>
 
-			{isAnswerChecked ? (
+			{isAnswerChecked && mode === "practice" ? (
+				<motion.div
+					variants={motionVariants.answerFeedbackEnter}
+					initial="hidden"
+					animate="visible"
+				>
+					<GradeButtons onGrade={onGrade} />
+				</motion.div>
+			) : isAnswerChecked ? (
 				<Button ref={nextButtonRef} variant="primary" type="button" onClick={onNext}>
 					{isLastCountry ? "Ver resultado" : "Siguiente bandera"}
 				</Button>

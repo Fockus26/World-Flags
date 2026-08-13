@@ -6,8 +6,8 @@ interface HeaderProps {
 	regionLabel: string;
 	currentIndex: number;
 	totalCountries: number;
-	timeLeft: number;
-	timerDuration: number;
+	timeLeft?: number;
+	timerDuration?: number;
 	onExit: () => void;
 }
 
@@ -29,7 +29,9 @@ export function Header({
 					</p>
 				</div>
 
-				<Timer timeLeft={timeLeft} totalDuration={timerDuration} />
+				{timeLeft !== undefined && timerDuration !== undefined && (
+					<Timer timeLeft={timeLeft} totalDuration={timerDuration} />
+				)}
 
 				<Button variant="exit" type="button" onClick={onExit}>
 					Abandonar

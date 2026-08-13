@@ -1,6 +1,6 @@
 import { type CSSProperties, useId } from "react";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme } from "@/hooks/useTheme";
 import { formatScore } from "@/utils/learning-storage";
 import { getScoreBackgroundColor, getScoreColor } from "@/utils/score";
 import styles from "./RegionOption.module.css";
@@ -39,12 +39,7 @@ export function RegionOption({
 
 	return (
 		<label className={styles.option} style={scoreStyle}>
-			<input
-				type="radio"
-				name="region"
-				value={value}
-				defaultChecked={defaultChecked}
-			/>
+			<input type="radio" name="region" value={value} defaultChecked={defaultChecked} />
 
 			<span className={styles.optionContent}>
 				<span className={styles.optionTop}>

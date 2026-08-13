@@ -1,28 +1,24 @@
-import {
-	createContext,
-	type ReactNode,
-	useContext,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { countries } from "@/data/countries";
 import {
 	type Country,
+	DEFAULT_GAME_MODE,
 	DEFAULT_TIMER_DURATION,
 	type GameConfiguration as GameConfigurationType,
 	type GameResult,
 } from "@/types/country";
-import type { UserLearningData, UserProfile } from "@/types/progress";
+import type { ReviewGrade, UserLearningData, UserProfile } from "@/types/progress";
 import { pushLearningData, syncOnLogin } from "@/utils/cloud-storage";
 import {
 	clearLearningData,
+	getDueCountries,
 	getLearningData,
 	registerCountryAttempt,
 	registerRegionGame,
 	saveLastConfiguration,
 	saveLearningData,
+	saveReviewResult,
 	saveUserProfile,
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
@@ -37,11 +33,15 @@ interface GameContextValue {
 	learningData: UserLearningData;
 	activeGame: ActiveGame | null;
 	lastResult: GameResult | null;
+	dailyPracticeQueue: string[] | null;
 	startGame: (configuration: GameConfigurationType) => void;
 	finishGame: (result: GameResult) => void;
 	exitGame: () => void;
 	restartGame: () => void;
 	attemptCountry: (countryCode: string, isCorrect: boolean) => void;
+	gradeCountryReview: (countryCode: string, grade: ReviewGrade) => void;
+	startDailyPractice: () => void;
+	exitDailyPractice: () => void;
 	saveProfile: (profile: UserProfile) => void;
 	updateSettings: (partial: Partial<GameConfigurationType>) => void;
 }
@@ -59,11 +59,10 @@ export function useGame() {
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
-	const [learningData, setLearningData] = useState<UserLearningData>(() =>
-		getLearningData(),
-	);
+	const [learningData, setLearningData] = useState<UserLearningData>(() => getLearningData());
 	const [activeGame, setActiveGame] = useState<ActiveGame | null>(null);
 	const [lastResult, setLastResult] = useState<GameResult | null>(null);
+	const [dailyPracticeQueue, setDailyPracticeQueue] = useState<string[] | null>(null);
 
 	useEffect(() => {
 		setLearningData(getLearningData());
@@ -71,9 +70,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	const { user, status } = useAuth();
 	const hasSyncedRef = useRef(false);
-	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-		undefined,
-	);
+	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
 	useEffect(() => {
 		if (status !== "authenticated" || !user || hasSyncedRef.current) return;
@@ -140,9 +137,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 		startGame({
 			region: lastResult.region,
-			order: "random",
-			timerDuration:
-				learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			order: learningData.lastConfiguration?.order ?? "random",
+			timerDuration: learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			difficulty: learningData.lastConfiguration?.difficulty ?? "hard",
+			mode: learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE,
 		});
 	};
 
@@ -150,6 +148,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		const updatedData = registerCountryAttempt(countryCode, isCorrect);
 
 		setLearningData(updatedData);
+	};
+
+	const gradeCountryReview = (countryCode: string, grade: ReviewGrade) => {
+		const updatedData = saveReviewResult(countryCode, grade);
+		setLearningData(updatedData);
+	};
+
+	const startDailyPractice = () => {
+		const allCodes = countries.map((country) => country.code);
+		const dueCodes = getDueCountries(learningData.countryHistory, allCodes);
+		setDailyPracticeQueue(dueCodes);
+	};
+
+	const exitDailyPractice = () => {
+		setDailyPracticeQueue(null);
 	};
 
 	const saveProfile = (profile: UserProfile) => {
@@ -168,11 +181,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				learningData,
 				activeGame,
 				lastResult,
+				dailyPracticeQueue,
+				startDailyPractice,
+				exitDailyPractice,
 				startGame,
 				finishGame,
 				exitGame,
 				restartGame,
 				attemptCountry,
+				gradeCountryReview,
 				saveProfile,
 				updateSettings,
 			}}

@@ -1,5 +1,5 @@
 import { OptionTile } from "@/components/ui/OptionTile";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme } from "@/hooks/useTheme";
 import styles from "./ThemeSwitcher.module.css";
 
 const themeOptions = [

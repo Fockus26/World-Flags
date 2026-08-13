@@ -1,0 +1,47 @@
+.gradeButtons {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0.6rem;
+	width: 100%;
+}
+
+.key {
+	margin-right: 0.4rem;
+	padding: 0.1rem 0.4rem;
+	border-radius: var(--radius-sm);
+	background: var(--color-surface-muted);
+	font-size: 0.75rem;
+}
+
+.again {
+	border-color: var(--color-danger-border);
+	color: var(--color-danger-text);
+}
+.again:hover {
+	border-color: var(--color-danger-hover);
+	background: var(--color-danger-bg);
+}
+
+.hard {
+	border-color: var(--color-border-secondary);
+	color: var(--color-neutral);
+}
+.hard:hover {
+	background: var(--color-surface-secondary);
+}
+
+.good {
+	border-color: var(--color-border-primary);
+	color: var(--color-primary);
+}
+.good:hover {
+	background: var(--color-primary-soft);
+}
+
+.easy {
+	border-color: var(--color-success-border);
+	color: var(--color-success);
+}
+.easy:hover {
+	background: var(--color-success-bg);
+}

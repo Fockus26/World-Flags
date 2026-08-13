@@ -5,11 +5,10 @@ import type {
 	RegionGameScores,
 	UserLearningData,
 } from "@/types/progress";
-import { MAX_COUNTRY_ATTEMPTS, MAX_REGION_GAMES } from "./learning-storage";
+import { MAX_REGION_GAMES } from "./learning-storage";
+import { pickMoreRecentReview } from "./spaced-repetition";
 
-export async function fetchRemoteLearningData(
-	userId: string,
-): Promise<UserLearningData | null> {
+export async function fetchRemoteLearningData(userId: string): Promise<UserLearningData | null> {
 	const { data, error } = await supabase
 		.from("user_learning_data")
 		.select("profile, country_history, region_game_scores, last_configuration")
@@ -26,10 +25,7 @@ export async function fetchRemoteLearningData(
 	};
 }
 
-export async function pushLearningData(
-	userId: string,
-	data: UserLearningData,
-): Promise<void> {
+export async function pushLearningData(userId: string, data: UserLearningData): Promise<void> {
 	await supabase.from("user_learning_data").upsert({
 		user_id: userId,
 		profile: data.profile,
@@ -47,24 +43,17 @@ export function mergeLearningData(
 	const countryHistory: CountriesLearningHistory = { ...remote.countryHistory };
 
 	for (const [code, entry] of Object.entries(local.countryHistory)) {
-		const remoteAttempts = remote.countryHistory[code]?.attempts ?? [];
+		const remoteReview = remote.countryHistory[code]?.review ?? null;
 		countryHistory[code] = {
-			attempts: [...remoteAttempts, ...entry.attempts].slice(
-				-MAX_COUNTRY_ATTEMPTS,
-			),
+			review: pickMoreRecentReview(remoteReview, entry.review),
 		};
 	}
 
 	const regionGameScores: RegionGameScores = { ...remote.regionGameScores };
 
-	for (const [region, scores] of Object.entries(local.regionGameScores) as [
-		Region,
-		number[],
-	][]) {
+	for (const [region, scores] of Object.entries(local.regionGameScores) as [Region, number[]][]) {
 		const remoteScores = remote.regionGameScores[region] ?? [];
-		regionGameScores[region] = [...remoteScores, ...scores].slice(
-			-MAX_REGION_GAMES,
-		);
+		regionGameScores[region] = [...remoteScores, ...scores].slice(-MAX_REGION_GAMES);
 	}
 
 	return {

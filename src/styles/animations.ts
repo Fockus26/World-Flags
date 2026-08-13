@@ -37,6 +37,15 @@ export const motionVariants = {
 		},
 	},
 
+	answerFeedbackEnter: {
+		hidden: { opacity: 0, y: 4 },
+		visible: {
+			opacity: 1,
+			y: 0,
+			transition: motionTransition(0.12),
+		},
+	},
+
 	overlayAppear: {
 		hidden: { opacity: 0 },
 		visible: {

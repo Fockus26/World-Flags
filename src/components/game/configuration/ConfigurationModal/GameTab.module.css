@@ -14,3 +14,23 @@
 	display: flex;
 	gap: 0.5rem;
 }
+
+.legendWithTooltip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.infoIcon {
+	display: inline-flex;
+	width: 1.05rem;
+	height: 1.05rem;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--radius-full);
+	background: var(--color-surface-secondary);
+	color: var(--color-text-subtle);
+	font-size: 0.68rem;
+	font-weight: 800;
+	cursor: default;
+}

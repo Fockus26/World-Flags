@@ -1,3 +1,7 @@
+export const DIFFICULTIES = ["easy", "hard"] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
+export const DEFAULT_DIFFICULTY: Difficulty = "hard";
+
 export const TIMER_DURATIONS = [5, 10, 15] as const;
 
 export type TimerDuration = (typeof TIMER_DURATIONS)[number];
@@ -27,10 +31,21 @@ export interface Country {
 	region: Region;
 }
 
+export const GAME_MODES = ["competitive", "practice"] as const;
+export type GameMode = (typeof GAME_MODES)[number];
+export const DEFAULT_GAME_MODE: GameMode = "competitive";
+
+export const GAME_MODE_LABELS: Record<GameMode, string> = {
+	competitive: "Competitivo",
+	practice: "Práctica",
+};
+
 export interface GameConfiguration {
 	region: PracticeRegion;
 	order: PracticeOrder;
 	timerDuration: TimerDuration;
+	difficulty: Difficulty;
+	mode: GameMode;
 }
 
 export interface GameResult {

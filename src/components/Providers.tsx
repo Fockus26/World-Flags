@@ -1,14 +1,18 @@
 import type { ReactNode } from "react";
+import { Provider } from "react-redux";
 import { AuthProvider } from "@/context/AuthContext";
 import { GameProvider } from "@/context/GameContext";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { store } from "@/store";
+import { ThemeEffects } from "./ThemeEffects";
 
 export default function Providers({ children }: { children: ReactNode }) {
 	return (
-		<ThemeProvider>
+		<Provider store={store}>
+			<ThemeEffects />
+
 			<AuthProvider>
 				<GameProvider>{children}</GameProvider>
 			</AuthProvider>
-		</ThemeProvider>
+		</Provider>
 	);
 }

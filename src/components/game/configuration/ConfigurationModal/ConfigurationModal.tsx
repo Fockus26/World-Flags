@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { motionVariants } from "@/styles/animations";
-import type { PracticeOrder, TimerDuration } from "@/types/country";
+import type { Difficulty, GameMode, PracticeOrder, TimerDuration } from "@/types/country";
 import type { UserProfile } from "@/types/progress";
 import { AccountTab } from "./AccountTab";
 import styles from "./ConfigurationModal.module.css";
@@ -16,10 +16,14 @@ interface ConfigurationModalProps {
 	onClose: () => void;
 	profile: UserProfile;
 	onSaveProfile: (profile: UserProfile) => void;
+	mode: GameMode;
+	onModeChange: (mode: GameMode) => void;
 	order: PracticeOrder;
 	onOrderChange: (order: PracticeOrder) => void;
 	timerDuration: TimerDuration;
 	onTimerDurationChange: (duration: TimerDuration) => void;
+	difficulty: Difficulty;
+	onDifficultyChange: (difficulty: Difficulty) => void;
 }
 
 const TABS: { id: ConfigurationModalTab; label: string }[] = [
@@ -32,10 +36,14 @@ export function ConfigurationModal({
 	onClose,
 	profile,
 	onSaveProfile,
+	mode,
+	onModeChange,
 	order,
 	onOrderChange,
 	timerDuration,
 	onTimerDurationChange,
+	difficulty,
+	onDifficultyChange,
 }: ConfigurationModalProps) {
 	const [activeTab, setActiveTab] = useState<ConfigurationModalTab>("account");
 
@@ -107,10 +115,14 @@ export function ConfigurationModal({
 							exit="hidden"
 						>
 							<GameTab
+								mode={mode}
+								onModeChange={onModeChange}
 								order={order}
 								onOrderChange={onOrderChange}
 								timerDuration={timerDuration}
 								onTimerDurationChange={onTimerDurationChange}
+								difficulty={difficulty}
+								onDifficultyChange={onDifficultyChange}
 							/>
 						</motion.div>
 					)}
