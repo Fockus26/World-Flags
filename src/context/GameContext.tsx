@@ -156,8 +156,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	};
 
 	const startDailyPractice = () => {
-		const allCodes = countries.map((country) => country.code);
-		const dueCodes = getDueCountries(learningData.countryHistory, allCodes);
+		const dueCodes = getDueCountries(learningData.countryHistory);
 		setDailyPracticeQueue(dueCodes);
 	};
 

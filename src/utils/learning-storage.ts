@@ -197,9 +197,6 @@ export function saveReviewResult(countryCode: string, grade: ReviewGrade): UserL
 	return updatedData;
 }
 
-export function getDueCountries(
-	history: CountriesLearningHistory,
-	countryCodes: string[],
-): string[] {
-	return countryCodes.filter((code) => isDue(history[code]?.review ?? null));
+export function getDueCountries(history: CountriesLearningHistory): string[] {
+	return Object.keys(history).filter((code) => isDue(history[code]?.review ?? null));
 }

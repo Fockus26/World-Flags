@@ -84,7 +84,7 @@
 }
 
 .optionMeta {
-	color: var(--color-text-subtle);
+	color: var(--score-color);
 	font-size: 0.72rem;
 	font-weight: 600;
 }

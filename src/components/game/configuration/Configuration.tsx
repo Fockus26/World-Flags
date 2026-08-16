@@ -36,10 +36,8 @@ export function Configuration() {
 
 	const learnedCountries = countLearnedCountries(learningData.countryHistory);
 	const learningProgress = calculateLearningProgress(learningData.countryHistory, 196);
-	const dueCount = getDueCountries(
-		learningData.countryHistory,
-		countries.map((country) => country.code),
-	).length;
+	
+	const dueCount = getDueCountries(learningData.countryHistory).length;
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
