@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import styles from "./ConfirmationModal.module.css";
 
 interface ConfirmationModalProps {
 	isOpen: boolean;
@@ -43,7 +42,10 @@ export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationM
 			ariaLabelledby="exit-modal-title"
 			ariaDescribedby="exit-modal-description"
 		>
-			<div className={styles.modalIcon} aria-hidden="true">
+			<div
+				className="mx-auto grid size-14 place-items-center rounded-full bg-danger-bg text-[1.75rem] font-black text-danger"
+				aria-hidden="true"
+			>
 				!
 			</div>
 
@@ -53,7 +55,7 @@ export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationM
 				El progreso de esta partida se perderá y no se guardará ninguna calificación.
 			</p>
 
-			<div className={styles.modalActions}>
+			<div className="mt-6 grid grid-cols-2 gap-2 max-[44rem]:grid-cols-1">
 				<Button ref={cancelButtonRef} variant="secondary" type="button" onClick={onCancel}>
 					Continuar practicando
 				</Button>

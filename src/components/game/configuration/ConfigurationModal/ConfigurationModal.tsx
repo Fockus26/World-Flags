@@ -6,7 +6,6 @@ import { motionVariants } from "@/styles/animations";
 import type { Difficulty, GameMode, PracticeOrder, TimerDuration } from "@/types/country";
 import type { UserProfile } from "@/types/progress";
 import { AccountTab } from "./AccountTab";
-import styles from "./ConfigurationModal.module.css";
 import { GameTab } from "./GameTab";
 
 type ConfigurationModalTab = "account" | "game";
@@ -52,17 +51,21 @@ export function ConfigurationModal({
 			isOpen={isOpen}
 			onClose={onClose}
 			animateHeight
-			className={styles.configurationModal}
+			className="w-[min(30rem,92vw)] text-left"
 			ariaLabelledby="user-modal-title"
 		>
-			<header className={styles.header}>
+			<header className="mb-3 flex items-center justify-between">
 				<h2 id="user-modal-title">Perfil y configuración</h2>
 				<Button variant="exit" type="button" onClick={onClose}>
 					Cerrar
 				</Button>
 			</header>
 
-			<div className={styles.tabList} role="tablist" aria-label="Secciones">
+			<div
+				className="mb-4 flex gap-1 border-border-lighter border-b"
+				role="tablist"
+				aria-label="Secciones"
+			>
 				{TABS.map((tab) => (
 					<button
 						key={tab.id}
@@ -71,13 +74,13 @@ export function ConfigurationModal({
 						id={`tab-${tab.id}`}
 						aria-selected={activeTab === tab.id}
 						aria-controls={`panel-${tab.id}`}
-						className={styles.tabButton}
+						className="relative flex-1 cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-subtle transition-colors duration-150 hover:text-text aria-selected:text-text"
 						onClick={() => setActiveTab(tab.id)}
 					>
 						{tab.label}
 						{activeTab === tab.id && (
 							<motion.span
-								className={styles.tabIndicator}
+								className="absolute right-0 bottom-px left-0 h-0.5 bg-text"
 								layoutId="configurationTabIndicator"
 								transition={{ type: "spring", stiffness: 500, damping: 40 }}
 							/>
@@ -86,7 +89,7 @@ export function ConfigurationModal({
 				))}
 			</div>
 
-			<motion.div className={styles.tabPanelWrapper}>
+			<motion.div className="overflow-hidden">
 				<AnimatePresence mode="wait" initial={false}>
 					{activeTab === "account" ? (
 						<motion.div
@@ -94,7 +97,7 @@ export function ConfigurationModal({
 							id="panel-account"
 							role="tabpanel"
 							aria-labelledby="tab-account"
-							className={styles.tabPanel}
+							className="flex flex-col gap-4"
 							variants={motionVariants.tabContentSwitch}
 							initial="hidden"
 							animate="visible"
@@ -108,7 +111,7 @@ export function ConfigurationModal({
 							id="panel-game"
 							role="tabpanel"
 							aria-labelledby="tab-game"
-							className={styles.tabPanel}
+							className="flex flex-col gap-4"
 							variants={motionVariants.tabContentSwitch}
 							initial="hidden"
 							animate="visible"

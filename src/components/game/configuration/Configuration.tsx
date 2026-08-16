@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { useAuth } from "@/context/AuthContext";
-import { useGame } from "@/context/GameContext";
 import { countries } from "@/data/countries";
+import { useAuth } from "@/hooks/useAuth";
+import { useGame } from "@/hooks/useGame";
 import { motionVariants } from "@/styles/animations";
 import {
 	DEFAULT_DIFFICULTY,
@@ -17,7 +17,6 @@ import {
 	countLearnedCountries,
 	getDueCountries,
 } from "@/utils/learning-storage";
-import styles from "./Configuration.module.css";
 import { ConfigurationModal } from "./ConfigurationModal/ConfigurationModal";
 import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
@@ -26,6 +25,7 @@ export function Configuration() {
 	const { learningData, saveProfile, startGame, updateSettings, startDailyPractice } = useGame();
 	const [isConfigurationModalOpen, setIsConfigurationModalOpen] = useState(false);
 	const { status, user } = useAuth();
+
 	const accountLabel = status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
 
 	const order = learningData.lastConfiguration?.order ?? "alphabetical";
@@ -36,20 +36,45 @@ export function Configuration() {
 
 	const learnedCountries = countLearnedCountries(learningData.countryHistory);
 	const learningProgress = calculateLearningProgress(learningData.countryHistory, 196);
-	
+
 	const dueCount = getDueCountries(learningData.countryHistory).length;
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
+
 		const formData = new FormData(event.currentTarget);
 		const region = formData.get("region") as PracticeRegion;
-		startGame({ region, order, timerDuration, difficulty, mode });
+
+		startGame({
+			region,
+			order,
+			timerDuration,
+			difficulty,
+			mode,
+		});
 	}
 
 	return (
 		<>
 			<motion.section
-				className={styles.configuration}
+				className="
+					flex
+					w-full
+					max-w-232
+					max-h-full
+					flex-col
+					gap-4
+					overflow-hidden
+					rounded-2xl
+					border
+					border-border
+					bg-surface
+					p-4
+					shadow-xl
+					max-[44rem]:rounded-lg
+					max-[30rem]:p-3
+					max-[43rem]:py-3
+				"
 				variants={motionVariants.contentEnter}
 				initial="hidden"
 				animate="visible"
@@ -67,15 +92,38 @@ export function Configuration() {
 					onOpenModal={() => setIsConfigurationModalOpen(true)}
 				/>
 
-				<header className={styles.header}>
-					<h1>Aprende las banderas del mundo</h1>
+				<header className="shrink-0">
+					<h1
+						className="
+							m-0
+							text-3xl
+							font-bold
+							leading-tight
+							text-text
+							max-[30rem]:text-2xl
+							max-[43rem]:text-2xl
+						"
+					>
+						Aprende las banderas del mundo
+					</h1>
 				</header>
 
-				<form className={styles.configurationForm} onSubmit={handleSubmit}>
+				<form
+					className="
+						flex
+						min-h-0
+						flex-1
+						flex-col
+						gap-3
+						max-[43rem]:gap-2
+					"
+					onSubmit={handleSubmit}
+				>
 					<RegionSelector
 						lastRegion={lastRegion}
 						regionGameScores={learningData.regionGameScores}
 					/>
+
 					<Button variant="primary" type="submit">
 						Comenzar práctica
 					</Button>

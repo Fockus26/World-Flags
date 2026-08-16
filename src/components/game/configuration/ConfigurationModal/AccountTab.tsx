@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { motionVariants } from "@/styles/animations";
 import { AVATAR_STYLES, type AvatarStyle, type UserProfile } from "@/types/progress";
-import styles from "./AccountTab.module.css";
 import { AuthSection } from "./AuthSection";
 import { Avatar } from "./Avatar";
 
@@ -51,10 +50,10 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 	}
 
 	return (
-		<div className={styles.accountTab}>
+		<div className="flex flex-col gap-4">
 			<button
 				type="button"
-				className={styles.viewToggle}
+				className="self-start cursor-pointer border-0 bg-transparent p-0 text-primary font-[inherit] text-[0.8rem] font-bold transition-colors duration-150 hover:text-primary-hover"
 				onClick={() =>
 					setView((current) => (current === "profile" ? "session" : "profile"))
 				}
@@ -62,12 +61,12 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 				{view === "profile" ? "Gestionar sesión →" : "← Volver a personalización"}
 			</button>
 
-			<motion.div className={styles.viewSwitcher}>
+			<motion.div>
 				<AnimatePresence mode="wait" initial={false}>
 					{view === "profile" ? (
 						<motion.div
 							key="profile"
-							className={styles.viewContent}
+							className="flex flex-col gap-4"
 							variants={motionVariants.tabContentSwitch}
 							initial="hidden"
 							animate="visible"
@@ -102,7 +101,7 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 					) : (
 						<motion.div
 							key="session"
-							className={styles.viewContent}
+							className="flex flex-col gap-4"
 							variants={motionVariants.tabContentSwitch}
 							initial="hidden"
 							animate="visible"

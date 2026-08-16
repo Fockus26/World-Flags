@@ -8,7 +8,6 @@ import {
 	useState,
 } from "react";
 import { motionTransition, motionVariants } from "@/styles/animations";
-import styles from "./Modal.module.css";
 
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -22,6 +21,14 @@ interface ModalProps {
 	ariaDescribedby?: string;
 	animateHeight?: boolean;
 }
+
+const overlayClass =
+	"fixed inset-0 z-100 grid place-items-center bg-overlay p-4 backdrop-blur-[5px]";
+
+const modalClass =
+	"max-h-[min(90vh,42rem)] w-[min(100%,30rem)] overflow-y-auto rounded-xl border border-modal-border bg-surface-secondary p-[clamp(1.25rem,4vw,2rem)] text-center shadow-(--shadow-modal) scrollbar-thin scrollbar-thumb-(--color-neutral) scrollbar-track-transparent hover:scrollbar-thumb-(--color-neutral-hover)";
+
+const heightAnimatorClass = "overflow-hidden";
 
 export function Modal({
 	isOpen,
@@ -82,7 +89,7 @@ export function Modal({
 
 	return (
 		<motion.div
-			className={styles.modalOverlay}
+			className={overlayClass}
 			role="presentation"
 			onMouseDown={handleOverlayClick}
 			variants={motionVariants.overlayAppear}
@@ -90,7 +97,7 @@ export function Modal({
 			animate="visible"
 		>
 			<motion.section
-				className={`${styles.modal}${className ? ` ${className}` : ""}`}
+				className={`${modalClass}${className ? ` ${className}` : ""}`}
 				role={role}
 				aria-modal="true"
 				aria-labelledby={ariaLabelledby}
@@ -101,7 +108,7 @@ export function Modal({
 			>
 				{animateHeight ? (
 					<motion.div
-						className={styles.heightAnimator}
+						className={heightAnimatorClass}
 						animate={{ height: height ?? "auto" }}
 						transition={motionTransition(0.25)}
 					>

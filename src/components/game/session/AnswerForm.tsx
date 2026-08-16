@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/Input";
 import { motionVariants } from "@/styles/animations";
 import type { AnswerStatus, GameMode } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
-import styles from "./AnswerForm.module.css";
 
 interface AnswerFormProps {
 	countryName: string;
@@ -44,8 +43,10 @@ export function AnswerForm({
 	}, [answerStatus]);
 
 	return (
-		<form className={styles.answerForm} onSubmit={onSubmit}>
-			<label htmlFor="country-answer">¿Qué país representa esta bandera?</label>
+		<form className="grid shrink-0 gap-[0.65rem] max-[43rem]:gap-[0.45rem]" onSubmit={onSubmit}>
+			<label htmlFor="country-answer" className="font-extrabold text-text-secondary">
+				¿Qué país representa esta bandera?
+			</label>
 
 			<Input
 				ref={inputRef}
@@ -64,7 +65,7 @@ export function AnswerForm({
 				{answerStatus === "correct" && (
 					<motion.p
 						key="correct"
-						className={styles.correctMessage}
+						className="m-0 rounded-md border border-success-border bg-success-bg px-3.5 py-3 text-[0.9rem] text-success"
 						variants={motionVariants.answerFeedbackEnter}
 						initial="hidden"
 						animate="visible"
@@ -73,10 +74,11 @@ export function AnswerForm({
 						Correcto: <strong>{countryName}</strong>
 					</motion.p>
 				)}
+
 				{answerStatus === "incorrect" && (
 					<motion.p
 						key="incorrect"
-						className={styles.incorrectMessage}
+						className="m-0 rounded-md border border-danger-border bg-danger-bg px-3.5 py-3 text-[0.9rem] text-danger-text"
 						variants={motionVariants.answerFeedbackEnter}
 						initial="hidden"
 						animate="visible"

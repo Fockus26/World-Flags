@@ -11,7 +11,6 @@ import {
 	TIMER_DURATIONS,
 	type TimerDuration,
 } from "@/types/country";
-import styles from "./GameTab.module.css";
 
 interface GameTabProps {
 	mode: GameMode;
@@ -35,9 +34,9 @@ export function GameTab({
 	onDifficultyChange,
 }: GameTabProps) {
 	return (
-		<div className={styles.gameTab}>
+		<div className="flex flex-col gap-5">
 			<Fieldset legend="Modo de juego">
-				<div className={styles.optionGrid}>
+				<div className="grid grid-cols-2 gap-1.5">
 					{GAME_MODES.map((gameMode) => (
 						<OptionTile
 							key={gameMode}
@@ -53,7 +52,7 @@ export function GameTab({
 			</Fieldset>
 
 			<Fieldset legend="Orden">
-				<div className={styles.optionGrid}>
+				<div className="grid grid-cols-2 gap-1.5">
 					<OptionTile
 						name="settings-order"
 						value="alphabetical"
@@ -75,7 +74,7 @@ export function GameTab({
 
 			{mode === "competitive" && (
 				<Fieldset legend="Temporizador">
-					<div className={styles.timerGrid}>
+					<div className="flex gap-2">
 						{TIMER_DURATIONS.map((duration) => (
 							<OptionTile
 								key={duration}
@@ -93,17 +92,23 @@ export function GameTab({
 
 			<Fieldset
 				legend={
-					<span className={styles.legendWithTooltip}>
+					<span className="inline-flex items-center gap-1">
 						Dificultad
-						<Tooltip label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico').">
-							<span className={styles.infoIcon} aria-hidden="true">
+						<Tooltip
+							position="left"
+							label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')."
+						>
+							<span
+								className="inline-flex size-4 items-center justify-center rounded-full bg-surface-secondary text-text-subtle text-[0.625rem] font-extrabold"
+								aria-hidden="true"
+							>
 								?
 							</span>
 						</Tooltip>
 					</span>
 				}
 			>
-				<div className={styles.optionGrid}>
+				<div className="grid grid-cols-2 gap-1.5">
 					<OptionTile
 						name="settings-difficulty"
 						value="easy"

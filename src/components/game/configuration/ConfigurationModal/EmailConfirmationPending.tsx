@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { spinTransition } from "@/styles/animations";
-import styles from "./EmailConfirmationPending.module.css";
 
 interface EmailConfirmationPendingProps {
 	email: string;
@@ -37,22 +36,22 @@ export function EmailConfirmationPending({
 	}
 
 	return (
-		<div className={styles.pending}>
+		<div className="flex flex-col items-center gap-3 py-2 text-center">
 			<motion.div
-				className={styles.spinner}
+				className="size-10 rounded-full border-[3px] border-border-lighter border-t-(--color-primary)"
 				aria-hidden="true"
 				animate={{ rotate: 360 }}
 				transition={spinTransition}
 			/>
 
-			<h3>Revisa tu correo</h3>
+			<h3 className="m-0 text-text">Revisa tu correo</h3>
 
-			<p>
+			<p className="m-0 text-text-muted text-[0.875rem] leading-normal">
 				Te enviamos un enlace de confirmación a <strong>{email}</strong>. Esta pantalla se
 				cerrará sola cuando confirmes tu cuenta.
 			</p>
 
-			<div className={styles.actions}>
+			<div className="mt-2 flex gap-2">
 				<Button
 					variant="secondary"
 					type="button"

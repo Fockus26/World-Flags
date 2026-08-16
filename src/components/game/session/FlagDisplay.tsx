@@ -1,13 +1,28 @@
 import { motion } from "framer-motion";
 import { motionVariants } from "@/styles/animations";
-import styles from "./FlagDisplay.module.css";
 
 export function FlagDisplay({ countryCode }: { countryCode: string }) {
 	return (
-		<div className={styles.flagContainer}>
+		<div
+			className="
+				mt-[clamp(0.75rem,2vh,1.5rem)] grid min-h-0 place-items-center
+				overflow-hidden rounded-lg border border-border-soft
+				p-[clamp(0.75rem,2vh,1.5rem)]
+				bg-[linear-gradient(45deg,var(--color-checker)_25%,transparent_25%),linear-gradient(-45deg,var(--color-checker)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,var(--color-checker)_75%),linear-gradient(-45deg,transparent_75%,var(--color-checker)_75%)]
+				bg-position-[0_0,0_0.75rem,0.75rem_-0.75rem,-0.75rem_0]
+				bg-size-[1.5rem_1.5rem]
+				max-[30rem]:mt-[0.65rem] max-[30rem]:p-[0.65rem]
+				max-[43rem]:mt-[0.6rem] max-[43rem]:p-2
+			"
+		>
 			<motion.img
 				key={countryCode}
-				className={styles.flag}
+				className="
+					block h-full w-[min(100%,30rem)] max-h-72 object-contain
+					drop-shadow-(--shadow-flag)
+					transition-[filter,transform] duration-180 ease-in-out
+					hover:scale-[1.015] hover:drop-shadow-(--shadow-flag-hover)
+				"
 				src={`https://flagcdn.com/${countryCode}.svg`}
 				alt="Bandera que debes identificar"
 				variants={motionVariants.flagEnter}
