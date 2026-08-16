@@ -15,6 +15,14 @@ export function GameEffects() {
 	const hasSyncedRef = useRef(false);
 
 	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+	
+	/**
+	 * Releer localStorage en cliente: el initialState del store
+	 * pudo evaluarse en servidor (SSR) con DEFAULT_DATA.
+	*/
+	useEffect(() => {
+		dispatch(setLearningData(getLearningData()));
+	}, [dispatch]);
 
 	/**
 	 * Sincronizar datos cuando el usuario inicia sesión.
