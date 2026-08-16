@@ -43,7 +43,7 @@ export function RegionOption({
 				relative
 				flex
 				min-w-0
-				min-h-19
+				min-h-16
 				items-center
 				cursor-pointer
 				rounded-md
@@ -63,8 +63,7 @@ export function RegionOption({
 				has-focus-visible:outline-[3px]
 				has-focus-visible:outline-(--color-primary)
 				has-focus-visible:outline-offset-2
-				max-[30rem]:min-h-16
-				max-[43rem]:min-h-[3.9rem]
+				min-[44rem]:min-h-19
 			"
 		>
 			<input
@@ -87,12 +86,11 @@ export function RegionOption({
 					min-w-0
 					flex-col
 					gap-1
-					p-3
-					px-3
+					px-2.5
+					py-2
 					[&_button]:rounded-sm
-					max-[30rem]:px-2.5
-					max-[30rem]:py-2
-					max-[43rem]:py-2
+					min-[44rem]:p-3
+					min-[44rem]:px-3
 				"
 			>
 				<span
@@ -110,10 +108,10 @@ export function RegionOption({
 							overflow-hidden
 							text-ellipsis
 							whitespace-nowrap
-							text-[0.92rem]
+							text-[0.82rem]
 							font-extrabold
 							text-(--score-color)
-							max-[44rem]:text-[0.82rem]
+							min-[44rem]:text-[0.92rem]
 						"
 					>
 						{label}

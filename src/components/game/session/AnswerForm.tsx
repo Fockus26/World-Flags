@@ -43,7 +43,7 @@ export function AnswerForm({
 	}, [answerStatus]);
 
 	return (
-		<form className="grid shrink-0 gap-[0.65rem] max-[43rem]:gap-[0.45rem]" onSubmit={onSubmit}>
+		<form className="grid shrink-0 gap-[0.45rem] min-[43rem]:gap-[0.65rem]" onSubmit={onSubmit}>
 			<label htmlFor="country-answer" className="font-extrabold text-text-secondary">
 				¿Qué país representa esta bandera?
 			</label>

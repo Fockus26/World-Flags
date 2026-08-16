@@ -1,5 +1,5 @@
+import Providers from "./app/Providers";
 import FlagGame from "./game/FlagGame";
-import Providers from "./Providers";
 
 export default function App() {
 	return (

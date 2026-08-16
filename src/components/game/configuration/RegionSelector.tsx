@@ -20,8 +20,6 @@ export function RegionSelector({ lastRegion, regionGameScores }: RegionSelectorP
 				border
 				border-border
 				p-2
-				max-[30rem]:p-2
-				max-[43rem]:py-2
 			"
 		>
 			<legend className="px-2 font-extrabold text-text-secondary">Continentes</legend>
@@ -29,11 +27,10 @@ export function RegionSelector({ lastRegion, regionGameScores }: RegionSelectorP
 			<div
 				className="
 					grid
-					grid-cols-3
-					gap-3
-					max-[44rem]:grid-cols-2
-					max-[44rem]:gap-2
-					max-[30rem]:gap-2
+					grid-cols-2
+					gap-2
+					min-[44rem]:grid-cols-3
+					min-[44rem]:gap-3
 				"
 			>
 				<RegionOption

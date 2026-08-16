@@ -1,3 +1,4 @@
+import { LogOut } from "iconoir-react";
 import { Button } from "@/components/ui/Button";
 import { Timer } from "./Timer";
 
@@ -22,23 +23,31 @@ export function Header({
 
 	return (
 		<>
-			<header className="flex shrink-0 items-center justify-between gap-4">
-				<div>
-					<p className="m-0 text-xs font-extrabold uppercase tracking-widest text-primary">
+			<header className="flex flex-wrap shrink-0 items-center justify-between gap-x-3 gap-y-2">
+				<div className="min-w-0">
+					<p className="m-0 truncate text-[0.65rem] font-extrabold uppercase tracking-wide text-primary sm:text-xs sm:tracking-widest">
 						{regionLabel}
 					</p>
-					<p className="m-[0.2rem_0_0] text-[clamp(1rem,2.5vh,1.3rem)] font-extrabold text-text">
+					<p className="m-[0.2rem_0_0] text-base font-extrabold text-text sm:text-[clamp(1rem,2.5vh,1.3rem)]">
 						{currentIndex + 1} / {totalCountries}
 					</p>
 				</div>
 
-				{timeLeft !== undefined && timerDuration !== undefined && (
-					<Timer timeLeft={timeLeft} totalDuration={timerDuration} />
-				)}
-
-				<Button variant="exit" type="button" onClick={onExit}>
-					Abandonar
-				</Button>
+				<div className="flex shrink-0 items-center gap-2">
+					{timeLeft !== undefined && timerDuration !== undefined && (
+						<Timer timeLeft={timeLeft} totalDuration={timerDuration} />
+					)}
+					<Button
+						variant="exit"
+						type="button"
+						onClick={onExit}
+						aria-label="Abandonar"
+						className="gap-2 px-2 sm:px-4"
+					>
+						<LogOut className="size-4 sm:hidden" aria-hidden="true" />
+						<span className="hidden sm:inline">Abandonar</span>
+					</Button>
+				</div>
 			</header>
 
 			<div

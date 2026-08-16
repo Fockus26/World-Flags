@@ -229,9 +229,12 @@ export function Select({
 						exit="hidden"
 					>
 						{options.map((option, index) => (
+							// biome-ignore lint/a11y/useFocusableInteractive: foco intencionalmente NO en el <li> — el foco real vive en el <button role="combobox">, la opción "activa" se comunica vía aria-activedescendant, no vía tabIndex
+							// biome-ignore lint/a11y/useKeyWithClickEvents: el teclado ya lo maneja handleTriggerKeyDown en el <button> (flechas, Enter, Espacio, Home/End); este onClick es solo para mouse/touch
 							<li
 								key={option.value}
 								id={`${listboxId}-option-${index}`}
+								// biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: patrón combobox con aria-activedescendant (WAI-ARIA Authoring Practices) — el <li> es el elemento recomendado para role="option" cuando no se puede usar <select>/<option> nativo
 								role="option"
 								aria-selected={option.value === value}
 								className={`${optionClass}${

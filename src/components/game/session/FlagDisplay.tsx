@@ -5,14 +5,14 @@ export function FlagDisplay({ countryCode }: { countryCode: string }) {
 	return (
 		<div
 			className="
-				mt-[clamp(0.75rem,2vh,1.5rem)] grid min-h-0 place-items-center
+				mt-[0.6rem] grid min-h-0 place-items-center
 				overflow-hidden rounded-lg border border-border-soft
-				p-[clamp(0.75rem,2vh,1.5rem)]
+				p-2
 				bg-[linear-gradient(45deg,var(--color-checker)_25%,transparent_25%),linear-gradient(-45deg,var(--color-checker)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,var(--color-checker)_75%),linear-gradient(-45deg,transparent_75%,var(--color-checker)_75%)]
 				bg-position-[0_0,0_0.75rem,0.75rem_-0.75rem,-0.75rem_0]
 				bg-size-[1.5rem_1.5rem]
-				max-[30rem]:mt-[0.65rem] max-[30rem]:p-[0.65rem]
-				max-[43rem]:mt-[0.6rem] max-[43rem]:p-2
+				min-[30rem]:mt-[0.65rem] min-[30rem]:p-[0.65rem]
+				min-[43rem]:mt-[clamp(0.75rem,2vh,1.5rem)] min-[43rem]:p-[clamp(0.75rem,2vh,1.5rem)]
 			"
 		>
 			<motion.img

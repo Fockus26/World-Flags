@@ -21,7 +21,7 @@ const gradeClasses: Record<ReviewGrade, string> = {
 
 export function GradeButtons({ onGrade }: GradeButtonsProps) {
 	return (
-		<div className="grid w-full grid-cols-4 gap-2">
+		<div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
 			{GRADES.map(({ grade, label, key }) => (
 				<Button
 					key={grade}
@@ -30,7 +30,9 @@ export function GradeButtons({ onGrade }: GradeButtonsProps) {
 					className={gradeClasses[grade]}
 					onClick={() => onGrade(grade)}
 				>
-					<kbd className="mr-2 rounded-sm bg-surface-muted px-2 py-1 text-3">{key}</kbd>
+					<kbd className="mr-2 hidden rounded-sm bg-surface-muted px-2 py-1 text-3 sm:inline">
+						{key}
+					</kbd>
 					{label}
 				</Button>
 			))}

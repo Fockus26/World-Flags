@@ -52,6 +52,47 @@
 		outline: var(--focus-outline);
 		outline-offset: 2px;
 	}
+
+	h1,
+	h2,
+	h3 {
+		margin: 0;
+		font-weight: 800;
+		line-height: 1.15;
+		color: var(--color-text);
+	}
+
+	h1 {
+		font-size: clamp(1.5rem, 4vw, 2rem);
+	}
+
+	h2 {
+		font-size: clamp(1.2rem, 3vw, 1.5rem);
+	}
+
+	h3 {
+		font-size: clamp(1.05rem, 2.5vw, 1.2rem);
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.6;
+		color: var(--color-text-muted);
+	}
+
+	a {
+		color: var(--color-primary);
+		text-decoration: none;
+	}
+
+	a:hover {
+		text-decoration: underline;
+	}
+
+	strong {
+		font-weight: 800;
+		color: var(--color-text);
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

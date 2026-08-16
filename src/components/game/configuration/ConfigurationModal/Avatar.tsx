@@ -9,7 +9,7 @@ interface AvatarProps {
 
 export function Avatar({ avatarStyle, value, onChange }: AvatarProps) {
 	return (
-		<div className="grid grid-cols-4 gap-2 max-[30rem]:gap-1">
+		<div className="grid grid-cols-4 gap-1 min-[30rem]:gap-2">
 			{AVATAR_SEEDS.map((seed) => {
 				const isSelected = value === seed;
 

@@ -12,7 +12,7 @@ export function OptionTile({ name, value, checked, onChange, children }: OptionT
 	return (
 		<label
 			className="
-				relative flex min-h-11.5 w-full min-w-0
+				relative flex w-full min-w-0
 				cursor-pointer items-center justify-center
 				rounded-md border border-border-lighter
 				bg-surface
@@ -27,7 +27,8 @@ export function OptionTile({ name, value, checked, onChange, children }: OptionT
 				has-checked:shadow-(--shadow-primary-outline)
 				has-focus-visible:outline-(--focus-option)
 				has-focus-visible:outline-offset-2
-				max-[30rem]:min-h-10
+				min-h-10
+				sm:min-h-11.5
 			"
 		>
 			<input
@@ -38,7 +39,7 @@ export function OptionTile({ name, value, checked, onChange, children }: OptionT
 				onChange={onChange}
 				className="pointer-events-none absolute size-px opacity-0"
 			/>
-			<span className="px-3 py-2.5 text-sm font-bold max-[30rem]:px-2 max-[30rem]:py-2 max-[30rem]:text-xs">
+			<span className="px-2 py-2 text-xs font-bold sm:px-3 sm:py-2.5 sm:text-sm">
 				{children}
 			</span>
 		</label>

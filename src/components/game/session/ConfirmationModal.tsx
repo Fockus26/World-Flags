@@ -55,7 +55,7 @@ export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationM
 				El progreso de esta partida se perderá y no se guardará ninguna calificación.
 			</p>
 
-			<div className="mt-6 grid grid-cols-2 gap-2 max-[44rem]:grid-cols-1">
+			<div className="mt-6 grid grid-cols-1 gap-2 min-[44rem]:grid-cols-2">
 				<Button ref={cancelButtonRef} variant="secondary" type="button" onClick={onCancel}>
 					Continuar practicando
 				</Button>

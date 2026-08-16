@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { countries } from "@/data/countries";
 import { useAuth } from "@/hooks/useAuth";
 import { useGame } from "@/hooks/useGame";
 import { motionVariants } from "@/styles/animations";
@@ -17,7 +16,7 @@ import {
 	countLearnedCountries,
 	getDueCountries,
 } from "@/utils/learning-storage";
-import { ConfigurationModal } from "./ConfigurationModal/ConfigurationModal";
+import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
 import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
 
@@ -65,15 +64,14 @@ export function Configuration() {
 					flex-col
 					gap-4
 					overflow-hidden
-					rounded-2xl
 					border
 					border-border
 					bg-surface
-					p-4
+					p-3
 					shadow-xl
-					max-[44rem]:rounded-lg
-					max-[30rem]:p-3
-					max-[43rem]:py-3
+					rounded-lg
+					min-[44rem]:rounded-2xl
+					min-[44rem]:p-4
 				"
 				variants={motionVariants.contentEnter}
 				initial="hidden"
@@ -96,12 +94,11 @@ export function Configuration() {
 					<h1
 						className="
 							m-0
-							text-3xl
+							text-2xl
 							font-bold
 							leading-tight
 							text-text
-							max-[30rem]:text-2xl
-							max-[43rem]:text-2xl
+							min-[44rem]:text-3xl
 						"
 					>
 						Aprende las banderas del mundo
@@ -114,8 +111,8 @@ export function Configuration() {
 						min-h-0
 						flex-1
 						flex-col
-						gap-3
-						max-[43rem]:gap-2
+						gap-2
+						min-[44rem]:gap-3
 					"
 					onSubmit={handleSubmit}
 				>
