@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
 	type MouseEvent,
 	type ReactNode,
@@ -26,9 +26,9 @@ const overlayClass =
 	"fixed inset-0 z-100 grid place-items-center bg-overlay p-4 backdrop-blur-[5px]";
 
 const modalClass =
-	"max-h-[min(90vh,42rem)] w-[min(100%,30rem)] overflow-y-auto rounded-xl border border-modal-border bg-surface-secondary p-[clamp(1.25rem,4vw,2rem)] text-center shadow-(--shadow-modal) scrollbar-thin scrollbar-thumb-(--color-neutral) scrollbar-track-transparent hover:scrollbar-thumb-(--color-neutral-hover)";
+	"max-h-[min(90vh,45rem)] w-[min(100%,35rem)] overflow-y-auto rounded-xl border border-modal-border bg-surface-secondary p-[clamp(1.25rem,4vw,2rem)] text-center shadow-(--shadow-modal) scrollbar-thin scrollbar-thumb-(--color-neutral) scrollbar-track-transparent hover:scrollbar-thumb-(--color-neutral-hover)";
 
-const heightAnimatorClass = "overflow-hidden";
+const heightAnimatorClass = "overflow-visible";
 
 export function Modal({
 	isOpen,
@@ -44,9 +44,7 @@ export function Modal({
 	const [height, setHeight] = useState<number | undefined>(undefined);
 
 	useEffect(() => {
-		if (!isOpen) {
-			return;
-		}
+		if (!isOpen) return;
 
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === "Escape") {
@@ -56,7 +54,7 @@ export function Modal({
 
 		document.addEventListener("keydown", handleKeyDown);
 		return () => document.removeEventListener("keydown", handleKeyDown);
-	}, [isOpen, onClose]);
+	}, [onClose, isOpen]);
 
 	useIsomorphicLayoutEffect(() => {
 		if (!animateHeight || !isOpen || !contentRef.current) {
@@ -77,10 +75,6 @@ export function Modal({
 		return () => observer.disconnect();
 	}, [animateHeight, isOpen]);
 
-	if (!isOpen) {
-		return null;
-	}
-
 	function handleOverlayClick(event: MouseEvent<HTMLDivElement>) {
 		if (event.target === event.currentTarget) {
 			onClose();
@@ -88,36 +82,42 @@ export function Modal({
 	}
 
 	return (
-		<motion.div
-			className={overlayClass}
-			role="presentation"
-			onMouseDown={handleOverlayClick}
-			variants={motionVariants.overlayAppear}
-			initial="hidden"
-			animate="visible"
-		>
-			<motion.section
-				className={`${modalClass}${className ? ` ${className}` : ""}`}
-				role={role}
-				aria-modal="true"
-				aria-labelledby={ariaLabelledby}
-				aria-describedby={ariaDescribedby}
-				variants={motionVariants.modalAppear}
-				initial="hidden"
-				animate="visible"
-			>
-				{animateHeight ? (
-					<motion.div
-						className={heightAnimatorClass}
-						animate={{ height: height ?? "auto" }}
-						transition={motionTransition(0.25)}
+		<AnimatePresence>
+			{isOpen && (
+				<motion.div
+					className={overlayClass}
+					role="presentation"
+					onMouseDown={handleOverlayClick}
+					variants={motionVariants.overlayAppear}
+					initial="hidden"
+					animate="visible"
+					exit="exit"
+				>
+					<motion.section
+						className={`${modalClass}${className ? ` ${className}` : ""}`}
+						role={role}
+						aria-modal="true"
+						aria-labelledby={ariaLabelledby}
+						aria-describedby={ariaDescribedby}
+						variants={motionVariants.modalAppear}
+						initial="hidden"
+						animate="visible"
+						exit="exit"
 					>
-						<div ref={contentRef}>{children}</div>
-					</motion.div>
-				) : (
-					children
-				)}
-			</motion.section>
-		</motion.div>
+						{animateHeight ? (
+							<motion.div
+								className={heightAnimatorClass}
+								animate={{ height: height ?? "auto" }}
+								transition={motionTransition(0.25)}
+							>
+								<div ref={contentRef}>{children}</div>
+							</motion.div>
+						) : (
+							children
+						)}
+					</motion.section>
+				</motion.div>
+			)}
+		</AnimatePresence>
 	);
 }

@@ -9,7 +9,7 @@ interface FieldsetProps {
 
 const fieldsetClass = "m-0 flex flex-col gap-2 border-0 p-0";
 
-const legendClass = "mb-2 p-0 text-3 font-bold text-text-secondary";
+const legendClass = "mb-2 p-0 text-sm font-bold text-text-secondary";
 
 const visuallyHiddenClass =
 	"absolute m-[-1px] size-px overflow-hidden whitespace-nowrap border-0 p-0 [clip:rect(0,0,0,0)]";

@@ -23,7 +23,7 @@ export function UserSummary({
 	return (
 		<motion.button
 			type="button"
-			className="flex w-full cursor-pointer items-center gap-3.5 rounded-md border border-border-lighter bg-surface px-3.5 py-2.5 text-left text-text transition-[background-color,border-color,box-shadow,transform] duration-180 ease-in-out hover:-translate-y-0.5 hover:border-border hover:shadow-(--shadow-secondary) focus-visible:outline-(--focus-outline) focus-visible:outline-offset-2"
+			className="flex w-full cursor-pointer items-center gap-3.5 rounded-md border border-border-lighter bg-surface px-3.5 py-2.5 text-left text-text transition-[background-color,border-color,box-shadow,transform] duration-180 ease-in-out hover:bg-surface-secondary  hover:border-border hover:shadow-(--shadow-secondary) focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-border-lighter"
 			variants={motionVariants.contentEnter}
 			initial="hidden"
 			animate="visible"

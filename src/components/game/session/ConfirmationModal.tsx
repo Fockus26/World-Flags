@@ -12,28 +12,10 @@ export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationM
 	const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
 	useEffect(() => {
-		if (!isOpen) {
-			return;
+		if (isOpen) {
+			cancelButtonRef.current?.focus();
 		}
-
-		cancelButtonRef.current?.focus();
-
-		function handleKeyDown(event: KeyboardEvent) {
-			if (event.key === "Escape") {
-				onCancel();
-			}
-		}
-
-		document.addEventListener("keydown", handleKeyDown);
-
-		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
-		};
-	}, [isOpen, onCancel]);
-
-	if (!isOpen) {
-		return null;
-	}
+	}, [isOpen]);
 
 	return (
 		<Modal
@@ -41,6 +23,7 @@ export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationM
 			onClose={onCancel}
 			ariaLabelledby="exit-modal-title"
 			ariaDescribedby="exit-modal-description"
+			className="flex flex-col gap-3.5"
 		>
 			<div
 				className="mx-auto grid size-14 place-items-center rounded-full bg-danger-bg text-[1.75rem] font-black text-danger"
@@ -49,18 +32,16 @@ export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationM
 				!
 			</div>
 
-			<h2 id="exit-modal-title">¿Abandonar la práctica?</h2>
+			<h2>¿Abandonar la práctica?</h2>
 
-			<p id="exit-modal-description">
-				El progreso de esta partida se perderá y no se guardará ninguna calificación.
-			</p>
+			<p>El progreso de esta partida se perderá y no se guardará ninguna calificación.</p>
 
-			<div className="mt-6 grid grid-cols-1 gap-2 min-[44rem]:grid-cols-2">
+			<div className="mt-3 grid grid-cols-1 gap-3.5 min-[44rem]:grid-cols-2">
 				<Button ref={cancelButtonRef} variant="secondary" type="button" onClick={onCancel}>
 					Continuar practicando
 				</Button>
 
-				<Button variant="danger" type="button" onClick={onConfirm}>
+				<Button variant="exit" type="button" onClick={onConfirm}>
 					Sí, abandonar
 				</Button>
 			</div>

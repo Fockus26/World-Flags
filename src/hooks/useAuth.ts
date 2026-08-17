@@ -6,12 +6,33 @@ export function useAuth() {
 	const status = useAppSelector((state) => state.auth.status);
 
 	const signInWithGoogle = async () => {
-		await supabase.auth.signInWithOAuth({
+		const width = 500;
+		const height = 600;
+		const left = window.screenX + (window.outerWidth - width) / 2;
+		const top = window.screenY + (window.outerHeight - height) / 2;
+
+		const popup = window.open(
+			"",
+			"google-oauth",
+			`width=${width},height=${height},left=${left},top=${top}`,
+		);
+
+		const { data, error } = await supabase.auth.signInWithOAuth({
 			provider: "google",
 			options: {
 				redirectTo: window.location.origin,
+				skipBrowserRedirect: true,
 			},
 		});
+
+		if (error || !data.url) {
+			popup?.close();
+			return;
+		}
+
+		if (popup) {
+			popup.location.href = data.url;
+		}
 	};
 
 	const signUpWithEmail = async (email: string, password: string) => {

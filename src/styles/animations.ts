@@ -35,6 +35,11 @@ export const motionVariants = {
 			y: 0,
 			transition: motionTransition(0.2),
 		},
+		exit: {
+			opacity: 0,
+			y: -4,
+			transition: motionTransition(0.15),
+		},
 	},
 
 	answerFeedbackEnter: {
@@ -44,6 +49,11 @@ export const motionVariants = {
 			y: 0,
 			transition: motionTransition(0.12),
 		},
+		exit: {
+			opacity: 0,
+			y: -4,
+			transition: motionTransition(0.1),
+		},
 	},
 
 	overlayAppear: {
@@ -51,6 +61,10 @@ export const motionVariants = {
 		visible: {
 			opacity: 1,
 			transition: motionTransition(0.16),
+		},
+		exit: {
+			opacity: 0,
+			transition: motionTransition(0.14, "easeIn"),
 		},
 	},
 
@@ -61,6 +75,12 @@ export const motionVariants = {
 			y: 0,
 			scale: 1,
 			transition: motionTransition(0.18),
+		},
+		exit: {
+			opacity: 0,
+			y: 8,
+			scale: 0.98,
+			transition: motionTransition(0.14, "easeIn"),
 		},
 	},
 	tabContentSwitch: {

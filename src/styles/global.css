@@ -45,12 +45,7 @@
 	button,
 	input {
 		font: inherit;
-	}
-
-	button:focus-visible,
-	input:focus-visible {
-		outline: var(--focus-outline);
-		outline-offset: 2px;
+		outline: none;
 	}
 
 	h1,
@@ -91,7 +86,6 @@
 
 	strong {
 		font-weight: 800;
-		color: var(--color-text);
 	}
 }
 

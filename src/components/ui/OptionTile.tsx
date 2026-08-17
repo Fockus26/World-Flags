@@ -14,19 +14,17 @@ export function OptionTile({ name, value, checked, onChange, children }: OptionT
 			className="
 				relative flex w-full min-w-0
 				cursor-pointer items-center justify-center
-				rounded-md border border-border-lighter
+				rounded-md border border-transparent
 				bg-surface
-				transition-[border-color,background-color,box-shadow,transform]
+				transition-[border-color,background-color,box-shadow,transform,translate]
 				duration-180 ease-in-out
-				hover:-translate-y-px
 				hover:border-border-primary-hover
 				hover:bg-primary-soft
-				hover:shadow-(--shadow-secondary)
-				has-checked:border-primary
+				has-checked:border-border-primary-hover
 				has-checked:bg-primary-soft
-				has-checked:shadow-(--shadow-primary-outline)
-				has-focus-visible:outline-(--focus-option)
-				has-focus-visible:outline-offset-2
+				has-focus:outline-3
+				has-focus:outline-offset-3
+				has-focus:outline-border-primary-hover
 				min-h-10
 				sm:min-h-11.5
 			"
@@ -37,7 +35,8 @@ export function OptionTile({ name, value, checked, onChange, children }: OptionT
 				value={value}
 				checked={checked}
 				onChange={onChange}
-				className="pointer-events-none absolute size-px opacity-0"
+				tabIndex={0}
+				className="absolute size-px opacity-0"
 			/>
 			<span className="px-2 py-2 text-xs font-bold sm:px-3 sm:py-2.5 sm:text-sm">
 				{children}

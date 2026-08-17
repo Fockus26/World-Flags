@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { type SubmitEvent, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
+import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { GradeButtons } from "@/components/ui/GradeButtons";
 import { Input } from "@/components/ui/Input";
-import { motionVariants } from "@/styles/animations";
+import { motionTransition, motionVariants } from "@/styles/animations";
 import type { AnswerStatus, GameMode } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
 
@@ -43,7 +44,12 @@ export function AnswerForm({
 	}, [answerStatus]);
 
 	return (
-		<form className="grid shrink-0 gap-[0.45rem] min-[43rem]:gap-[0.65rem]" onSubmit={onSubmit}>
+		<motion.form
+			className="grid shrink-0 gap-[0.45rem] min-[43rem]:gap-[0.65rem]"
+			layout
+			transition={{ layout: motionTransition(0.2) }}
+			onSubmit={onSubmit}
+		>
 			<label htmlFor="country-answer" className="font-extrabold text-text-secondary">
 				¿Qué país representa esta bandera?
 			</label>
@@ -61,31 +67,17 @@ export function AnswerForm({
 				placeholder="Escribe el nombre del país"
 			/>
 
-			<AnimatePresence mode="popLayout">
+			<AnimatePresence mode="popLayout" initial={false}>
 				{answerStatus === "correct" && (
-					<motion.p
-						key="correct"
-						className="m-0 rounded-md border border-success-border bg-success-bg px-3.5 py-3 text-[0.9rem] text-success"
-						variants={motionVariants.answerFeedbackEnter}
-						initial="hidden"
-						animate="visible"
-						exit="hidden"
-					>
-						Correcto: <strong>{countryName}</strong>
-					</motion.p>
+					<FeedbackMessage key="correct" variant="success">
+						Correcto: <strong className="text-inherit">{countryName}</strong>
+					</FeedbackMessage>
 				)}
 
 				{answerStatus === "incorrect" && (
-					<motion.p
-						key="incorrect"
-						className="m-0 rounded-md border border-danger-border bg-danger-bg px-3.5 py-3 text-[0.9rem] text-danger-text"
-						variants={motionVariants.answerFeedbackEnter}
-						initial="hidden"
-						animate="visible"
-						exit="hidden"
-					>
+					<FeedbackMessage key="incorrect" variant="danger">
 						La respuesta correcta es <strong>{countryName}</strong>.
-					</motion.p>
+					</FeedbackMessage>
 				)}
 			</AnimatePresence>
 
@@ -106,6 +98,6 @@ export function AnswerForm({
 					Comprobar
 				</Button>
 			)}
-		</form>
+		</motion.form>
 	);
 }

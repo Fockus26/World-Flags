@@ -1,3 +1,4 @@
+import { Fieldset } from "@/components/ui/Fieldset";
 import { REGION_LABELS, REGIONS } from "@/types/country";
 import { calculateRegionAverage } from "@/utils/learning-storage";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
@@ -10,27 +11,22 @@ interface RegionSelectorProps {
 
 export function RegionSelector({ lastRegion, regionGameScores }: RegionSelectorProps) {
 	return (
-		<fieldset
+		<Fieldset
+			legend="Continentes"
 			className="
 				min-w-0
 				m-0
 				flex-1
 				min-h-0
-				rounded-lg
-				border
-				border-border
-				p-2
+				flex flex-col
 			"
 		>
-			<legend className="px-2 font-extrabold text-text-secondary">Continentes</legend>
-
 			<div
 				className="
 					grid
 					grid-cols-2
-					gap-2
+					gap-3
 					min-[44rem]:grid-cols-3
-					min-[44rem]:gap-3
 				"
 			>
 				<RegionOption
@@ -39,6 +35,7 @@ export function RegionSelector({ lastRegion, regionGameScores }: RegionSelectorP
 					countryCount={196}
 					score={null}
 					defaultChecked={lastRegion === "world"}
+					className="col-span-2 min-[44rem]:col-span-1"
 				/>
 
 				{REGIONS.map((region) => (
@@ -52,6 +49,6 @@ export function RegionSelector({ lastRegion, regionGameScores }: RegionSelectorP
 					/>
 				))}
 			</div>
-		</fieldset>
+		</Fieldset>
 	);
 }

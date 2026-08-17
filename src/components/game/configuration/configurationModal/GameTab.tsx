@@ -92,14 +92,14 @@ export function GameTab({
 
 			<Fieldset
 				legend={
-					<span className="inline-flex items-center gap-1">
+					<span className="inline-flex items-center gap-2">
 						Dificultad
 						<Tooltip
 							position="left"
 							label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')."
 						>
 							<span
-								className="inline-flex size-4 items-center justify-center rounded-full bg-surface-secondary text-text-subtle text-[0.625rem] font-extrabold"
+								className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-secondary text-text-subtle text-[0.625rem] font-extrabold"
 								aria-hidden="true"
 							>
 								?

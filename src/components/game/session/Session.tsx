@@ -69,7 +69,10 @@ export function Session() {
 
 		function handleKeyDown(event: KeyboardEvent) {
 			const grade = GRADE_BY_KEY[event.key];
-			if (grade) handleGrade(grade);
+			if (grade) {
+				event.preventDefault();
+				handleGrade(grade);
+			}
 		}
 
 		window.addEventListener("keydown", handleKeyDown);
@@ -136,7 +139,7 @@ export function Session() {
 	return (
 		<>
 			<motion.section
-				className="flex h-[min(100%,50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface p-[0.85rem] shadow-(--shadow-card) min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
+				className="flex h-[min(100%,45rem)] md:h-[min(100%, 50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface p-[0.85rem] shadow-(--shadow-card) min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
 				variants={motionVariants.contentEnter}
 				initial="hidden"
 				animate="visible"

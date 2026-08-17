@@ -10,6 +10,10 @@
 	--app-color-primary-soft: #eef2ff;
 	--app-color-primary-soft-hover: #f7f9ff;
 
+	--app-color-secondary: #64748b;
+	--app-color-secondary-hover: #475569;
+	--app-color-secondary-light: #94a3b8;
+
 	/* ===========================
 	   Surfaces
 	=========================== */
@@ -40,6 +44,7 @@
 	=========================== */
 
 	--app-color-text: #172033;
+	--app-color-text-primary: #eef2ff;
 	--app-color-text-secondary: #263244;
 	--app-color-text-muted: #526070;
 	--app-color-text-light: #606c7c;
@@ -52,8 +57,8 @@
 	   Success
 	=========================== */
 
-	--app-color-success: #17643a;
-	--app-color-success-bg: #e9f8ef;
+	--app-color-success: #e9f8ef;
+	--app-color-success-bg: #17643a;
 	--app-color-success-border: #b5e5c9;
 
 	/* ===========================
@@ -140,6 +145,7 @@
 		--app-color-border-progress: #334155;
 
 		--app-color-text: #f8fafc;
+		--app-color-text-primary: #eef2ff;
 		--app-color-text-secondary: #e2e8f0;
 		--app-color-text-muted: #94a3b8;
 		--app-color-text-light: #cbd5e1;
@@ -147,8 +153,17 @@
 		--app-color-text-subtle: #94a3b8;
 		--app-color-text-placeholder: #94a3b8;
 
+		--app-color-primary: #6e8cff;
+		--app-color-primary-hover: #8da2e8;
+		--app-color-primary-light: #3157d5;
 		--app-color-primary-soft: #1f2b5a;
 		--app-color-primary-soft-hover: #273c8f;
+
+		--app-color-danger-bg: #3a1f1f;
+		--app-color-danger-border: #6b3232;
+
+		--app-color-success-bg: #16321f;
+		--app-color-success-border: #2d5940;
 
 		--app-color-progress-bg: #1e293b;
 		--app-color-avatar-bg: #111827;

@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { FlagDisplay } from "@/components/game/session/FlagDisplay";
 import { Header } from "@/components/game/session/Header";
+import { GradeButtons } from "@/components/ui/GradeButtons";
 import { countries } from "@/data/countries";
 import { useGame } from "@/hooks/useGame";
-import { motionVariants } from "@/styles/animations";
+import { motionTransition, motionVariants } from "@/styles/animations";
 import type { ReviewGrade } from "@/types/progress";
-import { GradeButtons } from "../../ui/GradeButtons";
 
 interface DailyPracticeProps {
 	countryCodes: string[];
@@ -55,7 +55,10 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 				return;
 			}
 			const grade = GRADE_BY_KEY[event.key];
-			if (grade) handleGrade(grade);
+			if (grade) {
+				event.preventDefault();
+				handleGrade(grade);
+			}
 		}
 
 		window.addEventListener("keydown", handleKeyDown);
@@ -70,7 +73,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 	return (
 		<>
 			<motion.section
-				className="flex w-full flex-col items-center gap-6"
+				className="flex h-[min(100%,45rem)] md:h-[min(100%, 50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface p-[0.85rem] shadow-(--shadow-card) min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
 				variants={motionVariants.contentEnter}
 				initial="hidden"
 				animate="visible"
@@ -82,40 +85,52 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 					onExit={() => setIsExitModalOpen(true)}
 				/>
 
-				<div className="flex w-full flex-col items-center gap-5">
+				<div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-[0.65rem] min-[30rem]:gap-[clamp(0.75rem,2vh,1.5rem)]">
 					<FlagDisplay countryCode={currentCountry.code} />
 
-					<AnimatePresence mode="wait">
-						{!isRevealed ? (
-							<motion.p
-								key="hint"
-								className="text-center text-[0.95rem] text-text-muted"
-								variants={motionVariants.feedbackEnter}
-								initial="hidden"
-								animate="visible"
-								exit="hidden"
-							>
-								Presiona{" "}
-								<kbd className="rounded-sm border border-border bg-surface-muted px-2 py-[0.15rem] text-[0.85rem]">
-									Espacio
-								</kbd>{" "}
-								para revelar
-							</motion.p>
-						) : (
-							<motion.div
-								key="answer"
-								variants={motionVariants.answerFeedbackEnter}
-								initial="hidden"
-								animate="visible"
-								exit="hidden"
-							>
-								<p className="mb-4 text-center text-[1.4rem] font-extrabold text-text">
-									{currentCountry.name}
-								</p>
-								<GradeButtons onGrade={handleGrade} />
-							</motion.div>
-						)}
-					</AnimatePresence>
+					<motion.div
+						className="flex flex-col items-center gap-3"
+						layout
+						transition={{ layout: motionTransition(0.2) }}
+					>
+						<AnimatePresence mode="popLayout" initial={false}>
+							{!isRevealed ? (
+								<motion.button
+									key="hint"
+									type="button"
+									layout
+									onClick={() => setIsRevealed(true)}
+									className="m-0 cursor-pointer border-0 bg-transparent p-0 text-center text-[0.95rem] text-text-muted"
+									variants={motionVariants.feedbackEnter}
+									initial="hidden"
+									animate="visible"
+									exit="exit"
+								>
+									Presiona{" "}
+									<kbd className="hidden rounded-sm border border-border bg-surface-muted px-2 py-[0.15rem] text-[0.85rem] text-text-secondary min-[44rem]:inline">
+										Espacio
+									</kbd>{" "}
+									<span className="min-[44rem]:hidden">Toca aquí</span>
+									<span className="hidden min-[44rem]:inline">para revelar</span>
+								</motion.button>
+							) : (
+								<motion.div
+									key="answer"
+									layout
+									className="flex w-full flex-col items-center gap-3"
+									variants={motionVariants.answerFeedbackEnter}
+									initial="hidden"
+									animate="visible"
+									exit="exit"
+								>
+									<p className="m-0 text-center font-extrabold text-[1.4rem] text-text">
+										{currentCountry.name}
+									</p>
+									<GradeButtons onGrade={handleGrade} />
+								</motion.div>
+							)}
+						</AnimatePresence>
+					</motion.div>
 				</div>
 			</motion.section>
 

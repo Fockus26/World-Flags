@@ -15,6 +15,7 @@ interface RegionOptionProps {
 	countryCount: number;
 	score: number | null;
 	defaultChecked: boolean;
+	className?: string;
 }
 
 export function RegionOption({
@@ -23,6 +24,7 @@ export function RegionOption({
 	countryCount,
 	score,
 	defaultChecked,
+	className,
 }: RegionOptionProps) {
 	const tooltipId = useId();
 	const { resolvedTheme } = useTheme();
@@ -39,7 +41,7 @@ export function RegionOption({
 	return (
 		<label
 			style={scoreStyle}
-			className="
+			className={`
 				relative
 				flex
 				min-w-0
@@ -49,27 +51,26 @@ export function RegionOption({
 				rounded-md
 				border
 				border-l-4
-				border-border-lighter
-				border-l-(--score-color)
+				border-(--score-color)
+				outline-(--score-color)
 				bg-(--score-background)
 				transition
 				duration-200
 				ease-in-out
 				hover:-translate-y-0.5
-				hover:border-(--score-color)
-				hover:shadow-md
-				has-checked:border-(--score-color)
+				hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--score-color)_30%,transparent)]
 				has-checked:shadow-[0_0_0_2px_color-mix(in_srgb,var(--score-color)_30%,transparent)]
 				has-focus-visible:outline-[3px]
-				has-focus-visible:outline-(--color-primary)
-				has-focus-visible:outline-offset-2
+				has-focus-visible:outline-offset-3
 				min-[44rem]:min-h-19
-			"
+
+				${className}`}
 		>
 			<input
 				type="radio"
 				name="region"
 				value={value}
+				tabIndex={0}
 				defaultChecked={defaultChecked}
 				className="
 					pointer-events-none
@@ -124,7 +125,7 @@ export function RegionOption({
 								className="
 									shrink-0
 									rounded-sm
-									text-[0.78rem]
+									text-xs
 									font-black
 									text-(--score-color)
 									transition-transform
@@ -143,7 +144,7 @@ export function RegionOption({
 					className="
 						text-[0.72rem]
 						font-semibold
-						text-text-subtle
+						text-(--score-color)
 					"
 				>
 					{countryCount} países

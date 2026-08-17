@@ -51,11 +51,11 @@ export function ConfigurationModal({
 			isOpen={isOpen}
 			onClose={onClose}
 			animateHeight
-			className="w-[min(30rem,92vw)] text-left"
+			className="w-[min(30rem,92vw)] text-left overflow-visible"
 			ariaLabelledby="user-modal-title"
 		>
 			<header className="mb-3 flex items-center justify-between">
-				<h2 id="user-modal-title">Perfil y configuración</h2>
+				<h2>Perfil y configuración</h2>
 				<Button variant="exit" type="button" onClick={onClose}>
 					Cerrar
 				</Button>
@@ -71,10 +71,9 @@ export function ConfigurationModal({
 						key={tab.id}
 						type="button"
 						role="tab"
-						id={`tab-${tab.id}`}
 						aria-selected={activeTab === tab.id}
 						aria-controls={`panel-${tab.id}`}
-						className="relative flex-1 cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-subtle transition-colors duration-150 hover:text-text aria-selected:text-text"
+						className="relative flex-1 cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-subtle transition-colors duration-150 hover:text-text aria-selected:text-text focus-visible:text-text"
 						onClick={() => setActiveTab(tab.id)}
 					>
 						{tab.label}
@@ -89,12 +88,11 @@ export function ConfigurationModal({
 				))}
 			</div>
 
-			<motion.div className="overflow-hidden">
+			<motion.div>
 				<AnimatePresence mode="wait" initial={false}>
 					{activeTab === "account" ? (
 						<motion.div
 							key="account"
-							id="panel-account"
 							role="tabpanel"
 							aria-labelledby="tab-account"
 							className="flex flex-col gap-4"
@@ -108,7 +106,6 @@ export function ConfigurationModal({
 					) : (
 						<motion.div
 							key="game"
-							id="panel-game"
 							role="tabpanel"
 							aria-labelledby="tab-game"
 							className="flex flex-col gap-4"

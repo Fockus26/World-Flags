@@ -9,6 +9,10 @@
 	--color-primary-soft: var(--app-color-primary-soft);
 	--color-primary-soft-hover: var(--app-color-primary-soft-hover);
 
+	--color-secondary: var(--app-color-secondary);
+	--color-secondary-hover: var(--app-color-secondary-hover);
+	--color-secondary-light: var(--app-color-secondary-light);
+
 	/* ===========================
 	   Surfaces
 	=========================== */
@@ -39,6 +43,7 @@
 	=========================== */
 
 	--color-text: var(--app-color-text);
+	--color-text-primary: var(--app-color-text-primary);
 	--color-text-secondary: var(--app-color-text-secondary);
 	--color-text-muted: var(--app-color-text-muted);
 	--color-text-light: var(--app-color-text-light);

@@ -25,28 +25,24 @@ const MotionNavArrowDown = motion(NavArrowDown);
 
 const rootClass = "relative w-full";
 const triggerBaseClass =
-	"flex min-h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border-secondary bg-surface px-4 py-3 font-[inherit] text-text-secondary transition-[border-color,background-color,color,box-shadow] duration-180 ease-in-out hover:border-border-primary focus-visible:border-primary aria-expanded:border-primary";
+	"flex min-h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border-secondary bg-surface px-4 py-3 font-[inherit] text-text-secondary transition-[border-color,background-color,color,box-shadow] duration-180 ease-in-out hover:not-focus:not-disabled:border-border-input-hover focus-visible:border-text aria-expanded:border-primary";
 
 const triggerArrowClass = "size-4 shrink-0 self-center text-text-secondary";
 
-const primaryTriggerClass = "border-primary font-extrabold text-primary";
-
 const listboxClass =
-	"absolute top-[calc(100%+0.4rem)] left-0 z-20 m-0 max-h-56 w-full list-none overflow-y-auto rounded-md border border-border bg-surface p-0 shadow-(--shadow-secondary)";
+	"absolute top-[calc(100%+0.4rem)] left-0 z-20 m-0 max-h-56 w-full list-none overflow-y-auto rounded-md border border-border bg-surface p-0 shadow-(--shadow-secondary) ";
 
 const optionClass =
-	"cursor-pointer px-3 py-2 text-sm text-text-secondary transition-colors duration-160 ease-in-out aria-selected:font-bold aria-selected:text-primary";
-
-const optionActiveClass = "bg-primary-soft";
+	"cursor-pointer p-3 text-sm text-text-secondary transition-colors duration-180 ease-in-out aria-selected:font-bold aria-selected:text-text-primary hover:text-text-primary aria-selected:bg-primary/80 hover:bg-primary hover:aria-selected:bg-primary focus:text-text-primary focus:bg-primary aria-selected:focus:bg-primary outline-0";
 
 const triggerWithLabelClass = "min-h-15 items-stretch px-4 pt-6 pb-2";
 
 const triggerContentClass = "relative flex min-w-0 flex-1 flex-col justify-end text-left";
 
 const floatingLabelClass =
-	"pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 text-[0.95rem] leading-none text-text-subtle transition-[top,transform,font-size,color] duration-160 ease-in-out";
+	"pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 text-sm leading-none text-text-subtle transition-[top,transform,font-size,color] duration-160 ease-in-out";
 
-const floatingLabelFloatedClass = "top-[-1.05rem] translate-y-0 text-[0.68rem] font-bold";
+const floatingLabelFloatedClass = "top-[-0.95rem] translate-y-0 text-xs font-bold";
 
 const triggerValueClass = "min-h-[1.2em] overflow-hidden text-ellipsis whitespace-nowrap";
 
@@ -54,7 +50,6 @@ export function Select({
 	options,
 	value,
 	onChange,
-	variant = "secondary",
 	label,
 	"aria-label": ariaLabel,
 	id,
@@ -187,9 +182,7 @@ export function Select({
 				aria-activedescendant={isOpen ? `${listboxId}-option-${activeIndex}` : undefined}
 				aria-label={label ? undefined : ariaLabel}
 				aria-labelledby={label ? labelId : undefined}
-				className={`${triggerBaseClass}${
-					label ? ` ${triggerWithLabelClass}` : ""
-				}${variant === "primary" ? ` ${primaryTriggerClass}` : ""}`}
+				className={`${triggerBaseClass}${label ? ` ${triggerWithLabelClass}` : ""}`}
 				onClick={() => (isOpen ? setIsOpen(false) : openAtCurrentValue())}
 				onKeyDown={handleTriggerKeyDown}
 			>
@@ -229,18 +222,21 @@ export function Select({
 						exit="hidden"
 					>
 						{options.map((option, index) => (
-							// biome-ignore lint/a11y/useFocusableInteractive: foco intencionalmente NO en el <li> — el foco real vive en el <button role="combobox">, la opción "activa" se comunica vía aria-activedescendant, no vía tabIndex
-							// biome-ignore lint/a11y/useKeyWithClickEvents: el teclado ya lo maneja handleTriggerKeyDown en el <button> (flechas, Enter, Espacio, Home/End); este onClick es solo para mouse/touch
 							<li
 								key={option.value}
 								id={`${listboxId}-option-${index}`}
+								tabIndex={0}
 								// biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: patrón combobox con aria-activedescendant (WAI-ARIA Authoring Practices) — el <li> es el elemento recomendado para role="option" cuando no se puede usar <select>/<option> nativo
 								role="option"
 								aria-selected={option.value === value}
-								className={`${optionClass}${
-									index === activeIndex ? ` ${optionActiveClass}` : ""
-								}`}
+								className={optionClass}
 								onMouseEnter={() => setActiveIndex(index)}
+								onKeyDown={(event) => {
+									if (event.key === "Enter" || event.key === " ") {
+										event.preventDefault();
+										selectOption(index);
+									}
+								}}
 								onClick={() => selectOption(index)}
 							>
 								{option.label}

@@ -111,8 +111,7 @@ export function Configuration() {
 						min-h-0
 						flex-1
 						flex-col
-						gap-2
-						min-[44rem]:gap-3
+						gap-4
 					"
 					onSubmit={handleSubmit}
 				>

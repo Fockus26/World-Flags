@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/hooks/useAuth";
-import { motionVariants } from "@/styles/animations";
+import { motionTransition, motionVariants } from "@/styles/animations";
 import { EmailConfirmationPending } from "./EmailConfirmationPending";
 
 type AuthMode = "signin" | "signup";
@@ -119,31 +120,41 @@ export function AuthSection() {
 						Estás en modo invitado. Tu progreso se guarda solo en este dispositivo.
 					</p>
 
-					<fieldset className="m-0 flex gap-1 border-0 p-0" aria-label="Tipo de acceso">
-						<button
-							type="button"
-							className={`flex-1 cursor-pointer rounded-sm border border-border-lighter bg-transparent p-1 text-text-subtle font-[inherit] text-[0.8rem] font-bold transition-colors duration-150 ${
-								mode === "signin" ? "bg-text text-surface" : ""
-							}`}
-							aria-pressed={mode === "signin"}
-							onClick={() => setMode("signin")}
-						>
-							Iniciar sesión
-						</button>
+					<div
+						className="mb-1 flex gap-1 border-border-lighter border-b"
+						role="tablist"
+						aria-label="Tipo de acceso"
+					>
+						{(["signin", "signup"] as const).map((item) => (
+							<button
+								key={item}
+								type="button"
+								role="tab"
+								aria-selected={mode === item}
+								className="relative flex-1 cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-subtle transition-colors duration-150 hover:text-text aria-selected:text-text focus:text-text"
+								onClick={() => {
+									setMode(item);
+									setError(null);
+								}}
+							>
+								{item === "signin" ? "Iniciar sesión" : "Crear cuenta"}
+								{mode === item && (
+									<motion.span
+										className="absolute right-0 bottom-px left-0 h-0.5 bg-text"
+										layoutId="authModeIndicator"
+										transition={{ type: "spring", stiffness: 500, damping: 40 }}
+									/>
+								)}
+							</button>
+						))}
+					</div>
 
-						<button
-							type="button"
-							className={`flex-1 cursor-pointer rounded-sm border border-border-lighter bg-transparent p-1 text-text-subtle font-[inherit] text-[0.8rem] font-bold transition-colors duration-150 ${
-								mode === "signup" ? "bg-text text-surface" : ""
-							}`}
-							aria-pressed={mode === "signup"}
-							onClick={() => setMode("signup")}
-						>
-							Crear cuenta
-						</button>
-					</fieldset>
-
-					<form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+					<motion.form
+						className="flex flex-col gap-3"
+						layout
+						transition={{ layout: motionTransition(0.2) }}
+						onSubmit={handleSubmit}
+					>
 						<Input
 							id="auth-email"
 							type="email"
@@ -152,7 +163,6 @@ export function AuthSection() {
 							onChange={(e) => setEmail(e.target.value)}
 							required
 						/>
-
 						<Input
 							id="auth-password"
 							type="password"
@@ -162,34 +172,42 @@ export function AuthSection() {
 							minLength={6}
 							required
 						/>
-
-						{mode === "signup" && (
-							<Input
-								id="auth-confirm-password"
-								type="password"
-								label="Repetir contraseña"
-								value={confirmPassword}
-								onChange={(e) => setConfirmPassword(e.target.value)}
-								minLength={6}
-								required
-							/>
-						)}
-
-						<AnimatePresence>
-							{error && (
-								<motion.p
-									className="m-0 rounded-md border border-danger-border bg-danger-bg px-3 py-2 text-danger-text text-[0.8rem] font-semibold"
-									role="alert"
-									variants={motionVariants.feedbackEnter}
+						<AnimatePresence mode="popLayout" initial={false}>
+							{mode === "signup" && (
+								<motion.div
+									key="confirm-password"
+									layout
+									transition={{ layout: motionTransition(0.2) }}
+									variants={motionVariants.answerFeedbackEnter}
 									initial="hidden"
 									animate="visible"
-									exit="hidden"
+									exit="exit"
 								>
-									{error}
-								</motion.p>
+									<Input
+										id="auth-confirm-password"
+										type="password"
+										label="Repetir contraseña"
+										value={confirmPassword}
+										onChange={(e) => setConfirmPassword(e.target.value)}
+										minLength={6}
+										required
+									/>
+								</motion.div>
 							)}
 						</AnimatePresence>
-
+						<AnimatePresence mode="popLayout">
+							{error && (
+								<FeedbackMessage
+									variant="danger"
+									size="sm"
+									role="alert"
+									autoDismissMs={5000}
+									onDismiss={() => setError(null)}
+								>
+									{error}
+								</FeedbackMessage>
+							)}
+						</AnimatePresence>
 						<Button variant="primary" type="submit" disabled={isSubmitting}>
 							{isSubmitting
 								? "Un momento…"
@@ -197,10 +215,10 @@ export function AuthSection() {
 									? "Iniciar sesión"
 									: "Crear cuenta"}
 						</Button>
-					</form>
+					</motion.form>
 
 					<div className="relative my-1 flex justify-center text-center before:absolute before:top-1/2 before:right-0 before:left-0 before:border-border-lighter before:border-t">
-						<span className="relative z-1 bg-surface px-2 text-text-subtle text-[0.75rem]">
+						<span className="relative z-1 bg-transparent text-text-subtle text-xs">
 							o
 						</span>
 					</div>

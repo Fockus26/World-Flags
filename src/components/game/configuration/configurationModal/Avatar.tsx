@@ -9,13 +9,13 @@ interface AvatarProps {
 
 export function Avatar({ avatarStyle, value, onChange }: AvatarProps) {
 	return (
-		<div className="grid grid-cols-4 gap-1 min-[30rem]:gap-2">
+		<div className="grid grid-cols-4 gap-3">
 			{AVATAR_SEEDS.map((seed) => {
 				const isSelected = value === seed;
 
 				return (
 					<button
-						className={`grid aspect-square place-items-center overflow-hidden rounded-md border-2 border-transparent bg-surface-secondary p-1 cursor-pointer transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-border-primary-hover hover:shadow-(--shadow-avatar) ${isSelected ? "border-primary shadow-(--shadow-avatar-active)" : ""}`}
+						className={`grid aspect-square place-items-center overflow-hidden rounded-md outline-3 outline-offset-3 outline-transparent cursor-pointer transition-[outline-color,box-shadow,transform,translate] duration-180 hover:-translate-y-0.5 hover:outline-text focus:outline-text`}
 						type="button"
 						key={seed}
 						onClick={() => onChange(seed)}

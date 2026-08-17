@@ -29,15 +29,15 @@ export function Timer({ timeLeft, totalDuration }: TimerProps) {
 				aria-hidden="true"
 			>
 				<circle
-					className="fill-none stroke-(--color-progress-bg)"
+					className={`fill-none ${isDanger ? "stroke-(--color-danger-text)" : "stroke-(--color-progress-bg)"}`}
 					cx="30"
 					cy="30"
 					r={RADIUS}
 					strokeWidth="5"
 				/>
 				<motion.circle
-					className={`fill-none stroke-(--color-primary) ${
-						isDanger ? "stroke-(--color-danger)" : ""
+					className={`fill-none ${
+						isDanger ? "stroke-(--color-danger-bg)" : "stroke-(--color-primary)"
 					}`}
 					cx="30"
 					cy="30"

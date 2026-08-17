@@ -13,10 +13,10 @@ const GRADES: { grade: ReviewGrade; label: string; key: string }[] = [
 ];
 
 const gradeClasses: Record<ReviewGrade, string> = {
-	again: "border-danger-border text-danger-text hover:border-danger-hover hover:bg-danger-bg",
-	hard: "border-border-secondary text-neutral hover:bg-surface-secondary",
-	good: "border-border-primary text-primary hover:bg-primary-soft",
-	easy: "border-success-border text-success hover:bg-success-bg",
+	again: "border-danger-border-hover text-danger-text  hover:bg-danger-bg",
+	hard: "border-border-text text-border-text hover:bg-white hover:text-border-secondary",
+	good: "border-primary text-primary hover:bg-primary hover:text-text-primary",
+	easy: "border-success-bg text-success-bg hover:bg-success-bg hover:text-success",
 };
 
 export function GradeButtons({ onGrade }: GradeButtonsProps) {
@@ -26,13 +26,11 @@ export function GradeButtons({ onGrade }: GradeButtonsProps) {
 				<Button
 					key={grade}
 					type="button"
-					variant="secondary"
-					className={gradeClasses[grade]}
+					variant="ghost"
+					className={`flex gap-3 items-center ${gradeClasses[grade]}`}
 					onClick={() => onGrade(grade)}
 				>
-					<kbd className="mr-2 hidden rounded-sm bg-surface-muted px-2 py-1 text-3 sm:inline">
-						{key}
-					</kbd>
+					<kbd className="hidden sm:inline font-[inherit] font-extrabold">{key}</kbd>
 					{label}
 				</Button>
 			))}

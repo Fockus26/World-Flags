@@ -19,9 +19,8 @@ export function FlagDisplay({ countryCode }: { countryCode: string }) {
 				key={countryCode}
 				className="
 					block h-full w-[min(100%,30rem)] max-h-72 object-contain
-					drop-shadow-(--shadow-flag)
-					transition-[filter,transform] duration-180 ease-in-out
-					hover:scale-[1.015] hover:drop-shadow-(--shadow-flag-hover)
+					transition-[filter,transform, scale] duration-180 ease-in-out
+					hover:scale-[1.015]
 				"
 				src={`https://flagcdn.com/${countryCode}.svg`}
 				alt="Bandera que debes identificar"

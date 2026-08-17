@@ -19,7 +19,7 @@ export const MAX_REGION_GAMES = 3;
 
 const DEFAULT_PROFILE: UserProfile = {
 	name: "Explorador",
-	avatarStyle: "adventurer",
+	avatarStyle: "adventurer-neutral",
 	avatarSeed: "explorer-1",
 };
 
