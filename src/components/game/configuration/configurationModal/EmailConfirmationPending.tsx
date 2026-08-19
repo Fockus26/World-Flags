@@ -38,22 +38,22 @@ export function EmailConfirmationPending({
 	return (
 		<div className="flex flex-col items-center gap-3 py-2 text-center">
 			<motion.div
-				className="size-10 rounded-full border-[3px] border-border-lighter border-t-(--color-primary)"
+				className="size-10 rounded-full border-[3px] border-surface-soft border-t-(--color-primary)"
 				aria-hidden="true"
 				animate={{ rotate: 360 }}
 				transition={spinTransition}
 			/>
 
-			<h3 className="m-0 text-text">Revisa tu correo</h3>
+			<h3 className="m-0 text-surface-soft">Revisa tu correo</h3>
 
-			<p className="m-0 text-text-muted text-[0.875rem] leading-normal">
+			<p className="m-0 text-text-placeholder text-[0.875rem] leading-normal">
 				Te enviamos un enlace de confirmación a <strong>{email}</strong>. Esta pantalla se
 				cerrará sola cuando confirmes tu cuenta.
 			</p>
 
 			<div className="mt-2 flex gap-2">
 				<Button
-					variant="secondary"
+					color="secondary"
 					type="button"
 					onClick={handleResend}
 					disabled={resendState === "sending"}
@@ -61,7 +61,7 @@ export function EmailConfirmationPending({
 					{resendState === "sent" ? "Correo reenviado" : "Reenviar correo"}
 				</Button>
 
-				<Button variant="secondary" type="button" onClick={onCancel}>
+				<Button color="secondary" type="button" onClick={onCancel}>
 					Usar otro correo
 				</Button>
 			</div>

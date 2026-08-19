@@ -73,7 +73,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 	return (
 		<>
 			<motion.section
-				className="flex h-[min(100%,45rem)] md:h-[min(100%, 50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface p-[0.85rem] shadow-(--shadow-card) min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
+				className="flex h-[min(100%,45rem)] md:h-[min(100%, 50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-surface-border bg-surface p-[0.85rem] min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
 				variants={motionVariants.contentEnter}
 				initial="hidden"
 				animate="visible"
@@ -100,14 +100,14 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 									type="button"
 									layout
 									onClick={() => setIsRevealed(true)}
-									className="m-0 cursor-pointer border-0 bg-transparent p-0 text-center text-[0.95rem] text-text-muted"
+									className="m-0 cursor-pointer border-0 bg-transparent p-0 text-center text-[0.95rem] text-text-placeholder"
 									variants={motionVariants.feedbackEnter}
 									initial="hidden"
 									animate="visible"
 									exit="exit"
 								>
 									Presiona{" "}
-									<kbd className="hidden rounded-sm border border-border bg-surface-muted px-2 py-[0.15rem] text-[0.85rem] text-text-secondary min-[44rem]:inline">
+									<kbd className="hidden rounded-sm border border-surface-border bg-surface-soft px-2 py-[0.15rem] text-[0.85rem] text-secondary-soft min-[44rem]:inline">
 										Espacio
 									</kbd>{" "}
 									<span className="min-[44rem]:hidden">Toca aquí</span>
@@ -123,7 +123,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 									animate="visible"
 									exit="exit"
 								>
-									<p className="m-0 text-center font-extrabold text-[1.4rem] text-text">
+									<p className="m-0 text-center font-extrabold text-[1.4rem] text-surface-soft">
 										{currentCountry.name}
 									</p>
 									<GradeButtons onGrade={handleGrade} />

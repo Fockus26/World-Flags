@@ -26,7 +26,7 @@ const overlayClass =
 	"fixed inset-0 z-100 grid place-items-center bg-overlay p-4 backdrop-blur-[5px]";
 
 const modalClass =
-	"max-h-[min(90vh,45rem)] w-[min(100%,35rem)] overflow-y-auto rounded-xl border border-modal-border bg-surface-secondary p-[clamp(1.25rem,4vw,2rem)] text-center shadow-(--shadow-modal) scrollbar-thin scrollbar-thumb-(--color-neutral) scrollbar-track-transparent hover:scrollbar-thumb-(--color-neutral-hover)";
+	"max-h-[min(90vh,45rem)] w-[min(100%,35rem)] overflow-y-auto rounded-xl border border-surface-border bg-surface p-[clamp(1.25rem,4vw,2rem)] text-center scrollbar-thin scrollbar-thumb-(--color-neutral) scrollbar-track-transparent hover:scrollbar-thumb-(--color-neutral-hover) active:scrollbar-thumb-(--color-neutral-hover)";
 
 const heightAnimatorClass = "overflow-visible";
 

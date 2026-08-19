@@ -85,7 +85,7 @@ export function AuthSection() {
 						Sesión iniciada como <strong>{user?.email}</strong>
 					</p>
 
-					<Button variant="secondary" type="button" onClick={() => signOut()}>
+					<Button color="danger" type="button" onClick={() => signOut()}>
 						Cerrar sesión
 					</Button>
 				</motion.div>
@@ -116,22 +116,18 @@ export function AuthSection() {
 					animate="visible"
 					exit="hidden"
 				>
-					<p className="m-0 text-text-subtle text-[0.8rem]">
+					<p className="m-0 text-text-placeholder text-[0.8rem]">
 						Estás en modo invitado. Tu progreso se guarda solo en este dispositivo.
 					</p>
 
-					<div
-						className="mb-1 flex gap-1 border-border-lighter border-b"
-						role="tablist"
-						aria-label="Tipo de acceso"
-					>
+					<div className="mb-1 flex" role="tablist" aria-label="Tipo de acceso">
 						{(["signin", "signup"] as const).map((item) => (
 							<button
 								key={item}
 								type="button"
 								role="tab"
 								aria-selected={mode === item}
-								className="relative flex-1 cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-subtle transition-colors duration-150 hover:text-text aria-selected:text-text focus:text-text"
+								className="relative flex-1 cursor-pointer px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-placeholder transition-colors duration-150 hover:text-surface-soft active:text-surface-soft aria-selected:text-surface-soft focus:text-surface-soft"
 								onClick={() => {
 									setMode(item);
 									setError(null);
@@ -140,7 +136,7 @@ export function AuthSection() {
 								{item === "signin" ? "Iniciar sesión" : "Crear cuenta"}
 								{mode === item && (
 									<motion.span
-										className="absolute right-0 bottom-px left-0 h-0.5 bg-text"
+										className="absolute right-0 bottom-px left-0 h-0.5 bg-surface-soft"
 										layoutId="authModeIndicator"
 										transition={{ type: "spring", stiffness: 500, damping: 40 }}
 									/>
@@ -208,7 +204,7 @@ export function AuthSection() {
 								</FeedbackMessage>
 							)}
 						</AnimatePresence>
-						<Button variant="primary" type="submit" disabled={isSubmitting}>
+						<Button type="submit" disabled={isSubmitting}>
 							{isSubmitting
 								? "Un momento…"
 								: mode === "signin"
@@ -217,13 +213,18 @@ export function AuthSection() {
 						</Button>
 					</motion.form>
 
-					<div className="relative my-1 flex justify-center text-center before:absolute before:top-1/2 before:right-0 before:left-0 before:border-border-lighter before:border-t">
-						<span className="relative z-1 bg-transparent text-text-subtle text-xs">
+					<div className="relative my-1 flex justify-center text-center before:absolute before:top-1/2 before:right-0 before:left-0 before:border-text-placeholder before:border-t">
+						<span className="relative z-10 bg-surface px-3 text-text-placeholder text-xs">
 							o
 						</span>
 					</div>
 
-					<Button variant="secondary" type="button" onClick={() => signInWithGoogle()}>
+					<Button
+						variant="text"
+						color="neutral"
+						type="button"
+						onClick={() => signInWithGoogle()}
+					>
 						Continuar con Google
 					</Button>
 				</motion.div>

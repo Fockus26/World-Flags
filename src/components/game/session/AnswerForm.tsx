@@ -50,7 +50,7 @@ export function AnswerForm({
 			transition={{ layout: motionTransition(0.2) }}
 			onSubmit={onSubmit}
 		>
-			<label htmlFor="country-answer" className="font-extrabold text-text-secondary">
+			<label htmlFor="country-answer" className="font-extrabold text-surface-soft">
 				¿Qué país representa esta bandera?
 			</label>
 
@@ -90,11 +90,11 @@ export function AnswerForm({
 					<GradeButtons onGrade={onGrade} />
 				</motion.div>
 			) : isAnswerChecked ? (
-				<Button ref={nextButtonRef} variant="primary" type="button" onClick={onNext}>
+				<Button ref={nextButtonRef} type="button" onClick={onNext}>
 					{isLastCountry ? "Ver resultado" : "Siguiente bandera"}
 				</Button>
 			) : (
-				<Button variant="primary" type="submit" disabled={!answer.trim()}>
+				<Button type="submit" disabled={!answer.trim()}>
 					Comprobar
 				</Button>
 			)}

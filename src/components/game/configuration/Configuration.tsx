@@ -65,7 +65,7 @@ export function Configuration() {
 					gap-4
 					overflow-hidden
 					border
-					border-border
+					border-surface-border
 					bg-surface
 					p-3
 					shadow-xl
@@ -97,7 +97,7 @@ export function Configuration() {
 							text-2xl
 							font-bold
 							leading-tight
-							text-text
+							text-surface-soft
 							min-[44rem]:text-3xl
 						"
 					>
@@ -120,13 +120,11 @@ export function Configuration() {
 						regionGameScores={learningData.regionGameScores}
 					/>
 
-					<Button variant="primary" type="submit">
-						Comenzar práctica
-					</Button>
+					<Button type="submit">Comenzar práctica</Button>
 				</form>
 
 				{dueCount > 0 && (
-					<Button variant="secondary" type="button" onClick={startDailyPractice}>
+					<Button color="secondary" type="button" onClick={startDailyPractice}>
 						Práctica diaria ({dueCount})
 					</Button>
 				)}

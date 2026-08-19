@@ -19,6 +19,10 @@ export function Tooltip({ id, label, children, position = "right" }: TooltipProp
 				hover:**:[[role=tooltip]]:opacity-100
 				hover:**:[[role=tooltip]]:translate-y-0
 				hover:**:[[role=tooltip]]:scale-100
+				active:**:[[role=tooltip]]:pointer-events-auto
+				active:**:[[role=tooltip]]:opacity-100
+				active:**:[[role=tooltip]]:translate-y-0
+				active:**:[[role=tooltip]]:scale-100
 				focus-within:**:[[role=tooltip]]:pointer-events-auto
 				focus-within:**:[[role=tooltip]]:opacity-100
 				focus-within:**:[[role=tooltip]]:translate-y-0
@@ -34,11 +38,12 @@ export function Tooltip({ id, label, children, position = "right" }: TooltipProp
 				after:border-t-6
 				after:border-solid
 				after:border-x-transparent
-				after:border-t-(--color-tooltip-bg)
+				after:border-t-(--color-primary-soft)
 				after:opacity-0
 				after:transition-opacity
 				after:duration-160
 				hover:after:opacity-100
+				active:after:opacity-100
 				focus-within:after:opacity-100
 			"
 		>
@@ -47,7 +52,7 @@ export function Tooltip({ id, label, children, position = "right" }: TooltipProp
 			<span
 				id={id}
 				role="tooltip"
-				className={`hidden md:inline-block pointer-events-none absolute bottom-[calc(100%+0.5rem)] z-20 w-max max-w-52 rounded-sm bg-tooltip-bg px-1.5 py-2 text-xs font-bold leading-5 text-tooltip-text opacity-0 transition-[opacity,transform] duration-160 ease-in-out translate-y-1 scale-95 ${positionClass}`}
+				className={`hidden md:inline-block pointer-events-none absolute bottom-[calc(100%+0.5rem)] z-20 w-max max-w-52 rounded-sm bg-surface-hover px-1.5 py-2 text-xs font-bold leading-5 text-surface-soft opacity-0 transition-[opacity,transform] duration-160 ease-in-out translate-y-1 scale-95 ${positionClass}`}
 			>
 				{label}
 			</span>

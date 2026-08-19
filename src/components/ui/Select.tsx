@@ -25,22 +25,22 @@ const MotionNavArrowDown = motion(NavArrowDown);
 
 const rootClass = "relative w-full";
 const triggerBaseClass =
-	"flex min-h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border-secondary bg-surface px-4 py-3 font-[inherit] text-text-secondary transition-[border-color,background-color,color,box-shadow] duration-180 ease-in-out hover:not-focus:not-disabled:border-border-input-hover focus-visible:border-text aria-expanded:border-primary";
+	"flex min-h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-surface-border bg-surface px-4 py-3 font-[inherit] text-surface-soft transition-[border-color,background-color,color] duration-180 ease-in-out hover:not-focus:not-disabled:border-surface-border active:not-focus:not-disabled:border-surface-border focus-visible:border-surface-border aria-expanded:border-surface-border";
 
-const triggerArrowClass = "size-4 shrink-0 self-center text-text-secondary";
+const triggerArrowClass = "size-4 shrink-0 self-center text-surface-soft";
 
 const listboxClass =
-	"absolute top-[calc(100%+0.4rem)] left-0 z-20 m-0 max-h-56 w-full list-none overflow-y-auto rounded-md border border-border bg-surface p-0 shadow-(--shadow-secondary) ";
+	"absolute top-[calc(100%+0.4rem)] left-0 z-20 m-0 max-h-56 w-full list-none overflow-y-auto rounded-md border border-surface-border bg-surface p-0";
 
 const optionClass =
-	"cursor-pointer p-3 text-sm text-text-secondary transition-colors duration-180 ease-in-out aria-selected:font-bold aria-selected:text-text-primary hover:text-text-primary aria-selected:bg-primary/80 hover:bg-primary hover:aria-selected:bg-primary focus:text-text-primary focus:bg-primary aria-selected:focus:bg-primary outline-0";
+	"cursor-pointer p-3 text-sm text-surface-soft transition-colors duration-180 ease-in-out outline-0 aria-selected:font-bold aria-selected:text-primary-soft aria-selected:bg-primary/80 hover:font-bold hover:text-primary-soft hover:bg-primary hover:aria-selected:bg-primary active:font-bold active:text-primary-soft active:bg-primary active:aria-selected:bg-primary focus:font-bold focus:text-primary-soft focus:bg-primary aria-selected:focus:bg-primary";
 
 const triggerWithLabelClass = "min-h-15 items-stretch px-4 pt-6 pb-2";
 
 const triggerContentClass = "relative flex min-w-0 flex-1 flex-col justify-end text-left";
 
 const floatingLabelClass =
-	"pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 text-sm leading-none text-text-subtle transition-[top,transform,font-size,color] duration-160 ease-in-out";
+	"pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 text-sm leading-none text-text-placeholder transition-[top,transform,font-size,color] duration-160 ease-in-out";
 
 const floatingLabelFloatedClass = "top-[-0.95rem] translate-y-0 text-xs font-bold";
 

@@ -104,6 +104,10 @@ export const motionVariants = {
 		closed: { rotate: 0 },
 		open: { rotate: 180 },
 	},
+	timerCritical: {
+		scale: [1, 1.05, 1],
+		transition: { duration: 0.7, repeat: Infinity, ease: "easeInOut" },
+	},
 };
 
 export function createMotionVariant(

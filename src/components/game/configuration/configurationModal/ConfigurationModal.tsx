@@ -56,16 +56,12 @@ export function ConfigurationModal({
 		>
 			<header className="mb-3 flex items-center justify-between">
 				<h2>Perfil y configuración</h2>
-				<Button variant="exit" type="button" onClick={onClose}>
+				<Button variant="text" color="danger" type="button" onClick={onClose}>
 					Cerrar
 				</Button>
 			</header>
 
-			<div
-				className="mb-4 flex gap-1 border-border-lighter border-b"
-				role="tablist"
-				aria-label="Secciones"
-			>
+			<div className="mb-4 flex" role="tablist" aria-label="Secciones">
 				{TABS.map((tab) => (
 					<button
 						key={tab.id}
@@ -73,13 +69,13 @@ export function ConfigurationModal({
 						role="tab"
 						aria-selected={activeTab === tab.id}
 						aria-controls={`panel-${tab.id}`}
-						className="relative flex-1 cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-subtle transition-colors duration-150 hover:text-text aria-selected:text-text focus-visible:text-text"
+						className="relative flex-1 cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-placeholder transition-colors duration-150 hover:text-surface-soft active:text-surface-soft aria-selected:text-surface-soft focus-visible:text-surface-soft"
 						onClick={() => setActiveTab(tab.id)}
 					>
 						{tab.label}
 						{activeTab === tab.id && (
 							<motion.span
-								className="absolute right-0 bottom-px left-0 h-0.5 bg-text"
+								className="absolute right-0 bottom-px left-0 h-0.5 bg-surface-soft"
 								layoutId="configurationTabIndicator"
 								transition={{ type: "spring", stiffness: 500, damping: 40 }}
 							/>

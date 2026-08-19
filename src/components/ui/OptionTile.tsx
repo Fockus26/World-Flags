@@ -10,25 +10,7 @@ interface OptionTileProps {
 
 export function OptionTile({ name, value, checked, onChange, children }: OptionTileProps) {
 	return (
-		<label
-			className="
-				relative flex w-full min-w-0
-				cursor-pointer items-center justify-center
-				rounded-md border border-transparent
-				bg-surface
-				transition-[border-color,background-color,box-shadow,transform,translate]
-				duration-180 ease-in-out
-				hover:border-border-primary-hover
-				hover:bg-primary-soft
-				has-checked:border-border-primary-hover
-				has-checked:bg-primary-soft
-				has-focus:outline-3
-				has-focus:outline-offset-3
-				has-focus:outline-border-primary-hover
-				min-h-10
-				sm:min-h-11.5
-			"
-		>
+		<label className="group relative flex w-full min-w-0 cursor-pointer items-center justify-center rounded-md border bg-primary-soft border-primary-border transition-colors duration-180 ease-in-out hover:bg-primary active:bg-primary has-checked:bg-primary has-focus:outline-3 has-focus:outline-offset-3 has-focus:outline-primary-border min-h-10 sm:min-h-11.5">
 			<input
 				type="radio"
 				name={name}
@@ -38,7 +20,7 @@ export function OptionTile({ name, value, checked, onChange, children }: OptionT
 				tabIndex={0}
 				className="absolute size-px opacity-0"
 			/>
-			<span className="px-2 py-2 text-xs font-bold sm:px-3 sm:py-2.5 sm:text-sm">
+			<span className="px-2 py-2 text-primary group-hover:text-primary-soft group-active:text-primary-soft group-has-checked:text-primary-soft text-xs font-bold sm:px-3 sm:py-2.5 sm:text-sm">
 				{children}
 			</span>
 		</label>

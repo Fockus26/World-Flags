@@ -28,7 +28,7 @@ export function Header({
 					<p className="m-0 truncate text-[0.65rem] font-extrabold uppercase tracking-wide text-primary sm:text-xs sm:tracking-widest">
 						{regionLabel}
 					</p>
-					<p className="m-[0.2rem_0_0] text-base font-extrabold text-text sm:text-[clamp(1rem,2.5vh,1.3rem)]">
+					<p className="m-[0.2rem_0_0] text-base font-extrabold text-surface-soft sm:text-[clamp(1rem,2.5vh,1.3rem)]">
 						{currentIndex + 1} / {totalCountries}
 					</p>
 				</div>
@@ -38,20 +38,21 @@ export function Header({
 						<Timer timeLeft={timeLeft} totalDuration={timerDuration} />
 					)}
 					<Button
-						variant="exit"
+						variant="text"
+						color="danger"
 						type="button"
 						onClick={onExit}
 						aria-label="Abandonar"
 						className="gap-2 px-2 sm:px-4"
 					>
-						<LogOut className="size-4 sm:hidden" aria-hidden="true" />
+						<LogOut className="size-6 sm:hidden" aria-hidden="true" />
 						<span className="hidden sm:inline">Abandonar</span>
 					</Button>
 				</div>
 			</header>
 
 			<div
-				className="mt-[clamp(0.6rem,1.5vh,1rem)] h-2 shrink-0 overflow-hidden rounded-full bg-progress-bg"
+				className="mt-[clamp(0.6rem,1.5vh,1rem)] h-2 shrink-0 overflow-hidden rounded-full bg-surface-hover"
 				aria-hidden="true"
 			>
 				<div

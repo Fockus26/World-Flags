@@ -5,8 +5,9 @@ import { formatScore } from "@/utils/learning-storage";
 import { getScoreBackgroundColor, getScoreColor } from "@/utils/score";
 
 interface ScoreStyle extends CSSProperties {
-	"--score-color": string;
-	"--score-background": string;
+	"--app-score-color": string;
+	"--app-score-background": string;
+	"--app-score-active-color": string;
 }
 
 interface RegionOptionProps {
@@ -30,41 +31,45 @@ export function RegionOption({
 	const { resolvedTheme } = useTheme();
 	const isDarkTheme = resolvedTheme === "dark";
 
-	const scoreStyle: ScoreStyle | undefined =
-		score !== null
-			? {
-					"--score-color": getScoreColor(score, isDarkTheme),
-					"--score-background": getScoreBackgroundColor(score, isDarkTheme),
-				}
-			: undefined;
+	const scoreStyle: ScoreStyle = {
+		"--app-score-color":
+			score !== null ? getScoreColor(score, isDarkTheme) : "var(--color-neutral-hover)",
+
+		"--app-score-background":
+			score !== null
+				? getScoreBackgroundColor(score, isDarkTheme)
+				: "var(--color-neutral-soft)",
+
+		"--app-score-active-color":
+			score !== null ? "var(--app-score-color)" : "var(--color-neutral)",
+	};
 
 	return (
 		<label
 			style={scoreStyle}
 			className={`
-				relative
-				flex
-				min-w-0
-				min-h-16
-				items-center
-				cursor-pointer
-				rounded-md
-				border
-				border-l-4
-				border-(--score-color)
-				outline-(--score-color)
-				bg-(--score-background)
-				transition
-				duration-200
-				ease-in-out
-				hover:-translate-y-0.5
-				hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--score-color)_30%,transparent)]
-				has-checked:shadow-[0_0_0_2px_color-mix(in_srgb,var(--score-color)_30%,transparent)]
-				has-focus-visible:outline-[3px]
-				has-focus-visible:outline-offset-3
-				min-[44rem]:min-h-19
-
-				${className}`}
+	relative flex min-h-16 min-w-0 touch-manipulation cursor-pointer items-center rounded-md border border-l-4
+	border-(--app-score-color)
+	text-(--app-score-color)
+	outline-(--app-score-color)
+	hover:bg-(--app-score-background)
+	hover:text-(--app-score-active-color)
+	active:bg-(--app-score-background)
+	active:text-(--app-score-active-color)
+	has-checked:bg-(--app-score-background)
+	has-checked:text-(--app-score-active-color)
+	transition duration-200 ease-in-out
+	hover:-translate-y-0.5
+	active:translate-y-0
+	active:scale-[0.98]
+	hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
+	active:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
+	has-checked:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
+	has-focus-visible:outline-[3px]
+	has-focus-visible:outline-offset-3
+	min-[44rem]:min-h-19
+	${className ?? ""}
+`}
 		>
 			<input
 				type="radio"
@@ -111,7 +116,6 @@ export function RegionOption({
 							whitespace-nowrap
 							text-[0.82rem]
 							font-extrabold
-							text-(--score-color)
 							min-[44rem]:text-[0.92rem]
 						"
 					>
@@ -127,7 +131,6 @@ export function RegionOption({
 									rounded-sm
 									text-xs
 									font-black
-									text-(--score-color)
 									transition-transform
 									duration-200
 									hover:scale-105
@@ -144,7 +147,6 @@ export function RegionOption({
 					className="
 						text-[0.72rem]
 						font-semibold
-						text-(--score-color)
 					"
 				>
 					{countryCount} países

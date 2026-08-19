@@ -15,8 +15,8 @@ interface FeedbackMessageProps {
 }
 
 const variantClass: Record<FeedbackVariant, string> = {
-	success: "border-success-border bg-success-bg text-success",
-	danger: "border-danger-border bg-danger-bg text-danger-text",
+	success: "border-success-border bg-success text-success-soft",
+	danger: "border-danger-border bg-danger-soft text-danger",
 };
 
 const sizeClass: Record<FeedbackSize, string> = {

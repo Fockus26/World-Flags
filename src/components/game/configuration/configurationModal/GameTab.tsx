@@ -99,7 +99,7 @@ export function GameTab({
 							label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')."
 						>
 							<span
-								className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-secondary text-text-subtle text-[0.625rem] font-extrabold"
+								className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.625rem] font-extrabold"
 								aria-hidden="true"
 							>
 								?

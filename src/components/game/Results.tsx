@@ -15,10 +15,10 @@ export function Results({ result, onRestart, onExit }: ResultsProps) {
 	const percentage = Math.round((result.correctAnswers / result.totalCountries) * 100);
 
 	return (
-		<section className="flex max-h-full w-[min(100%,38rem)] flex-col items-center overflow-auto rounded-2xl border border-border bg-surface p-4 text-center shadow-(--shadow-card) sm:p-[clamp(1.5rem,4vh,2.5rem)]">
-			<p className="m-0 text-text-muted">Práctica terminada</p>
+		<section className="flex max-h-full w-[min(100%,38rem)] flex-col items-center overflow-auto rounded-2xl border border-surface bg-surface p-4 text-center sm:p-[clamp(1.5rem,4vh,2.5rem)]">
+			<p className="m-0 text-text-placeholder">Práctica terminada</p>
 
-			<h1 className="my-[0.35rem] mb-2 text-[1.45rem] leading-[1.08] text-text sm:text-[clamp(1.65rem,4vh,2.75rem)]">
+			<h1 className="my-[0.35rem] mb-2 text-[1.45rem] leading-[1.08] text-surface-soft sm:text-[clamp(1.65rem,4vh,2.75rem)]">
 				{getScoreMessage(result.score)}
 			</h1>
 
@@ -36,7 +36,7 @@ export function Results({ result, onRestart, onExit }: ResultsProps) {
 				<span className="mt-[-0.35rem] text-[0.9rem] font-bold">/10</span>
 			</div>
 
-			<p className="m-0 max-w-lg leading-[1.6] text-text-muted">
+			<p className="m-0 max-w-lg leading-[1.6] text-text-placeholder">
 				Acertaste{" "}
 				<strong>
 					{result.correctAnswers} de {result.totalCountries}
@@ -45,18 +45,18 @@ export function Results({ result, onRestart, onExit }: ResultsProps) {
 			</p>
 
 			{result.region !== "world" && (
-				<p className="mt-3 mb-0 text-[0.9rem] text-text-subtle">
+				<p className="mt-3 mb-0 text-[0.9rem] text-text-placeholder">
 					Esta calificación se guardó para <strong>{REGION_LABELS[result.region]}</strong>
 					.
 				</p>
 			)}
 
 			<div className="mt-6 grid w-full max-w-md grid-cols-2 gap-3 sm:mt-8">
-				<Button variant="secondary" type="button" onClick={onExit}>
+				<Button color="neutral" type="button" onClick={onExit}>
 					Volver al inicio
 				</Button>
 
-				<Button variant="primary" type="button" onClick={onRestart}>
+				<Button color="primary" type="button" onClick={onRestart}>
 					Repetir práctica
 				</Button>
 			</div>
