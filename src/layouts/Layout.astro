@@ -6,10 +6,8 @@ interface Props {
 	description?: string;
 }
 
-const {
-	title,
-	description = "Aplicación para aprender las banderas de los países del mundo.",
-} = Astro.props;
+const { title, description = "Aplicación para aprender las banderas de los países del mundo." } =
+	Astro.props;
 ---
 
 <!doctype html>
@@ -23,6 +21,12 @@ const {
 		<meta name="description" content={description} />
 
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" sizes="any" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#6e8cff" media="(prefers-color-scheme: dark)" />
 
 		<title>{title}</title>
 	</head>
