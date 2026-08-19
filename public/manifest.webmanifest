@@ -1,0 +1,22 @@
+{
+	"name": "Banderas del Mundo",
+	"short_name": "Banderas",
+	"description": "Aprende las banderas del mundo",
+	"start_url": "/",
+	"scope": "/",
+	"display": "fullscreen",
+	"orientation": "portrait",
+	"background_color": "#f1f4f8",
+	"theme_color": "#2563eb",
+	"lang": "es",
+	"icons": [
+		{ "src": "/pwa-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+		{ "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+		{
+			"src": "/maskable-icon-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	]
+}
