@@ -11,7 +11,7 @@
   - `GameEffects.tsx` — hidratación inicial desde localStorage, sync al iniciar sesión (`syncOnLogin`), limpieza al volver a invitado, push debounced a Supabase (800ms)
   - `ThemeEffects.tsx` — persistencia de tema + listener de `prefers-color-scheme`
 - Persistencia real (localStorage): `src/utils/learning-storage.ts` — única puerta de entrada a `window.localStorage`
-- Sync con Supabase: `src/utils/cloud-storage.ts` (`fetchRemoteLearningData`/`pushLearningData`/`mergeLearningData`/`syncOnLogin`), invocado desde `GameEffects.tsx`
+- Sync con Supabase: `src/utils/cloud-storage.ts` (`fetchRemoteLearningData`/`pushLearningData`/``syncOnLogin`), invocado desde `GameEffects.tsx`
 - Patrón para nuevos campos persistidos:
   1. Agregar campo a `UserLearningData` en `types/progress.ts`
   2. Default en `DEFAULT_DATA` + fallback en `getLearningData()`

@@ -21,7 +21,7 @@ interface SelectProps {
 	className?: string;
 }
 
-const MotionNavArrowDown = motion(NavArrowDown);
+const MotionNavArrowDown = motion.create(NavArrowDown);
 
 const rootClass = "relative w-full";
 const triggerBaseClass =

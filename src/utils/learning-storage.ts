@@ -17,13 +17,13 @@ const STORAGE_KEY = "world-flags-learning-data";
 
 export const MAX_REGION_GAMES = 3;
 
-const DEFAULT_PROFILE: UserProfile = {
+export const DEFAULT_PROFILE: UserProfile = {
 	name: "Explorador",
 	avatarStyle: "adventurer-neutral",
 	avatarSeed: "explorer-1",
 };
 
-const DEFAULT_DATA: UserLearningData = {
+export const DEFAULT_DATA: UserLearningData = {
 	profile: DEFAULT_PROFILE,
 	countryHistory: {},
 	regionGameScores: {},
@@ -40,16 +40,27 @@ function migrateCountryHistory(
 	);
 }
 
+export function createDefaultLearningData(): UserLearningData {
+	return {
+		profile: {
+			...DEFAULT_PROFILE,
+		},
+		countryHistory: {},
+		regionGameScores: {},
+		lastConfiguration: null,
+	};
+}
+
 export function getLearningData(): UserLearningData {
 	if (typeof window === "undefined") {
-		return DEFAULT_DATA;
+		return createDefaultLearningData();
 	}
 
 	try {
 		const storedData = window.localStorage.getItem(STORAGE_KEY);
 
 		if (!storedData) {
-			return DEFAULT_DATA;
+			return createDefaultLearningData();
 		}
 
 		const parsedData = JSON.parse(storedData) as Partial<UserLearningData>;
@@ -64,8 +75,18 @@ export function getLearningData(): UserLearningData {
 			lastConfiguration: parsedData.lastConfiguration ?? null,
 		};
 	} catch {
-		return DEFAULT_DATA;
+		return createDefaultLearningData();
 	}
+}
+
+export function hasLearningProgress(data: UserLearningData): boolean {
+	const hasCountryHistory = Object.keys(data.countryHistory).length > 0;
+
+	const hasRegionGameScores = Object.values(data.regionGameScores).some(
+		(scores) => scores.length > 0,
+	);
+
+	return hasCountryHistory || hasRegionGameScores;
 }
 
 export function saveLearningData(data: UserLearningData): void {

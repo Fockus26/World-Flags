@@ -1,80 +1,183 @@
 import { useEffect, useRef } from "react";
+
 import { useAuth } from "@/hooks/useAuth";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setLearningData } from "@/store/slices/gameSlice";
+
+import { setHydrationStatus, setLearningData } from "@/store/slices/gameSlice";
+
 import { pushLearningData, syncOnLogin } from "@/utils/cloud-storage";
-import { clearLearningData, getLearningData, saveLearningData } from "@/utils/learning-storage";
+
+import {
+	clearLearningData,
+	createDefaultLearningData,
+	getLearningData,
+} from "@/utils/learning-storage";
 
 export function GameEffects() {
 	const dispatch = useAppDispatch();
 
 	const learningData = useAppSelector((state) => state.game.learningData);
 
+	const hydrationStatus = useAppSelector((state) => state.game.hydrationStatus);
+
 	const { user, status } = useAuth();
 
-	const hasSyncedRef = useRef(false);
+	const hydratedUserRef = useRef<string | null>(null);
 
 	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-	
-	/**
-	 * Releer localStorage en cliente: el initialState del store
-	 * pudo evaluarse en servidor (SSR) con DEFAULT_DATA.
-	*/
-	useEffect(() => {
-		dispatch(setLearningData(getLearningData()));
-	}, [dispatch]);
 
 	/**
-	 * Sincronizar datos cuando el usuario inicia sesión.
+	 * Hydrate guest/authenticated state.
+	 *
+	 * Guest:
+	 *     localStorage -> Redux
+	 *
+	 * Authenticated:
+	 *     localStorage + Supabase -> Redux
 	 */
 	useEffect(() => {
-		if (status !== "authenticated" || !user || hasSyncedRef.current) {
+		if (status === "loading") {
 			return;
 		}
 
-		hasSyncedRef.current = true;
+		/**
+		 * USER IS GUEST
+		 *
+		 * Any data that belonged to the authenticated session
+		 * must not remain available to the guest session.
+		 */
+		if (status === "guest") {
+			clearTimeout(pushTimeoutRef.current);
 
-		syncOnLogin(user.id, getLearningData()).then((merged) => {
-			saveLearningData(merged);
-			dispatch(setLearningData(merged));
-		});
+			hydratedUserRef.current = null;
+
+			/**
+			 * Clear the local authenticated cache.
+			 *
+			 * This is important because while authenticated,
+			 * game actions may have persisted the user's data
+			 * locally.
+			 */
+			clearLearningData();
+			const guestData = createDefaultLearningData();
+
+			dispatch(setLearningData(guestData));
+			dispatch(setHydrationStatus("ready"));
+
+			return;
+		}
+
+		/**
+		 * USER IS AUTHENTICATED
+		 */
+		if (status !== "authenticated" || !user || hydratedUserRef.current === user.id) {
+			return;
+		}
+
+		let cancelled = false;
+
+		const hydrateAuthenticatedUser = async () => {
+			clearTimeout(pushTimeoutRef.current);
+
+			dispatch(setHydrationStatus("loading"));
+
+			try {
+				/**
+				 * Data stored locally before login.
+				 *
+				 * This is the guest data that may be transferred
+				 * if the account has no existing progress.
+				 */
+				const localData = getLearningData();
+
+				/**
+				 * syncOnLogin:
+				 *
+				 * - account with progress -> remote wins
+				 * - account without progress -> guest data transfers
+				 */
+				const authenticatedData = await syncOnLogin(user.id, localData);
+
+				if (cancelled) {
+					return;
+				}
+
+				/**
+				 * IMPORTANT:
+				 *
+				 * Do not persist authenticated data to the guest
+				 * localStorage.
+				 *
+				 * Supabase is the source of truth for authenticated users.
+				 */
+				dispatch(setLearningData(authenticatedData));
+
+				hydratedUserRef.current = user.id;
+
+				dispatch(setHydrationStatus("ready"));
+			} catch (error) {
+				if (cancelled) {
+					return;
+				}
+
+				console.error("Failed to hydrate authenticated user:", error);
+
+				/**
+				 * Fallback to local data if Supabase fails.
+				 */
+				const localData = getLearningData();
+
+				dispatch(setLearningData(localData));
+
+				hydratedUserRef.current = user.id;
+
+				dispatch(setHydrationStatus("ready"));
+			}
+		};
+
+		void hydrateAuthenticatedUser();
+
+		return () => {
+			cancelled = true;
+		};
 	}, [status, user, dispatch]);
 
 	/**
-	 * Cuando volvemos a modo invitado,
-	 * limpiar los datos sincronizados y cargar
-	 * nuevamente los datos locales.
+	 * Push authenticated changes to Supabase.
+	 *
+	 * No push is allowed until the authenticated state has
+	 * finished hydrating.
 	 */
 	useEffect(() => {
-		if (status !== "guest" || !hasSyncedRef.current) {
-			return;
-		}
-
-		hasSyncedRef.current = false;
-
-		clearLearningData();
-
-		dispatch(setLearningData(getLearningData()));
-	}, [status, dispatch]);
-
-	/**
-	 * Subir cambios al servidor con debounce.
-	 */
-	useEffect(() => {
-		if (status !== "authenticated" || !user) {
+		if (
+			status !== "authenticated" ||
+			!user ||
+			hydrationStatus !== "ready" ||
+			hydratedUserRef.current !== user.id
+		) {
 			return;
 		}
 
 		clearTimeout(pushTimeoutRef.current);
 
 		pushTimeoutRef.current = setTimeout(() => {
-			pushLearningData(user.id, learningData);
+			void pushLearningData(user.id, learningData);
 		}, 800);
 
 		return () => {
 			clearTimeout(pushTimeoutRef.current);
 		};
-	}, [learningData, status, user]);
+	}, [learningData, status, user, hydrationStatus]);
+
+	/**
+	 * Cleanup pending push.
+	 */
+	useEffect(() => {
+		return () => {
+			clearTimeout(pushTimeoutRef.current);
+		};
+	}, []);
 
 	return null;
 }

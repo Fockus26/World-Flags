@@ -1,18 +1,11 @@
 # TODO's
 
 ## 1. Repetición espaciada + práctica diaria (estilo Anki)
-- Refuerza banderas falladas, retrasa las ya dominadas.
-- Feedback inmediato por respuesta.
-- Jugable 100% con teclado.
-- Nota de arquitectura: `isCountryLearned()` hoy es una heurística simple
-  (≥1 acierto en los últimos 3 intentos), sin fechas de repaso ni
-  intervalos — no es todavía un algoritmo de repetición espaciada real.
-  Este feature probablemente empieza ahí: diseñar el modelo de intervalos
-  antes de tocar UI.
-- El modo de práctica diaria probablemente necesita un patrón de
-  interacción nuevo (autoevaluación tipo Anki: mostrar la respuesta y que
-  el usuario califique con una tecla, en vez de escribir el nombre) — no
-  asumas que el `AnswerForm` actual de texto libre aplica igual aquí.
+- Al pasar al PWA se pierde el progreso?
+- Modo practica solo se puede una vez por dia por continente
+- Practica diaria tiene que volver a mostrar las banderas que se les coloco otra vez, utilizar sistema de repetir de nuevo en la misma sesion en caso de no saber
+- El timer se pasa al modo practica cuando esta en dificultad dificil
+- El competitivo es cronometrado, el que acierte mas banderas lo mas rapido posible
 
 ## 2. Estadísticas sociales + logros
 - Leaderboard: top 5 de otros jugadores.

@@ -1,12 +1,8 @@
 import { supabase } from "@/lib/supabase";
-import type { Region } from "@/types/country";
-import type {
-	CountriesLearningHistory,
-	RegionGameScores,
-	UserLearningData,
-} from "@/types/progress";
-import { MAX_REGION_GAMES } from "./learning-storage";
-import { pickMoreRecentReview } from "./spaced-repetition";
+
+import type { UserLearningData } from "@/types/progress";
+
+import { hasLearningProgress } from "./learning-storage";
 
 export async function fetchRemoteLearningData(userId: string): Promise<UserLearningData | null> {
 	const { data, error } = await supabase
@@ -15,7 +11,15 @@ export async function fetchRemoteLearningData(userId: string): Promise<UserLearn
 		.eq("user_id", userId)
 		.maybeSingle();
 
-	if (error || !data) return null;
+	if (error) {
+		console.error("Failed to fetch remote learning data:", error);
+
+		throw error;
+	}
+
+	if (!data) {
+		return null;
+	}
 
 	return {
 		profile: data.profile,
@@ -26,7 +30,7 @@ export async function fetchRemoteLearningData(userId: string): Promise<UserLearn
 }
 
 export async function pushLearningData(userId: string, data: UserLearningData): Promise<void> {
-	await supabase.from("user_learning_data").upsert({
+	const { error } = await supabase.from("user_learning_data").upsert({
 		user_id: userId,
 		profile: data.profile,
 		country_history: data.countryHistory,
@@ -34,44 +38,50 @@ export async function pushLearningData(userId: string, data: UserLearningData): 
 		last_configuration: data.lastConfiguration,
 		updated_at: new Date().toISOString(),
 	});
+
+	if (error) {
+		console.error("Failed to push learning data:", error);
+
+		throw error;
+	}
 }
 
-export function mergeLearningData(
-	local: UserLearningData,
-	remote: UserLearningData,
-): UserLearningData {
-	const countryHistory: CountriesLearningHistory = { ...remote.countryHistory };
-
-	for (const [code, entry] of Object.entries(local.countryHistory)) {
-		const remoteReview = remote.countryHistory[code]?.review ?? null;
-		countryHistory[code] = {
-			review: pickMoreRecentReview(remoteReview, entry.review),
-		};
-	}
-
-	const regionGameScores: RegionGameScores = { ...remote.regionGameScores };
-
-	for (const [region, scores] of Object.entries(local.regionGameScores) as [Region, number[]][]) {
-		const remoteScores = remote.regionGameScores[region] ?? [];
-		regionGameScores[region] = [...remoteScores, ...scores].slice(-MAX_REGION_GAMES);
-	}
-
-	return {
-		profile: remote.profile,
-		countryHistory,
-		regionGameScores,
-		lastConfiguration: remote.lastConfiguration ?? local.lastConfiguration,
-	};
-}
-
+/**
+ * Initial synchronization when a guest becomes authenticated.
+ *
+ * If the user has existing cloud data:
+ *
+ *     local + remote -> merge
+ *
+ * If the user does not have cloud data:
+ *
+ *     local -> Supabase
+ *
+ * The returned value is always the data that should become
+ * the authenticated user's local/Redux state.
+ */
 export async function syncOnLogin(
 	userId: string,
 	localData: UserLearningData,
 ): Promise<UserLearningData> {
 	const remote = await fetchRemoteLearningData(userId);
-	const merged = remote ? mergeLearningData(localData, remote) : localData;
 
-	await pushLearningData(userId, merged);
+	/**
+	 * No existe información para este usuario.
+	 *
+	 * El progreso del invitado se convierte en el
+	 * progreso inicial de la cuenta.
+	 */
+	if (!remote || !hasLearningProgress(remote)) {
+		await pushLearningData(userId, localData);
 
-	return merged;
+		return localData;
+	}
+
+	/**
+	 * La cuenta ya tiene progreso.
+	 *
+	 * El progreso del invitado NO modifica la cuenta.
+	 */
+	return remote;
 }

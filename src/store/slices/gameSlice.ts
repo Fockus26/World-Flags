@@ -1,11 +1,16 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+
 import type {
 	Country,
 	GameConfiguration as GameConfigurationType,
 	GameResult,
 } from "@/types/country";
+
 import type { UserLearningData } from "@/types/progress";
-import { getLearningData } from "@/utils/learning-storage";
+
+import { DEFAULT_DATA } from "@/utils/learning-storage";
+
+export type HydrationStatus = "idle" | "loading" | "ready";
 
 export interface ActiveGame {
 	configuration: GameConfigurationType;
@@ -17,21 +22,29 @@ interface GameState {
 	activeGame: ActiveGame | null;
 	lastResult: GameResult | null;
 	dailyPracticeQueue: string[] | null;
+	hydrationStatus: HydrationStatus;
 }
 
 const initialState: GameState = {
-	learningData: getLearningData(),
+	learningData: DEFAULT_DATA,
 	activeGame: null,
 	lastResult: null,
 	dailyPracticeQueue: null,
+	hydrationStatus: "idle",
 };
 
 const gameSlice = createSlice({
 	name: "game",
+
 	initialState,
+
 	reducers: {
 		setLearningData: (state, action: PayloadAction<UserLearningData>) => {
 			state.learningData = action.payload;
+		},
+
+		setHydrationStatus: (state, action: PayloadAction<HydrationStatus>) => {
+			state.hydrationStatus = action.payload;
 		},
 
 		setActiveGame: (state, action: PayloadAction<ActiveGame | null>) => {
@@ -56,6 +69,7 @@ const gameSlice = createSlice({
 
 export const {
 	setLearningData,
+	setHydrationStatus,
 	setActiveGame,
 	setLastResult,
 	setDailyPracticeQueue,
