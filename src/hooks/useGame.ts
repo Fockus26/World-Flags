@@ -11,12 +11,15 @@ import {
 	DEFAULT_TIMER_DURATION,
 	type GameConfiguration as GameConfigurationType,
 	type GameResult,
+	type PracticeRegion,
 } from "@/types/country";
 import type { ReviewGrade, UserProfile } from "@/types/progress";
 import {
 	getDueCountries,
+	hasPracticedRegionToday,
 	registerCountryAttempt,
 	registerRegionGame,
+	registerRegionPractice,
 	saveLastConfiguration,
 	saveReviewResult,
 	saveUserProfile,
@@ -35,7 +38,14 @@ export function useGame() {
 
 	const dailyPracticeQueue = useAppSelector((state) => state.game.dailyPracticeQueue);
 
-	const startGame = (configuration: GameConfigurationType) => {
+	const isRegionPracticedToday = (region: PracticeRegion) =>
+		hasPracticedRegionToday(learningData, region);
+
+	const startGame = (configuration: GameConfigurationType): boolean => {
+		if (configuration.mode === "practice" && isRegionPracticedToday(configuration.region)) {
+			return false;
+		}
+
 		dispatch(setLastResult(null));
 
 		const updatedData = saveLastConfiguration(configuration);
@@ -48,6 +58,14 @@ export function useGame() {
 				countries: prepareCountries(countries, configuration),
 			}),
 		);
+
+		return true;
+	};
+
+	const markRegionPracticed = (region: PracticeRegion) => {
+		const updatedData = registerRegionPractice(region);
+
+		dispatch(setLearningData(updatedData));
 	};
 
 	const finishGame = (result: GameResult) => {
@@ -71,13 +89,19 @@ export function useGame() {
 			return;
 		}
 
-		startGame({
+		const started = startGame({
 			region: lastResult.region,
 			order: learningData.lastConfiguration?.order ?? "random",
 			timerDuration: learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
 			difficulty: learningData.lastConfiguration?.difficulty ?? "hard",
 			mode: learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE,
 		});
+
+		if (!started) {
+			// Región ya practicada hoy en modo práctica: vuelve a la configuración
+			// en vez de dejar al usuario en una pantalla de resultados sin salida.
+			exitGame();
+		}
 	};
 
 	const attemptCountry = (countryCode: string, isCorrect: boolean) => {
@@ -129,5 +153,7 @@ export function useGame() {
 		exitDailyPractice,
 		saveProfile,
 		updateSettings,
+		isRegionPracticedToday,
+		markRegionPracticed,
 	};
 }

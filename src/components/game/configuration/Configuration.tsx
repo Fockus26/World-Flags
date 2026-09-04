@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { useAuth } from "@/hooks/useAuth";
 import { useGame } from "@/hooks/useGame";
 import { motionVariants } from "@/styles/animations";
@@ -9,6 +10,7 @@ import {
 	DEFAULT_GAME_MODE,
 	DEFAULT_TIMER_DURATION,
 	type PracticeRegion,
+	REGION_LABELS,
 } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
 import {
@@ -21,8 +23,16 @@ import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
 
 export function Configuration() {
-	const { learningData, saveProfile, startGame, updateSettings, startDailyPractice } = useGame();
+	const {
+		learningData,
+		saveProfile,
+		startGame,
+		updateSettings,
+		startDailyPractice,
+		isRegionPracticedToday,
+	} = useGame();
 	const [isConfigurationModalOpen, setIsConfigurationModalOpen] = useState(false);
+	const [blockedRegionMessage, setBlockedRegionMessage] = useState<string | null>(null);
 	const { status, user } = useAuth();
 
 	const accountLabel = status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
@@ -44,13 +54,22 @@ export function Configuration() {
 		const formData = new FormData(event.currentTarget);
 		const region = formData.get("region") as PracticeRegion;
 
-		startGame({
+		const started = startGame({
 			region,
 			order,
 			timerDuration,
 			difficulty,
 			mode,
 		});
+
+		if (!started) {
+			setBlockedRegionMessage(
+				`Ya practicaste ${REGION_LABELS[region]} hoy en modo práctica. Vuelve mañana o elige otro continente.`,
+			);
+			return;
+		}
+
+		setBlockedRegionMessage(null);
 	}
 
 	return (
@@ -118,7 +137,15 @@ export function Configuration() {
 					<RegionSelector
 						lastRegion={lastRegion}
 						regionGameScores={learningData.regionGameScores}
+						mode={mode}
+						isRegionPracticedToday={isRegionPracticedToday}
 					/>
+
+					{blockedRegionMessage && (
+						<FeedbackMessage variant="danger" size="sm" role="alert">
+							{blockedRegionMessage}
+						</FeedbackMessage>
+					)}
 
 					<Button type="submit">Comenzar práctica</Button>
 				</form>

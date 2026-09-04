@@ -26,6 +26,9 @@ export async function fetchRemoteLearningData(userId: string): Promise<UserLearn
 		countryHistory: data.country_history,
 		regionGameScores: data.region_game_scores,
 		lastConfiguration: data.last_configuration,
+		// No existe columna en Supabase todavía: el candado diario por región
+		// solo vive en localStorage por ahora, no se sincroniza entre dispositivos.
+		lastPracticeByRegion: {},
 	};
 }
 

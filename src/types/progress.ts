@@ -1,4 +1,4 @@
-import type { GameConfiguration, Region } from "./country";
+import type { GameConfiguration, PracticeRegion, Region } from "./country";
 
 export const AVATAR_STYLES = [
 	"adventurer-neutral",
@@ -42,9 +42,13 @@ export type CountriesLearningHistory = Record<string, CountryLearningHistory>;
 
 export type RegionGameScores = Partial<Record<Region, number[]>>;
 
+/** Última fecha (YYYY-MM-DD, hora local) en que se practicó cada región en modo práctica. */
+export type LastPracticeByRegion = Partial<Record<PracticeRegion, string>>;
+
 export interface UserLearningData {
 	profile: UserProfile;
 	countryHistory: CountriesLearningHistory;
 	regionGameScores: RegionGameScores;
 	lastConfiguration: GameConfiguration | null;
+	lastPracticeByRegion: LastPracticeByRegion;
 }

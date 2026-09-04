@@ -1,5 +1,5 @@
 import { Fieldset } from "@/components/ui/Fieldset";
-import { REGION_LABELS, REGIONS } from "@/types/country";
+import { type GameMode, type PracticeRegion, REGION_LABELS, REGIONS } from "@/types/country";
 import { calculateRegionAverage } from "@/utils/learning-storage";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
 import { RegionOption } from "./RegionOption";
@@ -7,9 +7,16 @@ import { RegionOption } from "./RegionOption";
 interface RegionSelectorProps {
 	lastRegion: string;
 	regionGameScores: Partial<Record<string, number[]>>;
+	mode: GameMode;
+	isRegionPracticedToday: (region: PracticeRegion) => boolean;
 }
 
-export function RegionSelector({ lastRegion, regionGameScores }: RegionSelectorProps) {
+export function RegionSelector({
+	lastRegion,
+	regionGameScores,
+	mode,
+	isRegionPracticedToday,
+}: RegionSelectorProps) {
 	return (
 		<Fieldset
 			legend="Continentes"
@@ -35,6 +42,7 @@ export function RegionSelector({ lastRegion, regionGameScores }: RegionSelectorP
 					countryCount={196}
 					score={null}
 					defaultChecked={lastRegion === "world"}
+					practicedToday={mode === "practice" && isRegionPracticedToday("world")}
 					className="col-span-2 min-[44rem]:col-span-1"
 				/>
 
@@ -46,6 +54,7 @@ export function RegionSelector({ lastRegion, regionGameScores }: RegionSelectorP
 						countryCount={REGION_COUNTRY_COUNTS[region]}
 						score={calculateRegionAverage(regionGameScores[region])}
 						defaultChecked={lastRegion === region}
+						practicedToday={mode === "practice" && isRegionPracticedToday(region)}
 					/>
 				))}
 			</div>

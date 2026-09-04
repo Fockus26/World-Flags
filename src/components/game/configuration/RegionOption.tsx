@@ -16,6 +16,7 @@ interface RegionOptionProps {
 	countryCount: number;
 	score: number | null;
 	defaultChecked: boolean;
+	practicedToday?: boolean;
 	className?: string;
 }
 
@@ -25,6 +26,7 @@ export function RegionOption({
 	countryCount,
 	score,
 	defaultChecked,
+	practicedToday = false,
 	className,
 }: RegionOptionProps) {
 	const tooltipId = useId();
@@ -151,6 +153,12 @@ export function RegionOption({
 				>
 					{countryCount} países
 				</span>
+
+				{practicedToday && (
+					<span className="text-(--app-score-color) text-[0.68rem] font-bold">
+						Practicado hoy
+					</span>
+				)}
 			</span>
 		</label>
 	);

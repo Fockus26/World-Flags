@@ -6,6 +6,7 @@ import { Header } from "@/components/game/session/Header";
 import { GradeButtons } from "@/components/ui/GradeButtons";
 import { countries } from "@/data/countries";
 import { useGame } from "@/hooks/useGame";
+import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import { motionTransition, motionVariants } from "@/styles/animations";
 import type { ReviewGrade } from "@/types/progress";
 
@@ -22,24 +23,21 @@ const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 };
 
 export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
-	const { gradeCountryReview } = useGame();
-	const [currentIndex, setCurrentIndex] = useState(0);
+	const { learningData, gradeCountryReview } = useGame();
 	const [isRevealed, setIsRevealed] = useState(false);
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
-	const currentCode = countryCodes[currentIndex];
+	const { currentCode, totalCount, completedCount, grade } = usePracticeQueue({
+		initialCodes: countryCodes,
+		countryHistory: learningData.countryHistory,
+		onGrade: gradeCountryReview,
+		onFinish,
+	});
+
 	const currentCountry = countries.find((country) => country.code === currentCode);
-	const isLast = currentIndex === countryCodes.length - 1;
 
-	function handleGrade(grade: ReviewGrade) {
-		if (!currentCode) return;
-		gradeCountryReview(currentCode, grade);
-
-		if (isLast) {
-			onFinish();
-			return;
-		}
-		setCurrentIndex((value) => value + 1);
+	function handleGrade(gradeValue: ReviewGrade) {
+		grade(gradeValue);
 		setIsRevealed(false);
 	}
 
@@ -80,8 +78,8 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 			>
 				<Header
 					regionLabel="Práctica diaria"
-					currentIndex={currentIndex}
-					totalCountries={countryCodes.length}
+					currentIndex={completedCount}
+					totalCountries={totalCount}
 					onExit={() => setIsExitModalOpen(true)}
 				/>
 

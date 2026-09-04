@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { type SubmitEvent, useEffect, useState } from "react";
+import { type SubmitEvent, useEffect, useRef, useState } from "react";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { useGame } from "@/hooks/useGame";
+import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import { motionVariants } from "@/styles/animations";
 import { type AnswerStatus, DEFAULT_TIMER_DURATION, REGION_LABELS } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
@@ -18,11 +19,24 @@ const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 	"4": "easy",
 };
 
+// Solo se marca la región como "practicada hoy" (y bloquea repetirla) si el
+// usuario avanzó de verdad, no si entró y salió sin responder nada.
+const REGION_PRACTICED_THRESHOLD = 0.1;
+
 export function Session() {
-	const { activeGame, exitGame, finishGame, attemptCountry, gradeCountryReview } = useGame();
+	const {
+		activeGame,
+		learningData,
+		exitGame,
+		finishGame,
+		attemptCountry,
+		gradeCountryReview,
+		markRegionPracticed,
+	} = useGame();
 
 	const countries = activeGame?.countries ?? [];
 	const timerDuration = activeGame?.configuration.timerDuration ?? DEFAULT_TIMER_DURATION;
+	const isPracticeMode = activeGame?.configuration.mode === "practice";
 
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [answer, setAnswer] = useState("");
@@ -30,9 +44,45 @@ export function Session() {
 	const [correctAnswers, setCorrectAnswers] = useState(0);
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 	const [timeLeft, setTimeLeft] = useState<number>(timerDuration);
+	const countedCorrectCodesRef = useRef<Set<string>>(new Set());
 
-	const currentCountry = countries[currentIndex];
+	const practiceQueue = usePracticeQueue({
+		initialCodes: countries.map((country) => country.code),
+		countryHistory: learningData.countryHistory,
+		onGrade: gradeCountryReview,
+		onFinish: () => {
+			finishGame({
+				score: calculateScore(correctAnswers, countries.length),
+				correctAnswers,
+				totalCountries: countries.length,
+				region: activeGame?.configuration.region ?? "world",
+			});
+		},
+	});
+
+	const currentCountry = isPracticeMode
+		? countries.find((country) => country.code === practiceQueue.currentCode)
+		: countries[currentIndex];
 	const isLastCountry = currentIndex === countries.length - 1;
+
+	const hasMarkedPracticeRef = useRef(false);
+
+	useEffect(() => {
+		if (!isPracticeMode) return;
+		if (hasMarkedPracticeRef.current) return;
+		if (practiceQueue.totalCount === 0) return;
+		if (practiceQueue.attemptedCount / practiceQueue.totalCount < REGION_PRACTICED_THRESHOLD) {
+			return;
+		}
+		hasMarkedPracticeRef.current = true;
+		markRegionPracticed(activeGame?.configuration.region ?? "world");
+		// biome-ignore lint/correctness/useExhaustiveDependencies: markRegionPracticed estabilizado por React Compiler (ver docs/components.md)
+	}, [
+		isPracticeMode,
+		practiceQueue.attemptedCount,
+		practiceQueue.totalCount,
+		activeGame?.configuration.region,
+	]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: currentIndex dispara el reset intencionalmente, su valor no se lee
 	useEffect(() => {
@@ -109,7 +159,10 @@ export function Session() {
 			attemptCountry(currentCountry.code, isCorrect);
 		}
 		setAnswerStatus(isCorrect ? "correct" : "incorrect");
-		if (isCorrect) {
+		// En modo práctica una bandera puede repetirse en la misma sesión (otra
+		// vez/difícil/bien): solo cuenta la primera vez que se acierta.
+		if (isCorrect && !countedCorrectCodesRef.current.has(currentCountry.code)) {
+			countedCorrectCodesRef.current.add(currentCountry.code);
 			setCorrectAnswers((currentValue) => currentValue + 1);
 		}
 	}
@@ -131,9 +184,10 @@ export function Session() {
 	}
 
 	function handleGrade(grade: ReviewGrade) {
-		if (!currentCountry) return;
-		gradeCountryReview(currentCountry.code, grade);
-		handleNextCountry();
+		practiceQueue.grade(grade);
+		setAnswer("");
+		setAnswerStatus("idle");
+		setTimeLeft(timerDuration);
 	}
 
 	return (
@@ -146,8 +200,8 @@ export function Session() {
 			>
 				<Header
 					regionLabel={REGION_LABELS[region]}
-					currentIndex={currentIndex}
-					totalCountries={countries.length}
+					currentIndex={isPracticeMode ? practiceQueue.completedCount : currentIndex}
+					totalCountries={isPracticeMode ? practiceQueue.totalCount : countries.length}
 					timeLeft={configuration.mode === "practice" ? undefined : timeLeft}
 					timerDuration={configuration.mode === "practice" ? undefined : timerDuration}
 					onExit={() => setIsExitModalOpen(true)}

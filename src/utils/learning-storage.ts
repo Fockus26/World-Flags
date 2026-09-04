@@ -2,6 +2,7 @@ import {
 	DEFAULT_GAME_MODE,
 	DEFAULT_TIMER_DURATION,
 	type GameConfiguration,
+	type PracticeRegion,
 	type Region,
 } from "@/types/country";
 import type {
@@ -11,6 +12,7 @@ import type {
 	UserLearningData,
 	UserProfile,
 } from "@/types/progress";
+import { getLocalDateString } from "@/utils/date";
 import { calculateNextReview, isDue } from "@/utils/spaced-repetition";
 
 const STORAGE_KEY = "world-flags-learning-data";
@@ -28,6 +30,7 @@ export const DEFAULT_DATA: UserLearningData = {
 	countryHistory: {},
 	regionGameScores: {},
 	lastConfiguration: null,
+	lastPracticeByRegion: {},
 };
 
 function migrateCountryHistory(
@@ -48,6 +51,7 @@ export function createDefaultLearningData(): UserLearningData {
 		countryHistory: {},
 		regionGameScores: {},
 		lastConfiguration: null,
+		lastPracticeByRegion: {},
 	};
 }
 
@@ -73,6 +77,7 @@ export function getLearningData(): UserLearningData {
 			countryHistory: migrateCountryHistory(parsedData.countryHistory),
 			regionGameScores: parsedData.regionGameScores ?? {},
 			lastConfiguration: parsedData.lastConfiguration ?? null,
+			lastPracticeByRegion: parsedData.lastPracticeByRegion ?? {},
 		};
 	} catch {
 		return createDefaultLearningData();
@@ -164,6 +169,29 @@ export function registerRegionGame(region: Region, score: number): UserLearningD
 
 	saveLearningData(updatedData);
 
+	return updatedData;
+}
+
+export function hasPracticedRegionToday(
+	data: UserLearningData,
+	region: PracticeRegion,
+	today: string = getLocalDateString(),
+): boolean {
+	return data.lastPracticeByRegion[region] === today;
+}
+
+export function registerRegionPractice(region: PracticeRegion): UserLearningData {
+	const currentData = getLearningData();
+
+	const updatedData: UserLearningData = {
+		...currentData,
+		lastPracticeByRegion: {
+			...currentData.lastPracticeByRegion,
+			[region]: getLocalDateString(),
+		},
+	};
+
+	saveLearningData(updatedData);
 	return updatedData;
 }
 
