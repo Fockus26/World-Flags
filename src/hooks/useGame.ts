@@ -48,7 +48,7 @@ export function useGame() {
 
 		dispatch(setLastResult(null));
 
-		const updatedData = saveLastConfiguration(configuration);
+		const updatedData = saveLastConfiguration(learningData, configuration);
 
 		dispatch(setLearningData(updatedData));
 
@@ -63,7 +63,7 @@ export function useGame() {
 	};
 
 	const markRegionPracticed = (region: PracticeRegion) => {
-		const updatedData = registerRegionPractice(region);
+		const updatedData = registerRegionPractice(learningData, region);
 
 		dispatch(setLearningData(updatedData));
 	};
@@ -73,7 +73,7 @@ export function useGame() {
 		dispatch(setActiveGame(null));
 
 		if (result.region !== "world") {
-			const updatedData = registerRegionGame(result.region, result.score);
+			const updatedData = registerRegionGame(learningData, result.region, result.score);
 
 			dispatch(setLearningData(updatedData));
 		}
@@ -105,13 +105,13 @@ export function useGame() {
 	};
 
 	const attemptCountry = (countryCode: string, isCorrect: boolean) => {
-		const updatedData = registerCountryAttempt(countryCode, isCorrect);
+		const updatedData = registerCountryAttempt(learningData, countryCode, isCorrect);
 
 		dispatch(setLearningData(updatedData));
 	};
 
 	const gradeCountryReview = (countryCode: string, grade: ReviewGrade) => {
-		const updatedData = saveReviewResult(countryCode, grade);
+		const updatedData = saveReviewResult(learningData, countryCode, grade);
 
 		dispatch(setLearningData(updatedData));
 	};
@@ -127,13 +127,13 @@ export function useGame() {
 	};
 
 	const saveProfile = (profile: UserProfile) => {
-		const updatedData = saveUserProfile(profile);
+		const updatedData = saveUserProfile(learningData, profile);
 
 		dispatch(setLearningData(updatedData));
 	};
 
 	const updateSettings = (partial: Partial<GameConfigurationType>) => {
-		const updatedData = updateLastConfiguration(partial);
+		const updatedData = updateLastConfiguration(learningData, partial);
 
 		dispatch(setLearningData(updatedData));
 	};

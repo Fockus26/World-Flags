@@ -15,7 +15,8 @@
 - Patrón para nuevos campos persistidos:
   1. Agregar campo a `UserLearningData` en `types/progress.ts`
   2. Default en `DEFAULT_DATA` + fallback en `getLearningData()`
-  3. Función `saveX()` dedicada que hace `getLearningData()` → merge → `saveLearningData()`
-  4. El hook correspondiente (`useGame`, etc.) llama la acción del slice (`dispatch(setLearningData(updatedData))`)
+  3. Función `saveX()` dedicada que recibe el `UserLearningData` actual como parámetro (nunca lo relee de `localStorage`, porque en usuarios autenticados eso puede estar desactualizado respecto a lo hidratado desde Supabase) → merge → `saveLearningData()`
+  4. El hook correspondiente (`useGame`, etc.) le pasa `learningData` (el del store de Redux) y despacha la acción del slice con lo que devuelve (`dispatch(setLearningData(updatedData))`)
+- `getLearningData()` (lectura de `localStorage`) solo se usa para el arranque/hidratación inicial (invitado, o fallback si falla la carga desde Supabase) — nunca dentro de las funciones `saveX()`/`registerX()`, para evitar que una sesión autenticada pise su propio progreso recién sincronizado con una copia vieja de `localStorage`
 - Nunca leer/escribir localStorage fuera de `learning-storage.ts`
 - Nunca leer/escribir el store de Redux fuera de `store/slices/` — los componentes usan los hooks de `src/hooks/`, no `useAppDispatch`/`useAppSelector` directo (salvo dentro de los propios hooks/Effects)

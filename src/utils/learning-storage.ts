@@ -102,9 +102,10 @@ export function clearLearningData(): void {
 	window.localStorage.removeItem(STORAGE_KEY);
 }
 
-export function saveUserProfile(profile: UserProfile): UserLearningData {
-	const currentData = getLearningData();
-
+export function saveUserProfile(
+	currentData: UserLearningData,
+	profile: UserProfile,
+): UserLearningData {
 	const updatedData: UserLearningData = {
 		...currentData,
 		profile,
@@ -115,9 +116,10 @@ export function saveUserProfile(profile: UserProfile): UserLearningData {
 	return updatedData;
 }
 
-export function saveLastConfiguration(configuration: GameConfiguration): UserLearningData {
-	const currentData = getLearningData();
-
+export function saveLastConfiguration(
+	currentData: UserLearningData,
+	configuration: GameConfiguration,
+): UserLearningData {
 	const updatedData: UserLearningData = {
 		...currentData,
 		lastConfiguration: configuration,
@@ -128,9 +130,10 @@ export function saveLastConfiguration(configuration: GameConfiguration): UserLea
 	return updatedData;
 }
 
-export function updateLastConfiguration(partial: Partial<GameConfiguration>): UserLearningData {
-	const currentData = getLearningData();
-
+export function updateLastConfiguration(
+	currentData: UserLearningData,
+	partial: Partial<GameConfiguration>,
+): UserLearningData {
 	const updatedData: UserLearningData = {
 		...currentData,
 		lastConfiguration: {
@@ -148,13 +151,19 @@ export function updateLastConfiguration(partial: Partial<GameConfiguration>): Us
 	return updatedData;
 }
 
-export function registerCountryAttempt(countryCode: string, isCorrect: boolean): UserLearningData {
-	return saveReviewResult(countryCode, isCorrect ? "good" : "again");
+export function registerCountryAttempt(
+	currentData: UserLearningData,
+	countryCode: string,
+	isCorrect: boolean,
+): UserLearningData {
+	return saveReviewResult(currentData, countryCode, isCorrect ? "good" : "again");
 }
 
-export function registerRegionGame(region: Region, score: number): UserLearningData {
-	const currentData = getLearningData();
-
+export function registerRegionGame(
+	currentData: UserLearningData,
+	region: Region,
+	score: number,
+): UserLearningData {
 	const previousScores = currentData.regionGameScores[region] ?? [];
 
 	const regionScores = [...previousScores, score].slice(-MAX_REGION_GAMES);
@@ -180,9 +189,10 @@ export function hasPracticedRegionToday(
 	return data.lastPracticeByRegion[region] === today;
 }
 
-export function registerRegionPractice(region: PracticeRegion): UserLearningData {
-	const currentData = getLearningData();
-
+export function registerRegionPractice(
+	currentData: UserLearningData,
+	region: PracticeRegion,
+): UserLearningData {
 	const updatedData: UserLearningData = {
 		...currentData,
 		lastPracticeByRegion: {
@@ -230,8 +240,11 @@ export function formatScore(score: number): string {
 	return Number.isInteger(score) ? score.toFixed(0) : score.toFixed(1);
 }
 
-export function saveReviewResult(countryCode: string, grade: ReviewGrade): UserLearningData {
-	const currentData = getLearningData();
+export function saveReviewResult(
+	currentData: UserLearningData,
+	countryCode: string,
+	grade: ReviewGrade,
+): UserLearningData {
 	const previousReview = currentData.countryHistory[countryCode]?.review ?? null;
 
 	const updatedData: UserLearningData = {
