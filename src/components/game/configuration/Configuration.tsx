@@ -20,6 +20,7 @@ import {
 import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
 import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
 import { CountryPickerModal } from "./CountryPickerModal";
+import { LeaderboardModal } from "./LeaderboardModal";
 import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
 
@@ -35,6 +36,7 @@ export function Configuration() {
 	} = useGame();
 	const [isConfigurationModalOpen, setIsConfigurationModalOpen] = useState(false);
 	const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
+	const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 	const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 	const { status, user } = useAuth();
 
@@ -164,11 +166,22 @@ export function Configuration() {
 					<Button type="submit">Comenzar práctica</Button>
 				</form>
 
-				{dueCount > 0 && (
-					<Button color="secondary" type="button" onClick={startDailyPractice}>
-						Práctica diaria ({dueCount})
+				<div className="flex flex-col gap-2">
+					{dueCount > 0 && (
+						<Button color="secondary" type="button" onClick={startDailyPractice}>
+							Práctica diaria ({dueCount})
+						</Button>
+					)}
+
+					<Button
+						color="neutral"
+						variant="outline"
+						type="button"
+						onClick={() => setIsLeaderboardOpen(true)}
+					>
+						🏆 Ranking
 					</Button>
-				)}
+				</div>
 			</motion.section>
 
 			<ConfigurationModal
@@ -198,6 +211,11 @@ export function Configuration() {
 					updateSettings({ scope: { type: "custom", regions, countryCodes } });
 					setBlockedMessage(null);
 				}}
+			/>
+
+			<LeaderboardModal
+				isOpen={isLeaderboardOpen}
+				onClose={() => setIsLeaderboardOpen(false)}
 			/>
 		</>
 	);

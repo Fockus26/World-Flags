@@ -29,7 +29,11 @@ import {
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
 import { prepareCountries } from "@/utils/prepare-countries";
-import { getExactSingleRegion, getScopeCountryCodes } from "@/utils/practice-scope";
+import {
+	getExactSingleRegion,
+	getScopeCountryCodes,
+	getScopeRegionKey,
+} from "@/utils/practice-scope";
 
 /**
  * Varias acciones seguidas (calificar una bandera y de paso marcarla como
@@ -116,18 +120,21 @@ export function useGame() {
 		dispatch(setLastResult(result));
 		dispatch(setActiveGame(null));
 
-		const region = getExactSingleRegion(result.scope);
+		// El puntaje de práctica solo tiene sentido por continente (getExactSingleRegion);
+		// el mejor tiempo del rush también aplica a "Todo el mundo" (getScopeRegionKey).
+		if (result.mode === "practice") {
+			const region = getExactSingleRegion(result.scope);
+			if (!region) return;
 
-		if (!region) {
+			const updatedData = registerRegionGame(getCurrentLearningData(), region, result.score);
+			dispatch(setLearningData(updatedData));
 			return;
 		}
 
-		const currentData = getCurrentLearningData();
-		const updatedData =
-			result.mode === "practice"
-				? registerRegionGame(currentData, region, result.score)
-				: registerRegionBestTime(currentData, region, result.elapsedMs);
+		const region = getScopeRegionKey(result.scope);
+		if (!region) return;
 
+		const updatedData = registerRegionBestTime(getCurrentLearningData(), region, result.elapsedMs);
 		dispatch(setLearningData(updatedData));
 	};
 

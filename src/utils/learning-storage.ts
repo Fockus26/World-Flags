@@ -214,7 +214,7 @@ export function registerRegionGame(
 /** Modo competitivo ("rush"): guarda el tiempo solo si mejora la marca previa. */
 export function registerRegionBestTime(
 	currentData: UserLearningData,
-	region: Region,
+	region: PracticeRegion,
 	elapsedMs: number,
 ): UserLearningData {
 	const previousBest = currentData.regionBestTimes[region];
@@ -305,17 +305,14 @@ export function formatScore(score: number): string {
 }
 
 /** Formatea milisegundos como "m:ss" (o "ss.d s" si dura menos de un minuto). */
+/** Formatea milisegundos como "m:ss.cc" (minutos:segundos.centésimas), ej. 85590 -> "1:25.59". */
 export function formatElapsedTime(elapsedMs: number): string {
-	const totalSeconds = elapsedMs / 1000;
+	const totalHundredths = Math.round(elapsedMs / 10);
+	const minutes = Math.floor(totalHundredths / 6000);
+	const seconds = Math.floor((totalHundredths % 6000) / 100);
+	const hundredths = totalHundredths % 100;
 
-	if (totalSeconds < 60) {
-		return `${totalSeconds.toFixed(1)}s`;
-	}
-
-	const minutes = Math.floor(totalSeconds / 60);
-	const seconds = Math.floor(totalSeconds % 60);
-
-	return `${minutes}:${String(seconds).padStart(2, "0")}`;
+	return `${minutes}:${String(seconds).padStart(2, "0")}.${String(hundredths).padStart(2, "0")}`;
 }
 
 export function saveReviewResult(

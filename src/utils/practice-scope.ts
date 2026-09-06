@@ -1,4 +1,4 @@
-import type { Country, PracticeScope, Region } from "@/types/country";
+import type { Country, PracticeRegion, PracticeScope, Region } from "@/types/country";
 import { REGION_LABELS } from "@/types/country";
 
 /** Resuelve un `PracticeScope` a la lista de países que le corresponde. */
@@ -32,6 +32,16 @@ export function getExactSingleRegion(scope: PracticeScope): Region | null {
 	}
 
 	return null;
+}
+
+/**
+ * Como `getExactSingleRegion`, pero también reconoce "world": se usa para el
+ * mejor tiempo en modo competitivo, que sí tiene sentido para todo el mundo
+ * (a diferencia del puntaje de práctica, que solo promedia por continente).
+ */
+export function getScopeRegionKey(scope: PracticeScope): PracticeRegion | null {
+	if (scope.type === "world") return "world";
+	return getExactSingleRegion(scope);
 }
 
 export function isEmptyScope(scope: PracticeScope): boolean {

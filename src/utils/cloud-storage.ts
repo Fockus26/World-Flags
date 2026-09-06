@@ -90,3 +90,62 @@ export async function syncOnLogin(
 	 */
 	return remote;
 }
+
+export interface LeaderboardEntry {
+	userId: string;
+	displayName: string;
+	bestTimeMs: number;
+}
+
+/**
+ * Ranking completo de un scope ("world" por ahora), del más rápido al más
+ * lento. Se trae completo (no solo el top N) para poder calcular en qué
+ * puesto queda el usuario actual aunque no esté en el top 5 — la tabla
+ * `leaderboard_entries` es pública y liviana (nombre + tiempo), así que esto
+ * no debería ser un problema salvo con muchísimos usuarios.
+ */
+export async function fetchLeaderboard(scope: string): Promise<LeaderboardEntry[]> {
+	const { data, error } = await supabase
+		.from("leaderboard_entries")
+		.select("user_id, display_name, best_time_ms")
+		.eq("scope", scope)
+		.order("best_time_ms", { ascending: true });
+
+	if (error) {
+		console.error("Failed to fetch leaderboard:", error);
+
+		throw error;
+	}
+
+	return (data ?? []).map((row) => ({
+		userId: row.user_id,
+		displayName: row.display_name,
+		bestTimeMs: row.best_time_ms,
+	}));
+}
+
+/**
+ * Se llama solo cuando el usuario mejora su marca (ver GameEffects.tsx) — no
+ * hace falta un merge, cada mejora reemplaza la fila entera del usuario.
+ * Es un "mejor esfuerzo": si falla (p. ej. la tabla todavía no existe en
+ * Supabase, ver supabase/leaderboard.sql) no debe romper el juego, solo se
+ * registra el error.
+ */
+export async function upsertLeaderboardEntry(
+	userId: string,
+	scope: string,
+	displayName: string,
+	bestTimeMs: number,
+): Promise<void> {
+	const { error } = await supabase.from("leaderboard_entries").upsert({
+		user_id: userId,
+		scope,
+		display_name: displayName,
+		best_time_ms: bestTimeMs,
+		updated_at: new Date().toISOString(),
+	});
+
+	if (error) {
+		console.error("Failed to update leaderboard entry:", error);
+	}
+}

@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 import { setHydrationStatus, setLearningData } from "@/store/slices/gameSlice";
 
-import { pushLearningData, syncOnLogin } from "@/utils/cloud-storage";
+import { pushLearningData, syncOnLogin, upsertLeaderboardEntry } from "@/utils/cloud-storage";
 
 import {
 	clearLearningData,
@@ -26,6 +26,8 @@ export function GameEffects() {
 	const hydratedUserRef = useRef<string | null>(null);
 
 	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+	const pushedWorldBestRef = useRef<number | undefined>(undefined);
 
 	/**
 	 * Hydrate guest/authenticated state.
@@ -169,6 +171,33 @@ export function GameEffects() {
 			clearTimeout(pushTimeoutRef.current);
 		};
 	}, [learningData, status, user, hydrationStatus]);
+
+	/**
+	 * Leaderboard: cada vez que el mejor tiempo de "Todo el mundo" mejora, se
+	 * sube (mejor esfuerzo, ver upsertLeaderboardEntry) — no espera al push
+	 * debounced de arriba porque esto no compite en frecuencia con el resto
+	 * de `learningData` (solo cambia al batir una marca).
+	 */
+	useEffect(() => {
+		if (
+			status !== "authenticated" ||
+			!user ||
+			hydrationStatus !== "ready" ||
+			hydratedUserRef.current !== user.id
+		) {
+			return;
+		}
+
+		const worldBestMs = learningData.regionBestTimes.world;
+
+		if (worldBestMs === undefined || pushedWorldBestRef.current === worldBestMs) {
+			return;
+		}
+
+		pushedWorldBestRef.current = worldBestMs;
+
+		void upsertLeaderboardEntry(user.id, "world", learningData.profile.name, worldBestMs);
+	}, [learningData.regionBestTimes.world, learningData.profile.name, status, user, hydrationStatus]);
 
 	/**
 	 * Cleanup pending push.

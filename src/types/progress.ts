@@ -1,4 +1,4 @@
-import type { GameConfiguration, Region } from "./country";
+import type { GameConfiguration, PracticeRegion, Region } from "./country";
 
 export const AVATAR_STYLES = [
 	"adventurer-neutral",
@@ -42,8 +42,8 @@ export type CountriesLearningHistory = Record<string, CountryLearningHistory>;
 
 export type RegionGameScores = Partial<Record<Region, number[]>>;
 
-/** Mejor tiempo (ms) logrado en modo competitivo ("rush") practicando un continente completo. */
-export type RegionBestTimes = Partial<Record<Region, number>>;
+/** Mejor tiempo (ms) logrado en modo competitivo ("rush") por continente, o "world" para todo el mundo. */
+export type RegionBestTimes = Partial<Record<PracticeRegion, number>>;
 
 /** Última fecha (YYYY-MM-DD, hora local) en que se practicó cada país. */
 export type LastPracticeByCountry = Partial<Record<string, string>>;

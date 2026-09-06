@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/Button";
 import { Fieldset } from "@/components/ui/Fieldset";
 import {
 	type GameMode,
+	type PracticeRegion,
 	type PracticeScope,
 	type Region,
 	REGION_LABELS,
@@ -15,7 +16,7 @@ interface RegionSelectorProps {
 	scope: PracticeScope;
 	onScopeChange: (scope: PracticeScope) => void;
 	regionGameScores: Partial<Record<Region, number[]>>;
-	regionBestTimes: Partial<Record<Region, number>>;
+	regionBestTimes: Partial<Record<PracticeRegion, number>>;
 	mode: GameMode;
 	getRegionPracticeProgress: (region: Region) => { practiced: number; total: number };
 	onOpenCustomPicker: () => void;
@@ -80,6 +81,11 @@ export function RegionSelector({
 					label="Todo el mundo"
 					countryCount={196}
 					score={null}
+					bestTimeLabel={
+						mode === "competitive" && regionBestTimes.world !== undefined
+							? formatElapsedTime(regionBestTimes.world)
+							: null
+					}
 					checked={isWorldSelected}
 					onChange={toggleWorld}
 					className="col-span-2 min-[44rem]:col-span-1"

@@ -8,13 +8,15 @@
 - [x] El competitivo es cronometrado, el que acierte mas banderas lo mas rapido posible
 
 ## 2. Estadísticas sociales + logros
-- Leaderboard: top 5 de otros jugadores.
+- [x] Leaderboard: top 5 (y tu puesto si no estás en el top 5), por ahora
+  solo del mejor tiempo competitivo de "Todo el mundo". Tabla nueva
+  `leaderboard_entries` con sus propias políticas RLS (no reutiliza
+  `user_learning_data`, que es privada) — hay que correr
+  `supabase/leaderboard.sql` una vez en el proyecto de Supabase para que
+  funcione. Pendiente si se quiere: leaderboard por continente (el schema
+  ya lo soporta vía la columna `scope`, solo falta la UI para elegirlo).
 - Logros: ej. "aprender un continente", "primeras 100 banderas",
   "todo el mundo".
-- Nota de arquitectura: la tabla `user_learning_data` de Supabase es
-  privada por usuario — un leaderboard público necesita una tabla/vista
-  agregada nueva con sus propias políticas RLS, no reutilizar esa tabla
-  directo.
 
 ## 3. Nuevos modos de juego
 - **Todos los países de un tirón**: elegir alcance (continente o mundo),
