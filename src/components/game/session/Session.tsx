@@ -4,9 +4,10 @@ import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { useGame } from "@/hooks/useGame";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import { motionVariants } from "@/styles/animations";
-import { type AnswerStatus, DEFAULT_TIMER_DURATION, REGION_LABELS } from "@/types/country";
+import { type AnswerStatus, DEFAULT_TIMER_DURATION } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
 import { isCorrectAnswer } from "@/utils/normalize-answer";
+import { getScopeLabel } from "@/utils/practice-scope";
 import { calculateScore } from "@/utils/score";
 import { AnswerForm } from "./AnswerForm";
 import { FlagDisplay } from "./FlagDisplay";
@@ -19,9 +20,15 @@ const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 	"4": "easy",
 };
 
-// Solo se marca la región como "practicada hoy" (y bloquea repetirla) si el
-// usuario avanzó de verdad, no si entró y salió sin responder nada.
-const REGION_PRACTICED_THRESHOLD = 0.1;
+// Modo competitivo ("rush"): cada respuesta incorrecta o skip suma una
+// penalización al cronómetro en vez de bloquear el avance.
+const RUSH_WRONG_PENALTY_MS = 2000;
+const RUSH_SKIP_PENALTY_MS = 5000;
+const RUSH_ADVANCE_MS = 900;
+
+// Práctica: al usar skip se revela la respuesta un momento antes de
+// calificarla automáticamente como "otra vez".
+const SKIP_REVEAL_MS = 650;
 
 export function Session() {
 	const {
@@ -31,12 +38,14 @@ export function Session() {
 		finishGame,
 		attemptCountry,
 		gradeCountryReview,
-		markRegionPracticed,
+		markCountryPracticed,
 	} = useGame();
 
 	const countries = activeGame?.countries ?? [];
 	const timerDuration = activeGame?.configuration.timerDuration ?? DEFAULT_TIMER_DURATION;
 	const isPracticeMode = activeGame?.configuration.mode === "practice";
+	const isCompetitiveMode = activeGame?.configuration.mode === "competitive";
+	const isTimedPractice = isPracticeMode && (activeGame?.configuration.timerEnabled ?? false);
 
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [answer, setAnswer] = useState("");
@@ -44,18 +53,22 @@ export function Session() {
 	const [correctAnswers, setCorrectAnswers] = useState(0);
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 	const [timeLeft, setTimeLeft] = useState<number>(timerDuration);
-	const countedCorrectCodesRef = useRef<Set<string>>(new Set());
+	const [elapsedMs, setElapsedMs] = useState(0);
+	const firstAttemptResultsRef = useRef<Record<string, boolean>>({});
+	const startTimeRef = useRef<number | null>(null);
 
 	const practiceQueue = usePracticeQueue({
 		initialCodes: countries.map((country) => country.code),
 		countryHistory: learningData.countryHistory,
 		onGrade: gradeCountryReview,
+		onFirstAttempt: markCountryPracticed,
 		onFinish: () => {
 			finishGame({
+				mode: "practice",
 				score: calculateScore(correctAnswers, countries.length),
 				correctAnswers,
 				totalCountries: countries.length,
-				region: activeGame?.configuration.region ?? "world",
+				scope: activeGame?.configuration.scope ?? { type: "world" },
 			});
 		},
 	});
@@ -65,55 +78,53 @@ export function Session() {
 		: countries[currentIndex];
 	const isLastCountry = currentIndex === countries.length - 1;
 
-	const hasMarkedPracticeRef = useRef(false);
-
-	useEffect(() => {
-		if (!isPracticeMode) return;
-		if (hasMarkedPracticeRef.current) return;
-		if (practiceQueue.totalCount === 0) return;
-		if (practiceQueue.attemptedCount / practiceQueue.totalCount < REGION_PRACTICED_THRESHOLD) {
-			return;
+	function recordFirstAttempt(code: string, isCorrect: boolean) {
+		if (code in firstAttemptResultsRef.current) return;
+		firstAttemptResultsRef.current[code] = isCorrect;
+		if (isCorrect) {
+			setCorrectAnswers((currentValue) => currentValue + 1);
 		}
-		hasMarkedPracticeRef.current = true;
-		markRegionPracticed(activeGame?.configuration.region ?? "world");
-		// biome-ignore lint/correctness/useExhaustiveDependencies: markRegionPracticed estabilizado por React Compiler (ver docs/components.md)
-	}, [
-		isPracticeMode,
-		practiceQueue.attemptedCount,
-		practiceQueue.totalCount,
-		activeGame?.configuration.region,
-	]);
+	}
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: currentIndex dispara el reset intencionalmente, su valor no se lee
+	// Cronómetro del modo competitivo: corre desde que empieza la sesión hasta
+	// que termina; las penalizaciones adelantan el "inicio" para que el
+	// tiempo mostrado suba de golpe en vez de llevar un contador aparte.
 	useEffect(() => {
-		if (activeGame?.configuration.mode === "practice") return;
+		if (!isCompetitiveMode) return;
+		if (startTimeRef.current === null) {
+			startTimeRef.current = Date.now();
+		}
+		const intervalId = window.setInterval(() => {
+			if (startTimeRef.current !== null) {
+				setElapsedMs(Date.now() - startTimeRef.current);
+			}
+		}, 100);
+		return () => window.clearInterval(intervalId);
+	}, [isCompetitiveMode]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: currentCode dispara el reset intencionalmente, su valor no se lee
+	useEffect(() => {
+		if (!isTimedPractice) return;
 		setTimeLeft(timerDuration);
-	}, [currentIndex, timerDuration]);
+	}, [isTimedPractice, timerDuration, practiceQueue.currentCode]);
 
-	const handleTimeout = () => {
-		if (!currentCountry || answerStatus !== "idle") {
-			return;
-		}
-		attemptCountry(currentCountry.code, false);
-		setAnswerStatus("incorrect");
-	};
-
+	// biome-ignore lint/correctness/useExhaustiveDependencies: handleSkip estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
+		if (!isTimedPractice) return;
 		if (answerStatus !== "idle") return;
-		if (activeGame?.configuration.mode === "practice") return;
 		if (timeLeft <= 0) {
-			handleTimeout();
+			handleSkip();
 			return;
 		}
 		const timeoutId = window.setTimeout(() => {
 			setTimeLeft((currentValue) => currentValue - 1);
 		}, 1000);
 		return () => window.clearTimeout(timeoutId);
-		// biome-ignore lint/correctness/useExhaustiveDependencies: handleTimeout ya está estabilizado por React Compiler (ver docs/components.md)
-	}, [timeLeft, answerStatus, handleTimeout, activeGame?.configuration.mode]);
+	}, [isTimedPractice, timeLeft, answerStatus]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: handleGrade estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
-		if (activeGame?.configuration.mode !== "practice") return;
+		if (!isPracticeMode) return;
 		if (answerStatus === "idle") return;
 		if (isExitModalOpen) return;
 
@@ -127,27 +138,32 @@ export function Session() {
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-		// biome-ignore lint/correctness/useExhaustiveDependencies: handleGrade estabilizado por React Compiler (ver docs/components.md)
-	}, [activeGame?.configuration.mode, answerStatus, isExitModalOpen, handleGrade]);
-
-	useEffect(() => {
-		if (activeGame?.configuration.mode !== "competitive") return;
-		if (answerStatus === "idle") return;
-
-		const timeoutId = window.setTimeout(() => {
-			handleNextCountry();
-		}, 2000);
-
-		return () => window.clearTimeout(timeoutId);
-		// biome-ignore lint/correctness/useExhaustiveDependencies: handleNextCountry estabilizado por React Compiler (ver docs/components.md)
-	}, [activeGame?.configuration.mode, answerStatus, handleNextCountry]);
+	}, [isPracticeMode, answerStatus, isExitModalOpen]);
 
 	if (!activeGame || !currentCountry) {
 		return null;
 	}
 
 	const { configuration } = activeGame;
-	const region = configuration.region;
+	const scopeLabel = getScopeLabel(configuration.scope);
+
+	function advanceCompetitive() {
+		if (isLastCountry) {
+			const finalElapsedMs =
+				startTimeRef.current !== null ? Date.now() - startTimeRef.current : elapsedMs;
+
+			finishGame({
+				mode: "competitive",
+				scope: configuration.scope,
+				totalCountries: countries.length,
+				elapsedMs: finalElapsedMs,
+			});
+			return;
+		}
+		setCurrentIndex((currentValue) => currentValue + 1);
+		setAnswer("");
+		setAnswerStatus("idle");
+	}
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -155,39 +171,46 @@ export function Session() {
 			return;
 		}
 		const isCorrect = isCorrectAnswer(answer, currentCountry.name, configuration.difficulty);
+
 		if (configuration.mode === "competitive") {
 			attemptCountry(currentCountry.code, isCorrect);
-		}
-		setAnswerStatus(isCorrect ? "correct" : "incorrect");
-		// En modo práctica una bandera puede repetirse en la misma sesión (otra
-		// vez/difícil/bien): solo cuenta la primera vez que se acierta.
-		if (isCorrect && !countedCorrectCodesRef.current.has(currentCountry.code)) {
-			countedCorrectCodesRef.current.add(currentCountry.code);
-			setCorrectAnswers((currentValue) => currentValue + 1);
-		}
-	}
-
-	function handleNextCountry() {
-		if (isLastCountry) {
-			finishGame({
-				score: calculateScore(correctAnswers, countries.length),
-				correctAnswers,
-				totalCountries: countries.length,
-				region,
-			});
+			if (!isCorrect && startTimeRef.current !== null) {
+				startTimeRef.current -= RUSH_WRONG_PENALTY_MS;
+			}
+			setAnswerStatus(isCorrect ? "correct" : "incorrect");
+			window.setTimeout(advanceCompetitive, RUSH_ADVANCE_MS);
 			return;
 		}
-		setCurrentIndex((currentValue) => currentValue + 1);
-		setAnswer("");
-		setAnswerStatus("idle");
-		setTimeLeft(timerDuration);
+
+		setAnswerStatus(isCorrect ? "correct" : "incorrect");
+		// En modo práctica una bandera puede repetirse en la misma sesión (otra
+		// vez/difícil/bien): la puntuación solo cuenta el primer intento, no si
+		// finalmente se acertó tras repetirla.
+		recordFirstAttempt(currentCountry.code, isCorrect);
 	}
 
 	function handleGrade(grade: ReviewGrade) {
 		practiceQueue.grade(grade);
 		setAnswer("");
 		setAnswerStatus("idle");
-		setTimeLeft(timerDuration);
+	}
+
+	function handleSkip() {
+		if (!currentCountry || answerStatus !== "idle") return;
+
+		if (configuration.mode === "competitive") {
+			attemptCountry(currentCountry.code, false);
+			if (startTimeRef.current !== null) {
+				startTimeRef.current -= RUSH_SKIP_PENALTY_MS;
+			}
+			setAnswerStatus("incorrect");
+			window.setTimeout(advanceCompetitive, RUSH_ADVANCE_MS);
+			return;
+		}
+
+		recordFirstAttempt(currentCountry.code, false);
+		setAnswerStatus("incorrect");
+		window.setTimeout(() => handleGrade("again"), SKIP_REVEAL_MS);
 	}
 
 	return (
@@ -199,11 +222,12 @@ export function Session() {
 				animate="visible"
 			>
 				<Header
-					regionLabel={REGION_LABELS[region]}
+					regionLabel={scopeLabel}
 					currentIndex={isPracticeMode ? practiceQueue.completedCount : currentIndex}
 					totalCountries={isPracticeMode ? practiceQueue.totalCount : countries.length}
-					timeLeft={configuration.mode === "practice" ? undefined : timeLeft}
-					timerDuration={configuration.mode === "practice" ? undefined : timerDuration}
+					timeLeft={isTimedPractice ? timeLeft : undefined}
+					timerDuration={isTimedPractice ? timerDuration : undefined}
+					elapsedMs={isCompetitiveMode ? elapsedMs : undefined}
 					onExit={() => setIsExitModalOpen(true)}
 				/>
 
@@ -214,9 +238,8 @@ export function Session() {
 						answer={answer}
 						onAnswerChange={setAnswer}
 						answerStatus={answerStatus}
-						isLastCountry={isLastCountry}
 						onSubmit={handleSubmit}
-						onNext={handleNextCountry}
+						onSkip={handleSkip}
 						mode={configuration.mode}
 						onGrade={handleGrade}
 					/>

@@ -40,20 +40,48 @@ export const GAME_MODE_LABELS: Record<GameMode, string> = {
 	practice: "Práctica",
 };
 
+/**
+ * Qué se va a practicar en una sesión:
+ * - "world": los 196 países.
+ * - "custom": cero o más continentes completos (`regions`) más cero o más
+ *   países sueltos elegidos a mano (`countryCodes`), de cualquier continente.
+ *   Permite combinar varios continentes en una sesión y/o elegir solo un
+ *   subconjunto de países de un continente en vez de todo el continente.
+ */
+export type PracticeScope =
+	| { type: "world" }
+	| { type: "custom"; regions: Region[]; countryCodes: string[] };
+
+export const DEFAULT_SCOPE: PracticeScope = { type: "world" };
+
 export interface GameConfiguration {
-	region: PracticeRegion;
+	scope: PracticeScope;
 	order: PracticeOrder;
 	timerDuration: TimerDuration;
+	/** Solo aplica en modo práctica: el modo competitivo ya no usa temporizador por bandera. */
+	timerEnabled: boolean;
 	difficulty: Difficulty;
 	mode: GameMode;
 }
 
-export interface GameResult {
+interface GameResultBase {
+	scope: PracticeScope;
+	totalCountries: number;
+}
+
+export interface PracticeGameResult extends GameResultBase {
+	mode: "practice";
 	score: number;
 	correctAnswers: number;
-	totalCountries: number;
-	region: PracticeRegion;
 }
+
+/** Competitivo = "rush": se cronometra la sesión completa, no cada bandera. */
+export interface CompetitiveGameResult extends GameResultBase {
+	mode: "competitive";
+	elapsedMs: number;
+}
+
+export type GameResult = PracticeGameResult | CompetitiveGameResult;
 
 export type AnswerStatus = "idle" | "correct" | "incorrect";
 

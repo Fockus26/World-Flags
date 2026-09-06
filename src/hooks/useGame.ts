@@ -11,21 +11,23 @@ import {
 	DEFAULT_TIMER_DURATION,
 	type GameConfiguration as GameConfigurationType,
 	type GameResult,
-	type PracticeRegion,
+	type Region,
 } from "@/types/country";
 import type { ReviewGrade, UserProfile } from "@/types/progress";
 import {
 	getDueCountries,
-	hasPracticedRegionToday,
+	getUnpracticedCodesToday,
 	registerCountryAttempt,
+	registerCountryPracticed,
+	registerRegionBestTime,
 	registerRegionGame,
-	registerRegionPractice,
 	saveLastConfiguration,
 	saveReviewResult,
 	saveUserProfile,
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
 import { prepareCountries } from "@/utils/prepare-countries";
+import { getExactSingleRegion, getScopeCountryCodes } from "@/utils/practice-scope";
 
 export function useGame() {
 	const dispatch = useAppDispatch();
@@ -38,32 +40,58 @@ export function useGame() {
 
 	const dailyPracticeQueue = useAppSelector((state) => state.game.dailyPracticeQueue);
 
-	const isRegionPracticedToday = (region: PracticeRegion) =>
-		hasPracticedRegionToday(learningData, region);
+	/** Cuántos países de esa región ya se practicaron hoy, de cuántos en total. */
+	const getRegionPracticeProgress = (region: Region) => {
+		const regionCodes = countries.filter((country) => country.region === region);
+		const unpracticed = getUnpracticedCodesToday(
+			learningData,
+			regionCodes.map((country) => country.code),
+		);
+
+		return { practiced: regionCodes.length - unpracticed.length, total: regionCodes.length };
+	};
 
 	const startGame = (configuration: GameConfigurationType): boolean => {
-		if (configuration.mode === "practice" && isRegionPracticedToday(configuration.region)) {
-			return false;
+		let effectiveConfiguration = configuration;
+
+		if (configuration.mode === "practice") {
+			const requestedCodes = getScopeCountryCodes(countries, configuration.scope);
+			const effectiveCodes = getUnpracticedCodesToday(learningData, requestedCodes);
+
+			if (effectiveCodes.length === 0) {
+				return false;
+			}
+
+			// Algunos países ya se practicaron hoy (por esta u otra selección
+			// que los incluía): se excluyen de esta sesión en vez de bloquearla.
+			if (effectiveCodes.length !== requestedCodes.length) {
+				effectiveConfiguration = {
+					...configuration,
+					scope: { type: "custom", regions: [], countryCodes: effectiveCodes },
+				};
+			}
 		}
 
 		dispatch(setLastResult(null));
 
+		// Se recuerda la selección tal como la pidió el usuario (no la
+		// recortada), para que la próxima vez vea marcado lo que eligió.
 		const updatedData = saveLastConfiguration(learningData, configuration);
 
 		dispatch(setLearningData(updatedData));
 
 		dispatch(
 			setActiveGame({
-				configuration,
-				countries: prepareCountries(countries, configuration),
+				configuration: effectiveConfiguration,
+				countries: prepareCountries(countries, effectiveConfiguration),
 			}),
 		);
 
 		return true;
 	};
 
-	const markRegionPracticed = (region: PracticeRegion) => {
-		const updatedData = registerRegionPractice(learningData, region);
+	const markCountryPracticed = (countryCode: string) => {
+		const updatedData = registerCountryPracticed(learningData, countryCode);
 
 		dispatch(setLearningData(updatedData));
 	};
@@ -72,11 +100,18 @@ export function useGame() {
 		dispatch(setLastResult(result));
 		dispatch(setActiveGame(null));
 
-		if (result.region !== "world") {
-			const updatedData = registerRegionGame(learningData, result.region, result.score);
+		const region = getExactSingleRegion(result.scope);
 
-			dispatch(setLearningData(updatedData));
+		if (!region) {
+			return;
 		}
+
+		const updatedData =
+			result.mode === "practice"
+				? registerRegionGame(learningData, region, result.score)
+				: registerRegionBestTime(learningData, region, result.elapsedMs);
+
+		dispatch(setLearningData(updatedData));
 	};
 
 	const exitGame = () => {
@@ -90,16 +125,17 @@ export function useGame() {
 		}
 
 		const started = startGame({
-			region: lastResult.region,
+			scope: lastResult.scope,
 			order: learningData.lastConfiguration?.order ?? "random",
 			timerDuration: learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			timerEnabled: learningData.lastConfiguration?.timerEnabled ?? false,
 			difficulty: learningData.lastConfiguration?.difficulty ?? "hard",
 			mode: learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE,
 		});
 
 		if (!started) {
-			// Región ya practicada hoy en modo práctica: vuelve a la configuración
-			// en vez de dejar al usuario en una pantalla de resultados sin salida.
+			// Todos los países de esa selección ya se practicaron hoy: vuelve a
+			// la configuración en vez de dejar al usuario en un callejón sin salida.
 			exitGame();
 		}
 	};
@@ -153,7 +189,7 @@ export function useGame() {
 		exitDailyPractice,
 		saveProfile,
 		updateSettings,
-		isRegionPracticedToday,
-		markRegionPracticed,
+		markCountryPracticed,
+		getRegionPracticeProgress,
 	};
 }

@@ -12,6 +12,8 @@ interface UsePracticeQueueOptions {
 	countryHistory: CountriesLearningHistory;
 	onGrade: (code: string, grade: ReviewGrade) => void;
 	onFinish: () => void;
+	/** Se llama una sola vez por país, la primera vez que se califica (aunque luego se repita). */
+	onFirstAttempt?: (code: string) => void;
 }
 
 /**
@@ -24,6 +26,7 @@ export function usePracticeQueue({
 	countryHistory,
 	onGrade,
 	onFinish,
+	onFirstAttempt,
 }: UsePracticeQueueOptions) {
 	const [totalCount] = useState(initialCodes.length);
 	const [queue, setQueue] = useState<string[]>(initialCodes);
@@ -49,6 +52,7 @@ export function usePracticeQueue({
 		if (!attemptedCodesRef.current.has(currentCode)) {
 			attemptedCodesRef.current.add(currentCode);
 			setAttemptedCount((value) => value + 1);
+			onFirstAttempt?.(currentCode);
 		}
 
 		onGrade(currentCode, gradeValue);

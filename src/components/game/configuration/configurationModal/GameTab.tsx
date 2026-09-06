@@ -19,6 +19,8 @@ interface GameTabProps {
 	onOrderChange: (order: PracticeOrder) => void;
 	timerDuration: TimerDuration;
 	onTimerDurationChange: (duration: TimerDuration) => void;
+	timerEnabled: boolean;
+	onTimerEnabledChange: (enabled: boolean) => void;
 	difficulty: Difficulty;
 	onDifficultyChange: (difficulty: Difficulty) => void;
 }
@@ -30,6 +32,8 @@ export function GameTab({
 	onOrderChange,
 	timerDuration,
 	onTimerDurationChange,
+	timerEnabled,
+	onTimerEnabledChange,
 	difficulty,
 	onDifficultyChange,
 }: GameTabProps) {
@@ -72,21 +76,48 @@ export function GameTab({
 				</div>
 			</Fieldset>
 
-			{mode === "competitive" && (
+			{mode === "competitive" ? (
+				<p className="m-0 text-[0.8rem] text-text-placeholder">
+					El modo competitivo ahora es a contrarreloj: se cronometra toda la sesión y se
+					guarda tu mejor tiempo por continente. Fallar o usar skip suma penalización de
+					tiempo.
+				</p>
+			) : (
 				<Fieldset legend="Temporizador">
-					<div className="flex gap-2">
-						{TIMER_DURATIONS.map((duration) => (
-							<OptionTile
-								key={duration}
-								name="settings-timer"
-								value={String(duration)}
-								checked={timerDuration === duration}
-								onChange={() => onTimerDurationChange(duration)}
-							>
-								{duration}s
-							</OptionTile>
-						))}
+					<div className="grid grid-cols-2 gap-1.5">
+						<OptionTile
+							name="settings-timer-enabled"
+							value="off"
+							checked={!timerEnabled}
+							onChange={() => onTimerEnabledChange(false)}
+						>
+							Desactivado
+						</OptionTile>
+						<OptionTile
+							name="settings-timer-enabled"
+							value="on"
+							checked={timerEnabled}
+							onChange={() => onTimerEnabledChange(true)}
+						>
+							Activado
+						</OptionTile>
 					</div>
+
+					{timerEnabled && (
+						<div className="mt-1.5 flex gap-2">
+							{TIMER_DURATIONS.map((duration) => (
+								<OptionTile
+									key={duration}
+									name="settings-timer"
+									value={String(duration)}
+									checked={timerDuration === duration}
+									onChange={() => onTimerDurationChange(duration)}
+								>
+									{duration}s
+								</OptionTile>
+							))}
+						</div>
+					)}
 				</Fieldset>
 			)}
 

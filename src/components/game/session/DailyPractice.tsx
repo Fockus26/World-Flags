@@ -23,7 +23,7 @@ const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 };
 
 export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
-	const { learningData, gradeCountryReview } = useGame();
+	const { learningData, gradeCountryReview, markCountryPracticed } = useGame();
 	const [isRevealed, setIsRevealed] = useState(false);
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
@@ -31,6 +31,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 		initialCodes: countryCodes,
 		countryHistory: learningData.countryHistory,
 		onGrade: gradeCountryReview,
+		onFirstAttempt: markCountryPracticed,
 		onFinish,
 	});
 

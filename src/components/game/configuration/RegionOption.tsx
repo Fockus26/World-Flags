@@ -15,8 +15,11 @@ interface RegionOptionProps {
 	label: string;
 	countryCount: number;
 	score: number | null;
-	defaultChecked: boolean;
-	practicedToday?: boolean;
+	bestTimeLabel?: string | null;
+	checked: boolean;
+	onChange: () => void;
+	/** Texto tipo "Practicado hoy" o "3/45 hoy"; `undefined` para no mostrar nada. */
+	practicedLabel?: string;
 	className?: string;
 }
 
@@ -25,8 +28,10 @@ export function RegionOption({
 	label,
 	countryCount,
 	score,
-	defaultChecked,
-	practicedToday = false,
+	bestTimeLabel,
+	checked,
+	onChange,
+	practicedLabel,
 	className,
 }: RegionOptionProps) {
 	const tooltipId = useId();
@@ -74,11 +79,12 @@ export function RegionOption({
 `}
 		>
 			<input
-				type="radio"
+				type="checkbox"
 				name="region"
 				value={value}
 				tabIndex={0}
-				defaultChecked={defaultChecked}
+				checked={checked}
+				onChange={onChange}
 				className="
 					pointer-events-none
 					absolute
@@ -147,16 +153,22 @@ export function RegionOption({
 
 				<span
 					className="
+						flex
+						min-w-0
+						items-center
+						justify-between
+						gap-2
 						text-[0.72rem]
 						font-semibold
 					"
 				>
-					{countryCount} países
+					<span>{countryCount} países</span>
+					{bestTimeLabel && <span className="font-black">⏱ {bestTimeLabel}</span>}
 				</span>
 
-				{practicedToday && (
+				{practicedLabel && (
 					<span className="text-(--app-score-color) text-[0.68rem] font-bold">
-						Practicado hoy
+						{practicedLabel}
 					</span>
 				)}
 			</span>

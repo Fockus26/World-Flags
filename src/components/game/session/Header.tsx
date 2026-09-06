@@ -8,7 +8,20 @@ interface HeaderProps {
 	totalCountries: number;
 	timeLeft?: number;
 	timerDuration?: number;
+	/** Modo competitivo ("rush"): cronómetro de toda la sesión, en ms. */
+	elapsedMs?: number;
 	onExit: () => void;
+}
+
+function formatStopwatch(elapsedMs: number): string {
+	const totalSeconds = Math.floor(elapsedMs / 1000);
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
+	const tenths = Math.floor((elapsedMs % 1000) / 100);
+
+	return minutes > 0
+		? `${minutes}:${String(seconds).padStart(2, "0")}`
+		: `${seconds}.${tenths}s`;
 }
 
 export function Header({
@@ -17,6 +30,7 @@ export function Header({
 	totalCountries,
 	timeLeft,
 	timerDuration,
+	elapsedMs,
 	onExit,
 }: HeaderProps) {
 	const progress = ((currentIndex + 1) / totalCountries) * 100;
@@ -36,6 +50,15 @@ export function Header({
 				<div className="flex shrink-0 items-center gap-4">
 					{timeLeft !== undefined && timerDuration !== undefined && (
 						<Timer timeLeft={timeLeft} totalDuration={timerDuration} />
+					)}
+					{elapsedMs !== undefined && (
+						<span
+							className="font-extrabold text-primary text-lg tabular-nums"
+							role="timer"
+							aria-live="off"
+						>
+							{formatStopwatch(elapsedMs)}
+						</span>
 					)}
 					<Button
 						variant="text"

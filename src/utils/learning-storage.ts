@@ -1,8 +1,10 @@
 import {
 	DEFAULT_GAME_MODE,
+	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
 	type GameConfiguration,
 	type PracticeRegion,
+	type PracticeScope,
 	type Region,
 } from "@/types/country";
 import type {
@@ -29,8 +31,9 @@ export const DEFAULT_DATA: UserLearningData = {
 	profile: DEFAULT_PROFILE,
 	countryHistory: {},
 	regionGameScores: {},
+	regionBestTimes: {},
 	lastConfiguration: null,
-	lastPracticeByRegion: {},
+	lastPracticeByCountry: {},
 };
 
 function migrateCountryHistory(
@@ -43,6 +46,30 @@ function migrateCountryHistory(
 	);
 }
 
+/** Configuraciones guardadas antes del scope combinable tenían `region` en vez de `scope`. */
+function migrateConfiguration(
+	configuration: (Partial<GameConfiguration> & { region?: PracticeRegion }) | null | undefined,
+): GameConfiguration | null {
+	if (!configuration) return null;
+
+	const scope: PracticeScope =
+		configuration.scope ??
+		(configuration.region
+			? configuration.region === "world"
+				? { type: "world" }
+				: { type: "custom", regions: [configuration.region], countryCodes: [] }
+			: DEFAULT_SCOPE);
+
+	return {
+		scope,
+		order: configuration.order ?? "alphabetical",
+		timerDuration: configuration.timerDuration ?? DEFAULT_TIMER_DURATION,
+		timerEnabled: configuration.timerEnabled ?? false,
+		difficulty: configuration.difficulty ?? "hard",
+		mode: configuration.mode ?? DEFAULT_GAME_MODE,
+	};
+}
+
 export function createDefaultLearningData(): UserLearningData {
 	return {
 		profile: {
@@ -50,8 +77,9 @@ export function createDefaultLearningData(): UserLearningData {
 		},
 		countryHistory: {},
 		regionGameScores: {},
+		regionBestTimes: {},
 		lastConfiguration: null,
-		lastPracticeByRegion: {},
+		lastPracticeByCountry: {},
 	};
 }
 
@@ -76,8 +104,9 @@ export function getLearningData(): UserLearningData {
 			},
 			countryHistory: migrateCountryHistory(parsedData.countryHistory),
 			regionGameScores: parsedData.regionGameScores ?? {},
-			lastConfiguration: parsedData.lastConfiguration ?? null,
-			lastPracticeByRegion: parsedData.lastPracticeByRegion ?? {},
+			regionBestTimes: parsedData.regionBestTimes ?? {},
+			lastConfiguration: migrateConfiguration(parsedData.lastConfiguration),
+			lastPracticeByCountry: parsedData.lastPracticeByCountry ?? {},
 		};
 	} catch {
 		return createDefaultLearningData();
@@ -137,9 +166,10 @@ export function updateLastConfiguration(
 	const updatedData: UserLearningData = {
 		...currentData,
 		lastConfiguration: {
-			region: currentData.lastConfiguration?.region ?? "world",
+			scope: currentData.lastConfiguration?.scope ?? DEFAULT_SCOPE,
 			order: currentData.lastConfiguration?.order ?? "alphabetical",
 			timerDuration: currentData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			timerEnabled: currentData.lastConfiguration?.timerEnabled ?? false,
 			difficulty: currentData.lastConfiguration?.difficulty ?? "hard",
 			mode: currentData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE,
 			...partial,
@@ -181,23 +211,57 @@ export function registerRegionGame(
 	return updatedData;
 }
 
-export function hasPracticedRegionToday(
-	data: UserLearningData,
-	region: PracticeRegion,
-	today: string = getLocalDateString(),
-): boolean {
-	return data.lastPracticeByRegion[region] === today;
+/** Modo competitivo ("rush"): guarda el tiempo solo si mejora la marca previa. */
+export function registerRegionBestTime(
+	currentData: UserLearningData,
+	region: Region,
+	elapsedMs: number,
+): UserLearningData {
+	const previousBest = currentData.regionBestTimes[region];
+
+	if (previousBest !== undefined && previousBest <= elapsedMs) {
+		return currentData;
+	}
+
+	const updatedData: UserLearningData = {
+		...currentData,
+		regionBestTimes: {
+			...currentData.regionBestTimes,
+			[region]: elapsedMs,
+		},
+	};
+
+	saveLearningData(updatedData);
+
+	return updatedData;
 }
 
-export function registerRegionPractice(
+export function hasPracticedCountryToday(
+	data: UserLearningData,
+	countryCode: string,
+	today: string = getLocalDateString(),
+): boolean {
+	return data.lastPracticeByCountry[countryCode] === today;
+}
+
+/** De una lista de países pedida, cuáles NO se han practicado todavía hoy. */
+export function getUnpracticedCodesToday(
+	data: UserLearningData,
+	countryCodes: readonly string[],
+	today: string = getLocalDateString(),
+): string[] {
+	return countryCodes.filter((code) => data.lastPracticeByCountry[code] !== today);
+}
+
+export function registerCountryPracticed(
 	currentData: UserLearningData,
-	region: PracticeRegion,
+	countryCode: string,
 ): UserLearningData {
 	const updatedData: UserLearningData = {
 		...currentData,
-		lastPracticeByRegion: {
-			...currentData.lastPracticeByRegion,
-			[region]: getLocalDateString(),
+		lastPracticeByCountry: {
+			...currentData.lastPracticeByCountry,
+			[countryCode]: getLocalDateString(),
 		},
 	};
 
@@ -238,6 +302,20 @@ export function calculateRegionAverage(scores: number[] | undefined): number | n
 
 export function formatScore(score: number): string {
 	return Number.isInteger(score) ? score.toFixed(0) : score.toFixed(1);
+}
+
+/** Formatea milisegundos como "m:ss" (o "ss.d s" si dura menos de un minuto). */
+export function formatElapsedTime(elapsedMs: number): string {
+	const totalSeconds = elapsedMs / 1000;
+
+	if (totalSeconds < 60) {
+		return `${totalSeconds.toFixed(1)}s`;
+	}
+
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = Math.floor(totalSeconds % 60);
+
+	return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 export function saveReviewResult(

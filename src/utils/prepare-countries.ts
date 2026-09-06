@@ -1,4 +1,5 @@
 import type { Country, GameConfiguration, Region } from "@/types/country";
+import { getExactSingleRegion, resolveScopeCountries } from "./practice-scope";
 import { shuffle } from "./shuffle";
 
 const REGION_ORDER: Record<Region, number> = {
@@ -39,16 +40,16 @@ export function prepareCountries(
 	countries: readonly Country[],
 	configuration: GameConfiguration,
 ): Country[] {
-	const filteredCountries =
-		configuration.region === "world"
-			? [...countries]
-			: countries.filter((country) => country.region === configuration.region);
+	const filteredCountries = resolveScopeCountries(countries, configuration.scope);
 
 	if (configuration.order === "random") {
 		return shuffle(filteredCountries);
 	}
 
-	if (configuration.region === "world") {
+	// Un solo continente completo (sin países sueltos ni mezcla): alfabético
+	// simple, como antes. Cualquier otra combinación (mundo, varios
+	// continentes, países sueltos) se agrupa por continente.
+	if (configuration.scope.type === "world" || !getExactSingleRegion(configuration.scope)) {
 		return sortWorldCountries(filteredCountries);
 	}
 

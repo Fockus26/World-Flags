@@ -8,9 +8,8 @@ import { motionVariants } from "@/styles/animations";
 import {
 	DEFAULT_DIFFICULTY,
 	DEFAULT_GAME_MODE,
+	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
-	type PracticeRegion,
-	REGION_LABELS,
 } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
 import {
@@ -18,30 +17,29 @@ import {
 	countLearnedCountries,
 	getDueCountries,
 } from "@/utils/learning-storage";
+import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
 import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
+import { CountryPickerModal } from "./CountryPickerModal";
 import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
 
 export function Configuration() {
-	const {
-		learningData,
-		saveProfile,
-		startGame,
-		updateSettings,
-		startDailyPractice,
-		isRegionPracticedToday,
-	} = useGame();
+	const { learningData, saveProfile, startGame, updateSettings, startDailyPractice, getRegionPracticeProgress } =
+		useGame();
 	const [isConfigurationModalOpen, setIsConfigurationModalOpen] = useState(false);
-	const [blockedRegionMessage, setBlockedRegionMessage] = useState<string | null>(null);
+	const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
+	const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 	const { status, user } = useAuth();
 
 	const accountLabel = status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
 
 	const order = learningData.lastConfiguration?.order ?? "alphabetical";
 	const timerDuration = learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION;
+	const timerEnabled = learningData.lastConfiguration?.timerEnabled ?? false;
 	const difficulty = learningData.lastConfiguration?.difficulty ?? DEFAULT_DIFFICULTY;
 	const mode = learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE;
-	const lastRegion = learningData.lastConfiguration?.region ?? "world";
+	const scope = learningData.lastConfiguration?.scope ?? DEFAULT_SCOPE;
+	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
 
 	const learnedCountries = countLearnedCountries(learningData.countryHistory);
 	const learningProgress = calculateLearningProgress(learningData.countryHistory, 196);
@@ -51,25 +49,28 @@ export function Configuration() {
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 
-		const formData = new FormData(event.currentTarget);
-		const region = formData.get("region") as PracticeRegion;
+		if (isEmptyScope(scope)) {
+			setBlockedMessage("Elige al menos un continente o algún país para practicar.");
+			return;
+		}
 
 		const started = startGame({
-			region,
+			scope,
 			order,
 			timerDuration,
+			timerEnabled,
 			difficulty,
 			mode,
 		});
 
 		if (!started) {
-			setBlockedRegionMessage(
-				`Ya practicaste ${REGION_LABELS[region]} hoy en modo práctica. Vuelve mañana o elige otro continente.`,
+			setBlockedMessage(
+				`Ya practicaste ${getScopeLabel(scope)} hoy en modo práctica. Vuelve mañana o elige otros países.`,
 			);
 			return;
 		}
 
-		setBlockedRegionMessage(null);
+		setBlockedMessage(null);
 	}
 
 	return (
@@ -135,15 +136,21 @@ export function Configuration() {
 					onSubmit={handleSubmit}
 				>
 					<RegionSelector
-						lastRegion={lastRegion}
+						scope={scope}
+						onScopeChange={(nextScope) => {
+							updateSettings({ scope: nextScope });
+							setBlockedMessage(null);
+						}}
 						regionGameScores={learningData.regionGameScores}
+						regionBestTimes={learningData.regionBestTimes}
 						mode={mode}
-						isRegionPracticedToday={isRegionPracticedToday}
+						getRegionPracticeProgress={getRegionPracticeProgress}
+						onOpenCustomPicker={() => setIsCountryPickerOpen(true)}
 					/>
 
-					{blockedRegionMessage && (
+					{blockedMessage && (
 						<FeedbackMessage variant="danger" size="sm" role="alert">
-							{blockedRegionMessage}
+							{blockedMessage}
 						</FeedbackMessage>
 					)}
 
@@ -168,8 +175,21 @@ export function Configuration() {
 				onOrderChange={(value) => updateSettings({ order: value })}
 				timerDuration={timerDuration}
 				onTimerDurationChange={(value) => updateSettings({ timerDuration: value })}
+				timerEnabled={timerEnabled}
+				onTimerEnabledChange={(value) => updateSettings({ timerEnabled: value })}
 				difficulty={difficulty}
 				onDifficultyChange={(value) => updateSettings({ difficulty: value })}
+			/>
+
+			<CountryPickerModal
+				isOpen={isCountryPickerOpen}
+				onClose={() => setIsCountryPickerOpen(false)}
+				initialSelectedCodes={customCodes}
+				onConfirm={(countryCodes) => {
+					const regions = scope.type === "custom" ? scope.regions : [];
+					updateSettings({ scope: { type: "custom", regions, countryCodes } });
+					setBlockedMessage(null);
+				}}
 			/>
 		</>
 	);

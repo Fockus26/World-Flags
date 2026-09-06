@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/Button";
-import { type GameResult, REGION_LABELS } from "@/types/country";
+import type { GameResult } from "@/types/country";
+import { formatElapsedTime } from "@/utils/learning-storage";
+import { getScopeLabel } from "@/utils/practice-scope";
 import { getScoreBackgroundColor, getScoreColor, getScoreMessage } from "@/utils/score";
 
 interface ResultsProps {
@@ -8,14 +10,37 @@ interface ResultsProps {
 	onExit: () => void;
 }
 
-export function Results({ result, onRestart, onExit }: ResultsProps) {
+function CompetitiveResults({ result }: { result: Extract<GameResult, { mode: "competitive" }> }) {
+	return (
+		<>
+			<p className="m-0 text-text-placeholder">Rush terminado</p>
+
+			<h1 className="my-[0.35rem] mb-2 text-[1.45rem] leading-[1.08] text-surface-soft sm:text-[clamp(1.65rem,4vh,2.75rem)]">
+				¡Completado!
+			</h1>
+
+			<div className="my-4 flex size-26 shrink-0 flex-col place-items-center justify-center rounded-full border-[0.45rem] border-primary-border bg-primary-soft text-primary sm:my-6 sm:size-[clamp(7.5rem,20vw,9rem)]">
+				<strong className="text-[1.5rem] leading-none tabular-nums sm:text-[clamp(1.7rem,5vw,2.3rem)]">
+					{formatElapsedTime(result.elapsedMs)}
+				</strong>
+				<span className="mt-1 text-[0.7rem] font-bold">tiempo</span>
+			</div>
+
+			<p className="m-0 max-w-lg leading-[1.6] text-text-placeholder">
+				Recorriste <strong>{result.totalCountries} banderas</strong> en{" "}
+				<strong>{formatElapsedTime(result.elapsedMs)}</strong>.
+			</p>
+		</>
+	);
+}
+
+function PracticeResults({ result }: { result: Extract<GameResult, { mode: "practice" }> }) {
 	const scoreColor = getScoreColor(result.score);
 	const scoreBackground = getScoreBackgroundColor(result.score);
-
 	const percentage = Math.round((result.correctAnswers / result.totalCountries) * 100);
 
 	return (
-		<section className="flex max-h-full w-[min(100%,38rem)] flex-col items-center overflow-auto rounded-2xl border border-surface bg-surface p-4 text-center sm:p-[clamp(1.5rem,4vh,2.5rem)]">
+		<>
 			<p className="m-0 text-text-placeholder">Práctica terminada</p>
 
 			<h1 className="my-[0.35rem] mb-2 text-[1.45rem] leading-[1.08] text-surface-soft sm:text-[clamp(1.65rem,4vh,2.75rem)]">
@@ -41,13 +66,26 @@ export function Results({ result, onRestart, onExit }: ResultsProps) {
 				<strong>
 					{result.correctAnswers} de {result.totalCountries}
 				</strong>{" "}
-				banderas, equivalente al {percentage}%.
+				banderas a la primera, equivalente al {percentage}%.
 			</p>
+		</>
+	);
+}
 
-			{result.region !== "world" && (
+export function Results({ result, onRestart, onExit }: ResultsProps) {
+	const scopeLabel = getScopeLabel(result.scope);
+
+	return (
+		<section className="flex max-h-full w-[min(100%,38rem)] flex-col items-center overflow-auto rounded-2xl border border-surface bg-surface p-4 text-center sm:p-[clamp(1.5rem,4vh,2.5rem)]">
+			{result.mode === "competitive" ? (
+				<CompetitiveResults result={result} />
+			) : (
+				<PracticeResults result={result} />
+			)}
+
+			{result.scope.type !== "world" && (
 				<p className="mt-3 mb-0 text-[0.9rem] text-text-placeholder">
-					Esta calificación se guardó para <strong>{REGION_LABELS[result.region]}</strong>
-					.
+					Esto se guardó para <strong>{scopeLabel}</strong>.
 				</p>
 			)}
 

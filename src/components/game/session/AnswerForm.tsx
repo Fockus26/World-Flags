@@ -13,9 +13,8 @@ interface AnswerFormProps {
 	answer: string;
 	onAnswerChange: (value: string) => void;
 	answerStatus: AnswerStatus;
-	isLastCountry: boolean;
 	onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
-	onNext: () => void;
+	onSkip: () => void;
 	mode: GameMode;
 	onGrade: (grade: ReviewGrade) => void;
 }
@@ -25,22 +24,18 @@ export function AnswerForm({
 	answer,
 	onAnswerChange,
 	answerStatus,
-	isLastCountry,
 	onSubmit,
-	onNext,
+	onSkip,
 	mode,
 	onGrade,
 }: AnswerFormProps) {
 	const isAnswerChecked = answerStatus !== "idle";
 	const inputRef = useRef<HTMLInputElement>(null);
-	const nextButtonRef = useRef<HTMLButtonElement>(null);
 
 	useEffect(() => {
 		if (answerStatus === "idle") {
 			inputRef.current?.focus();
-			return;
 		}
-		nextButtonRef.current?.focus();
 	}, [answerStatus]);
 
 	return (
@@ -81,7 +76,7 @@ export function AnswerForm({
 				)}
 			</AnimatePresence>
 
-			{isAnswerChecked && mode === "practice" ? (
+			{isAnswerChecked && mode === "practice" && (
 				<motion.div
 					variants={motionVariants.answerFeedbackEnter}
 					initial="hidden"
@@ -89,14 +84,17 @@ export function AnswerForm({
 				>
 					<GradeButtons onGrade={onGrade} />
 				</motion.div>
-			) : isAnswerChecked ? (
-				<Button ref={nextButtonRef} type="button" onClick={onNext}>
-					{isLastCountry ? "Ver resultado" : "Siguiente bandera"}
-				</Button>
-			) : (
-				<Button type="submit" disabled={!answer.trim()}>
-					Comprobar
-				</Button>
+			)}
+
+			{!isAnswerChecked && (
+				<div className="flex gap-2">
+					<Button type="submit" disabled={!answer.trim()} className="flex-1">
+						Comprobar
+					</Button>
+					<Button type="button" variant="outline" color="neutral" onClick={onSkip}>
+						Skip
+					</Button>
+				</div>
 			)}
 		</motion.form>
 	);

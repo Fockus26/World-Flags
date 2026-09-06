@@ -21,6 +21,8 @@ interface ConfigurationModalProps {
 	onOrderChange: (order: PracticeOrder) => void;
 	timerDuration: TimerDuration;
 	onTimerDurationChange: (duration: TimerDuration) => void;
+	timerEnabled: boolean;
+	onTimerEnabledChange: (enabled: boolean) => void;
 	difficulty: Difficulty;
 	onDifficultyChange: (difficulty: Difficulty) => void;
 }
@@ -41,6 +43,8 @@ export function ConfigurationModal({
 	onOrderChange,
 	timerDuration,
 	onTimerDurationChange,
+	timerEnabled,
+	onTimerEnabledChange,
 	difficulty,
 	onDifficultyChange,
 }: ConfigurationModalProps) {
@@ -117,6 +121,8 @@ export function ConfigurationModal({
 								onOrderChange={onOrderChange}
 								timerDuration={timerDuration}
 								onTimerDurationChange={onTimerDurationChange}
+								timerEnabled={timerEnabled}
+								onTimerEnabledChange={onTimerEnabledChange}
 								difficulty={difficulty}
 								onDifficultyChange={onDifficultyChange}
 							/>

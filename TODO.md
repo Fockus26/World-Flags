@@ -4,8 +4,8 @@
 - Al pasar al PWA se pierde el progreso?
 - [x] Modo practica solo se puede una vez por dia por continente
 - [x] Practica diaria tiene que volver a mostrar las banderas que se les coloco otra vez, utilizar sistema de repetir de nuevo en la misma sesion en caso de no saber (también aplicado a la práctica por continente)
-- El timer se pasa al modo practica cuando esta en dificultad dificil
-- El competitivo es cronometrado, el que acierte mas banderas lo mas rapido posible
+- [x] El timer se pasa al modo practica (ahora es un toggle activar/desactivar, no atado a la dificultad)
+- [x] El competitivo es cronometrado, el que acierte mas banderas lo mas rapido posible
 
 ## 2. Estadísticas sociales + logros
 - Leaderboard: top 5 de otros jugadores.
