@@ -10,10 +10,14 @@ import {
 interface UsePracticeQueueOptions {
 	initialCodes: string[];
 	countryHistory: CountriesLearningHistory;
-	onGrade: (code: string, grade: ReviewGrade) => void;
+	/**
+	 * `isFirstAttempt` es true solo la primera vez que se califica ese país en
+	 * la sesión (aunque luego se repita). Va en la misma llamada — no en un
+	 * callback aparte — para que quien la use pueda resolverlo en un único
+	 * despacho de estado (ver comentario en `useGame.ts`).
+	 */
+	onGrade: (code: string, grade: ReviewGrade, isFirstAttempt: boolean) => void;
 	onFinish: () => void;
-	/** Se llama una sola vez por país, la primera vez que se califica (aunque luego se repita). */
-	onFirstAttempt?: (code: string) => void;
 }
 
 /**
@@ -26,7 +30,6 @@ export function usePracticeQueue({
 	countryHistory,
 	onGrade,
 	onFinish,
-	onFirstAttempt,
 }: UsePracticeQueueOptions) {
 	const [totalCount] = useState(initialCodes.length);
 	const [queue, setQueue] = useState<string[]>(initialCodes);
@@ -49,13 +52,14 @@ export function usePracticeQueue({
 	function grade(gradeValue: ReviewGrade) {
 		if (!currentCode) return;
 
-		if (!attemptedCodesRef.current.has(currentCode)) {
+		const isFirstAttempt = !attemptedCodesRef.current.has(currentCode);
+
+		if (isFirstAttempt) {
 			attemptedCodesRef.current.add(currentCode);
 			setAttemptedCount((value) => value + 1);
-			onFirstAttempt?.(currentCode);
 		}
 
-		onGrade(currentCode, gradeValue);
+		onGrade(currentCode, gradeValue, isFirstAttempt);
 
 		const isEstablished = establishedByCode[currentCode] ?? false;
 		const { requeue, nextState } = decideRequeue(

@@ -28,18 +28,11 @@ const RUSH_ADVANCE_MS = 900;
 
 // Práctica: al usar skip se revela la respuesta un momento antes de
 // calificarla automáticamente como "otra vez".
-const SKIP_REVEAL_MS = 650;
+const SKIP_REVEAL_MS = 1500;
 
 export function Session() {
-	const {
-		activeGame,
-		learningData,
-		exitGame,
-		finishGame,
-		attemptCountry,
-		gradeCountryReview,
-		markCountryPracticed,
-	} = useGame();
+	const { activeGame, learningData, exitGame, finishGame, attemptCountry, gradeCountryReview } =
+		useGame();
 
 	const countries = activeGame?.countries ?? [];
 	const timerDuration = activeGame?.configuration.timerDuration ?? DEFAULT_TIMER_DURATION;
@@ -56,12 +49,15 @@ export function Session() {
 	const [elapsedMs, setElapsedMs] = useState(0);
 	const firstAttemptResultsRef = useRef<Record<string, boolean>>({});
 	const startTimeRef = useRef<number | null>(null);
+	// El cronómetro se pausa mientras se muestra el resultado de una bandera
+	// (antes de pasar a la siguiente), para que esa espera no cuente como
+	// tiempo de carrera.
+	const isClockPausedRef = useRef(false);
 
 	const practiceQueue = usePracticeQueue({
 		initialCodes: countries.map((country) => country.code),
 		countryHistory: learningData.countryHistory,
-		onGrade: gradeCountryReview,
-		onFirstAttempt: markCountryPracticed,
+		onGrade: (code, grade, isFirstAttempt) => gradeCountryReview(code, grade, isFirstAttempt),
 		onFinish: () => {
 			finishGame({
 				mode: "practice",
@@ -95,7 +91,7 @@ export function Session() {
 			startTimeRef.current = Date.now();
 		}
 		const intervalId = window.setInterval(() => {
-			if (startTimeRef.current !== null) {
+			if (startTimeRef.current !== null && !isClockPausedRef.current) {
 				setElapsedMs(Date.now() - startTimeRef.current);
 			}
 		}, 100);
@@ -165,6 +161,18 @@ export function Session() {
 		setAnswerStatus("idle");
 	}
 
+	/** Congela el cronómetro durante la transición y lo reanuda al avanzar, sin contar esa espera. */
+	function pauseThenAdvance() {
+		isClockPausedRef.current = true;
+		window.setTimeout(() => {
+			if (startTimeRef.current !== null) {
+				startTimeRef.current += RUSH_ADVANCE_MS;
+			}
+			isClockPausedRef.current = false;
+			advanceCompetitive();
+		}, RUSH_ADVANCE_MS);
+	}
+
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		if (!currentCountry || answerStatus !== "idle" || !answer.trim()) {
@@ -178,7 +186,7 @@ export function Session() {
 				startTimeRef.current -= RUSH_WRONG_PENALTY_MS;
 			}
 			setAnswerStatus(isCorrect ? "correct" : "incorrect");
-			window.setTimeout(advanceCompetitive, RUSH_ADVANCE_MS);
+			pauseThenAdvance();
 			return;
 		}
 
@@ -204,7 +212,7 @@ export function Session() {
 				startTimeRef.current -= RUSH_SKIP_PENALTY_MS;
 			}
 			setAnswerStatus("incorrect");
-			window.setTimeout(advanceCompetitive, RUSH_ADVANCE_MS);
+			pauseThenAdvance();
 			return;
 		}
 

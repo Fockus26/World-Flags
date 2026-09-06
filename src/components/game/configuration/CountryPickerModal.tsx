@@ -1,8 +1,9 @@
+import { NavArrowDown } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { countries } from "@/data/countries";
-import { REGION_LABELS, REGIONS } from "@/types/country";
+import { REGION_LABELS, REGIONS, type Region } from "@/types/country";
 
 interface CountryPickerModalProps {
 	isOpen: boolean;
@@ -13,6 +14,40 @@ interface CountryPickerModalProps {
 
 const spanishCollator = new Intl.Collator("es", { sensitivity: "base" });
 
+const countriesByRegion = REGIONS.reduce(
+	(map, region) => {
+		map[region] = countries
+			.filter((country) => country.region === region)
+			.sort((first, second) => spanishCollator.compare(first.name, second.name));
+		return map;
+	},
+	{} as Record<Region, typeof countries>,
+);
+
+interface CountryCheckboxProps {
+	label: string;
+	checked: boolean;
+	onChange: () => void;
+}
+
+function CountryCheckbox({ label, checked, onChange }: CountryCheckboxProps) {
+	return (
+		<label className="relative flex min-w-0 cursor-pointer items-center gap-1.5 py-0.5 text-[0.82rem]">
+			<input
+				type="checkbox"
+				checked={checked}
+				onChange={onChange}
+				className="peer absolute size-px opacity-0"
+			/>
+			<span
+				aria-hidden="true"
+				className="relative flex size-4 shrink-0 items-center justify-center rounded-[0.25rem] border-2 border-neutral-border bg-surface transition-colors duration-150 after:text-[0.65rem] after:leading-none after:font-black after:text-secondary-soft after:opacity-0 after:content-['✓'] peer-checked:border-secondary peer-checked:bg-secondary peer-checked:after:opacity-100"
+			/>
+			<span className="truncate">{label}</span>
+		</label>
+	);
+}
+
 export function CountryPickerModal({
 	isOpen,
 	onClose,
@@ -20,13 +55,30 @@ export function CountryPickerModal({
 	onConfirm,
 }: CountryPickerModalProps) {
 	const [selected, setSelected] = useState<Set<string>>(() => new Set(initialSelectedCodes));
+	const [expandedRegions, setExpandedRegions] = useState<Set<Region>>(new Set());
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: solo se resetea al abrir, no en cada cambio de la selección inicial
 	useEffect(() => {
-		if (isOpen) {
-			setSelected(new Set(initialSelectedCodes));
-		}
+		if (!isOpen) return;
+		const initialSet = new Set(initialSelectedCodes);
+		setSelected(initialSet);
+		// Se abren de entrada los continentes que ya tienen algo elegido.
+		setExpandedRegions(
+			new Set(REGIONS.filter((region) => countriesByRegion[region].some((c) => initialSet.has(c.code)))),
+		);
 	}, [isOpen]);
+
+	function toggleRegionExpanded(region: Region) {
+		setExpandedRegions((current) => {
+			const next = new Set(current);
+			if (next.has(region)) {
+				next.delete(region);
+			} else {
+				next.add(region);
+			}
+			return next;
+		});
+	}
 
 	function toggleCountry(code: string) {
 		setSelected((current) => {
@@ -80,45 +132,58 @@ export function CountryPickerModal({
 				continente.
 			</p>
 
-			<div className="flex max-h-[55vh] flex-col gap-4 overflow-y-auto pr-1">
+			<div className="flex max-h-[55vh] flex-col gap-1.5 overflow-y-auto pr-1">
 				{REGIONS.map((region) => {
-					const regionCountries = countries
-						.filter((country) => country.region === region)
-						.sort((first, second) => spanishCollator.compare(first.name, second.name));
+					const regionCountries = countriesByRegion[region];
 					const regionCodes = regionCountries.map((country) => country.code);
-					const allSelected = regionCodes.every((code) => selected.has(code));
+					const selectedCount = regionCodes.filter((code) => selected.has(code)).length;
+					const allSelected = selectedCount === regionCodes.length;
+					const isExpanded = expandedRegions.has(region);
 
 					return (
-						<section key={region}>
-							<div className="mb-1.5 flex items-center justify-between gap-2">
-								<h3 className="m-0 text-[0.85rem] font-extrabold text-surface-soft">
-									{REGION_LABELS[region]}
-								</h3>
+						<section
+							key={region}
+							className="overflow-hidden rounded-md border border-surface-border"
+						>
+							<div className="flex items-center gap-2 bg-surface-hover px-2.5 py-2">
 								<button
 									type="button"
-									className="cursor-pointer border-0 bg-transparent p-0 text-[0.75rem] font-bold text-secondary"
+									onClick={() => toggleRegionExpanded(region)}
+									aria-expanded={isExpanded}
+									className="flex flex-1 min-w-0 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left"
+								>
+									<NavArrowDown
+										className={`size-4 shrink-0 text-text-placeholder transition-transform duration-150 ${isExpanded ? "rotate-0" : "-rotate-90"}`}
+										aria-hidden="true"
+									/>
+									<span className="truncate text-[0.85rem] font-extrabold text-surface-soft">
+										{REGION_LABELS[region]}
+									</span>
+									<span className="shrink-0 text-[0.72rem] text-text-placeholder">
+										{selectedCount > 0 ? `${selectedCount}/${regionCodes.length}` : regionCodes.length}
+									</span>
+								</button>
+								<button
+									type="button"
+									className="shrink-0 cursor-pointer border-0 bg-transparent p-0 text-[0.72rem] font-bold text-secondary"
 									onClick={() => toggleAllInRegion(regionCodes, allSelected)}
 								>
 									{allSelected ? "Ninguno" : "Todos"}
 								</button>
 							</div>
 
-							<div className="grid grid-cols-2 gap-x-3 gap-y-1 min-[30rem]:grid-cols-3">
-								{regionCountries.map((country) => (
-									<label
-										key={country.code}
-										className="flex min-w-0 cursor-pointer items-center gap-1.5 text-[0.82rem]"
-									>
-										<input
-											type="checkbox"
+							{isExpanded && (
+								<div className="grid grid-cols-2 gap-x-3 gap-y-0.5 px-2.5 py-2 min-[30rem]:grid-cols-3">
+									{regionCountries.map((country) => (
+										<CountryCheckbox
+											key={country.code}
+											label={country.name}
 											checked={selected.has(country.code)}
 											onChange={() => toggleCountry(country.code)}
-											className="shrink-0"
 										/>
-										<span className="truncate">{country.name}</span>
-									</label>
-								))}
-							</div>
+									))}
+								</div>
+							)}
 						</section>
 					);
 				})}

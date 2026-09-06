@@ -1,4 +1,5 @@
 import { countries } from "@/data/countries";
+import { store } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
 	setActiveGame,
@@ -13,7 +14,7 @@ import {
 	type GameResult,
 	type Region,
 } from "@/types/country";
-import type { ReviewGrade, UserProfile } from "@/types/progress";
+import type { ReviewGrade, UserLearningData, UserProfile } from "@/types/progress";
 import {
 	getDueCountries,
 	getUnpracticedCodesToday,
@@ -28,6 +29,20 @@ import {
 } from "@/utils/learning-storage";
 import { prepareCountries } from "@/utils/prepare-countries";
 import { getExactSingleRegion, getScopeCountryCodes } from "@/utils/practice-scope";
+
+/**
+ * Varias acciones seguidas (calificar una bandera y de paso marcarla como
+ * practicada hoy, o calificar la última bandera y de paso cerrar la sesión)
+ * pueden despachar más de un `setLearningData` en el mismo evento. Si cada
+ * una arma su cambio sobre el `learningData` que quedó fijo en el closure de
+ * este render, la última en despachar pisa a la anterior (setLearningData
+ * reemplaza el slice entero, no lo mezcla). Por eso las funciones de acá
+ * arman su cambio sobre el estado más reciente del store en ese instante,
+ * no sobre el valor de `useAppSelector` de este render.
+ */
+function getCurrentLearningData(): UserLearningData {
+	return store.getState().game.learningData;
+}
 
 export function useGame() {
 	const dispatch = useAppDispatch();
@@ -56,7 +71,10 @@ export function useGame() {
 
 		if (configuration.mode === "practice") {
 			const requestedCodes = getScopeCountryCodes(countries, configuration.scope);
-			const effectiveCodes = getUnpracticedCodesToday(learningData, requestedCodes);
+			const effectiveCodes = getUnpracticedCodesToday(
+				getCurrentLearningData(),
+				requestedCodes,
+			);
 
 			if (effectiveCodes.length === 0) {
 				return false;
@@ -76,7 +94,7 @@ export function useGame() {
 
 		// Se recuerda la selección tal como la pidió el usuario (no la
 		// recortada), para que la próxima vez vea marcado lo que eligió.
-		const updatedData = saveLastConfiguration(learningData, configuration);
+		const updatedData = saveLastConfiguration(getCurrentLearningData(), configuration);
 
 		dispatch(setLearningData(updatedData));
 
@@ -90,12 +108,6 @@ export function useGame() {
 		return true;
 	};
 
-	const markCountryPracticed = (countryCode: string) => {
-		const updatedData = registerCountryPracticed(learningData, countryCode);
-
-		dispatch(setLearningData(updatedData));
-	};
-
 	const finishGame = (result: GameResult) => {
 		dispatch(setLastResult(result));
 		dispatch(setActiveGame(null));
@@ -106,10 +118,11 @@ export function useGame() {
 			return;
 		}
 
+		const currentData = getCurrentLearningData();
 		const updatedData =
 			result.mode === "practice"
-				? registerRegionGame(learningData, region, result.score)
-				: registerRegionBestTime(learningData, region, result.elapsedMs);
+				? registerRegionGame(currentData, region, result.score)
+				: registerRegionBestTime(currentData, region, result.elapsedMs);
 
 		dispatch(setLearningData(updatedData));
 	};
@@ -141,13 +154,26 @@ export function useGame() {
 	};
 
 	const attemptCountry = (countryCode: string, isCorrect: boolean) => {
-		const updatedData = registerCountryAttempt(learningData, countryCode, isCorrect);
+		const updatedData = registerCountryAttempt(getCurrentLearningData(), countryCode, isCorrect);
 
 		dispatch(setLearningData(updatedData));
 	};
 
-	const gradeCountryReview = (countryCode: string, grade: ReviewGrade) => {
-		const updatedData = saveReviewResult(learningData, countryCode, grade);
+	/**
+	 * `markPracticed` se resuelve en el mismo despacho (no en uno aparte):
+	 * calificar la primera vez que aparece una bandera en la sesión también
+	 * la marca como practicada hoy.
+	 */
+	const gradeCountryReview = (
+		countryCode: string,
+		grade: ReviewGrade,
+		markPracticed = false,
+	) => {
+		let updatedData = saveReviewResult(getCurrentLearningData(), countryCode, grade);
+
+		if (markPracticed) {
+			updatedData = registerCountryPracticed(updatedData, countryCode);
+		}
 
 		dispatch(setLearningData(updatedData));
 	};
@@ -163,13 +189,13 @@ export function useGame() {
 	};
 
 	const saveProfile = (profile: UserProfile) => {
-		const updatedData = saveUserProfile(learningData, profile);
+		const updatedData = saveUserProfile(getCurrentLearningData(), profile);
 
 		dispatch(setLearningData(updatedData));
 	};
 
 	const updateSettings = (partial: Partial<GameConfigurationType>) => {
-		const updatedData = updateLastConfiguration(learningData, partial);
+		const updatedData = updateLastConfiguration(getCurrentLearningData(), partial);
 
 		dispatch(setLearningData(updatedData));
 	};
@@ -189,7 +215,6 @@ export function useGame() {
 		exitDailyPractice,
 		saveProfile,
 		updateSettings,
-		markCountryPracticed,
 		getRegionPracticeProgress,
 	};
 }

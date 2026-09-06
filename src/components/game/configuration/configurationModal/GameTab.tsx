@@ -39,7 +39,24 @@ export function GameTab({
 }: GameTabProps) {
 	return (
 		<div className="flex flex-col gap-5">
-			<Fieldset legend="Modo de juego">
+			<Fieldset
+				legend={
+					<span className="inline-flex items-center gap-2">
+						Modo de juego
+						<Tooltip
+							position="left"
+							label="Competitivo: a contrarreloj, se cronometra toda la sesión y se guarda tu mejor tiempo por continente; fallar o usar skip suma penalización de tiempo. Práctica: sin puntuación por tiempo, califica cada bandera para repasarla con repetición espaciada."
+						>
+							<span
+								className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.625rem] font-extrabold"
+								aria-hidden="true"
+							>
+								?
+							</span>
+						</Tooltip>
+					</span>
+				}
+			>
 				<div className="grid grid-cols-2 gap-1.5">
 					{GAME_MODES.map((gameMode) => (
 						<OptionTile
@@ -76,13 +93,7 @@ export function GameTab({
 				</div>
 			</Fieldset>
 
-			{mode === "competitive" ? (
-				<p className="m-0 text-[0.8rem] text-text-placeholder">
-					El modo competitivo ahora es a contrarreloj: se cronometra toda la sesión y se
-					guarda tu mejor tiempo por continente. Fallar o usar skip suma penalización de
-					tiempo.
-				</p>
-			) : (
+			{mode === "practice" && (
 				<Fieldset legend="Temporizador">
 					<div className="grid grid-cols-2 gap-1.5">
 						<OptionTile
