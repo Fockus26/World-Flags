@@ -9,6 +9,8 @@ interface CountryPickerModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	initialSelectedCodes: string[];
+	/** Si se da, los países para los que devuelve `true` se muestran ya marcados y deshabilitados. */
+	isCountryDisabled?: (countryCode: string) => boolean;
 	onConfirm: (countryCodes: string[]) => void;
 }
 
@@ -27,23 +29,30 @@ const countriesByRegion = REGIONS.reduce(
 interface CountryCheckboxProps {
 	label: string;
 	checked: boolean;
+	disabled?: boolean;
 	onChange: () => void;
 }
 
-function CountryCheckbox({ label, checked, onChange }: CountryCheckboxProps) {
+function CountryCheckbox({ label, checked, disabled, onChange }: CountryCheckboxProps) {
 	return (
-		<label className="relative flex min-w-0 cursor-pointer items-center gap-1.5 py-0.5 text-[0.82rem]">
+		<label
+			className={`relative flex min-w-0 items-center gap-1.5 py-0.5 text-[0.82rem] ${disabled ? "cursor-not-allowed text-text-placeholder" : "cursor-pointer"}`}
+		>
 			<input
 				type="checkbox"
 				checked={checked}
+				disabled={disabled}
 				onChange={onChange}
 				className="peer absolute size-px opacity-0"
 			/>
 			<span
 				aria-hidden="true"
-				className="relative flex size-4 shrink-0 items-center justify-center rounded-[0.25rem] border-2 border-neutral-border bg-surface transition-colors duration-150 after:text-[0.65rem] after:leading-none after:font-black after:text-secondary-soft after:opacity-0 after:content-['✓'] peer-checked:border-secondary peer-checked:bg-secondary peer-checked:after:opacity-100"
+				className="relative flex size-4 shrink-0 items-center justify-center rounded-[0.25rem] border-2 border-neutral-border bg-surface transition-colors duration-150 after:text-[0.65rem] after:leading-none after:font-black after:text-secondary-soft after:opacity-0 after:content-['✓'] peer-checked:border-secondary peer-checked:bg-secondary peer-checked:after:opacity-100 peer-disabled:border-neutral-hover peer-disabled:bg-neutral-hover peer-disabled:after:text-neutral-soft"
 			/>
-			<span className="truncate">{label}</span>
+			<span className="truncate">
+				{label}
+				{disabled && " · hoy"}
+			</span>
 		</label>
 	);
 }
@@ -52,6 +61,7 @@ export function CountryPickerModal({
 	isOpen,
 	onClose,
 	initialSelectedCodes,
+	isCountryDisabled,
 	onConfirm,
 }: CountryPickerModalProps) {
 	const [selected, setSelected] = useState<Set<string>>(() => new Set(initialSelectedCodes));
@@ -60,11 +70,18 @@ export function CountryPickerModal({
 	// biome-ignore lint/correctness/useExhaustiveDependencies: solo se resetea al abrir, no en cada cambio de la selección inicial
 	useEffect(() => {
 		if (!isOpen) return;
-		const initialSet = new Set(initialSelectedCodes);
+		// Los ya practicados hoy no se muestran como elegidos: quedan
+		// excluidos de la sesión de todas formas, y así el checkbox
+		// bloqueado siempre se ve destildado, no tildado-y-bloqueado.
+		const initialSet = new Set(
+			initialSelectedCodes.filter((code) => !isCountryDisabled?.(code)),
+		);
 		setSelected(initialSet);
 		// Se abren de entrada los continentes que ya tienen algo elegido.
 		setExpandedRegions(
-			new Set(REGIONS.filter((region) => countriesByRegion[region].some((c) => initialSet.has(c.code)))),
+			new Set(
+				REGIONS.filter((region) => countriesByRegion[region].some((c) => initialSet.has(c.code))),
+			),
 		);
 	}, [isOpen]);
 
@@ -81,6 +98,7 @@ export function CountryPickerModal({
 	}
 
 	function toggleCountry(code: string) {
+		if (isCountryDisabled?.(code)) return;
 		setSelected((current) => {
 			const next = new Set(current);
 			if (next.has(code)) {
@@ -93,9 +111,10 @@ export function CountryPickerModal({
 	}
 
 	function toggleAllInRegion(regionCodes: string[], allSelected: boolean) {
+		const selectableCodes = regionCodes.filter((code) => !isCountryDisabled?.(code));
 		setSelected((current) => {
 			const next = new Set(current);
-			for (const code of regionCodes) {
+			for (const code of selectableCodes) {
 				if (allSelected) {
 					next.delete(code);
 				} else {
@@ -129,10 +148,10 @@ export function CountryPickerModal({
 
 			<p className="mt-0 mb-3 text-[0.85rem] text-text-placeholder">
 				Elige los países que quieres practicar. Cuentan como práctica solo ellos, no todo el
-				continente.
+				continente. Los ya practicados hoy aparecen bloqueados.
 			</p>
 
-			<div className="flex max-h-[55vh] flex-col gap-1.5 overflow-y-auto pr-1">
+			<div className="flex flex-col gap-1.5">
 				{REGIONS.map((region) => {
 					const regionCountries = countriesByRegion[region];
 					const regionCodes = regionCountries.map((country) => country.code);
@@ -143,14 +162,14 @@ export function CountryPickerModal({
 					return (
 						<section
 							key={region}
-							className="overflow-hidden rounded-md border border-surface-border"
+							className="shrink-0 overflow-hidden rounded-md border border-surface-border"
 						>
 							<div className="flex items-center gap-2 bg-surface-hover px-2.5 py-2">
 								<button
 									type="button"
 									onClick={() => toggleRegionExpanded(region)}
 									aria-expanded={isExpanded}
-									className="flex flex-1 min-w-0 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left"
+									className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left"
 								>
 									<NavArrowDown
 										className={`size-4 shrink-0 text-text-placeholder transition-transform duration-150 ${isExpanded ? "rotate-0" : "-rotate-90"}`}
@@ -160,7 +179,9 @@ export function CountryPickerModal({
 										{REGION_LABELS[region]}
 									</span>
 									<span className="shrink-0 text-[0.72rem] text-text-placeholder">
-										{selectedCount > 0 ? `${selectedCount}/${regionCodes.length}` : regionCodes.length}
+										{selectedCount > 0
+											? `${selectedCount}/${regionCodes.length}`
+											: regionCodes.length}
 									</span>
 								</button>
 								<button
@@ -173,12 +194,13 @@ export function CountryPickerModal({
 							</div>
 
 							{isExpanded && (
-								<div className="grid grid-cols-2 gap-x-3 gap-y-0.5 px-2.5 py-2 min-[30rem]:grid-cols-3">
+								<div className="grid max-h-56 grid-cols-2 gap-x-3 gap-y-0.5 overflow-y-auto px-2.5 py-2 min-[30rem]:grid-cols-3">
 									{regionCountries.map((country) => (
 										<CountryCheckbox
 											key={country.code}
 											label={country.name}
 											checked={selected.has(country.code)}
+											disabled={isCountryDisabled?.(country.code)}
 											onChange={() => toggleCountry(country.code)}
 										/>
 									))}

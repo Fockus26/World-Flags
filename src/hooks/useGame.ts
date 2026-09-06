@@ -18,6 +18,7 @@ import type { ReviewGrade, UserLearningData, UserProfile } from "@/types/progres
 import {
 	getDueCountries,
 	getUnpracticedCodesToday,
+	hasPracticedCountryToday,
 	registerCountryAttempt,
 	registerCountryPracticed,
 	registerRegionBestTime,
@@ -65,6 +66,9 @@ export function useGame() {
 
 		return { practiced: regionCodes.length - unpracticed.length, total: regionCodes.length };
 	};
+
+	const isCountryPracticedToday = (countryCode: string) =>
+		hasPracticedCountryToday(learningData, countryCode);
 
 	const startGame = (configuration: GameConfigurationType): boolean => {
 		let effectiveConfiguration = configuration;
@@ -216,5 +220,6 @@ export function useGame() {
 		saveProfile,
 		updateSettings,
 		getRegionPracticeProgress,
+		isCountryPracticedToday,
 	};
 }

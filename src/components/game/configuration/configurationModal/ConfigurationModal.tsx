@@ -55,7 +55,7 @@ export function ConfigurationModal({
 			isOpen={isOpen}
 			onClose={onClose}
 			animateHeight
-			className="w-[min(30rem,92vw)] text-left overflow-visible"
+			className="w-[min(30rem,92vw)] text-left !overflow-y-visible"
 			ariaLabelledby="user-modal-title"
 		>
 			<header className="mb-3 flex items-center justify-between">

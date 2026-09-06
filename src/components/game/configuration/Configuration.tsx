@@ -24,8 +24,15 @@ import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
 
 export function Configuration() {
-	const { learningData, saveProfile, startGame, updateSettings, startDailyPractice, getRegionPracticeProgress } =
-		useGame();
+	const {
+		learningData,
+		saveProfile,
+		startGame,
+		updateSettings,
+		startDailyPractice,
+		getRegionPracticeProgress,
+		isCountryPracticedToday,
+	} = useGame();
 	const [isConfigurationModalOpen, setIsConfigurationModalOpen] = useState(false);
 	const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
 	const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
@@ -185,6 +192,7 @@ export function Configuration() {
 				isOpen={isCountryPickerOpen}
 				onClose={() => setIsCountryPickerOpen(false)}
 				initialSelectedCodes={customCodes}
+				isCountryDisabled={mode === "practice" ? isCountryPracticedToday : undefined}
 				onConfirm={(countryCodes) => {
 					const regions = scope.type === "custom" ? scope.regions : [];
 					updateSettings({ scope: { type: "custom", regions, countryCodes } });

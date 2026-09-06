@@ -47,6 +47,10 @@ export function Session() {
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 	const [timeLeft, setTimeLeft] = useState<number>(timerDuration);
 	const [elapsedMs, setElapsedMs] = useState(0);
+	// Mientras se revela la respuesta tras un skip en práctica, no tiene
+	// sentido mostrar los botones de calificación: "otra vez" ya quedó
+	// decidido automáticamente.
+	const [isSkipPending, setIsSkipPending] = useState(false);
 	const firstAttemptResultsRef = useRef<Record<string, boolean>>({});
 	const startTimeRef = useRef<number | null>(null);
 	// El cronómetro se pausa mientras se muestra el resultado de una bandera
@@ -123,6 +127,7 @@ export function Session() {
 		if (!isPracticeMode) return;
 		if (answerStatus === "idle") return;
 		if (isExitModalOpen) return;
+		if (isSkipPending) return;
 
 		function handleKeyDown(event: KeyboardEvent) {
 			const grade = GRADE_BY_KEY[event.key];
@@ -134,7 +139,7 @@ export function Session() {
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [isPracticeMode, answerStatus, isExitModalOpen]);
+	}, [isPracticeMode, answerStatus, isExitModalOpen, isSkipPending]);
 
 	if (!activeGame || !currentCountry) {
 		return null;
@@ -199,6 +204,7 @@ export function Session() {
 
 	function handleGrade(grade: ReviewGrade) {
 		practiceQueue.grade(grade);
+		setIsSkipPending(false);
 		setAnswer("");
 		setAnswerStatus("idle");
 	}
@@ -217,6 +223,7 @@ export function Session() {
 		}
 
 		recordFirstAttempt(currentCountry.code, false);
+		setIsSkipPending(true);
 		setAnswerStatus("incorrect");
 		window.setTimeout(() => handleGrade("again"), SKIP_REVEAL_MS);
 	}
@@ -250,6 +257,7 @@ export function Session() {
 						onSkip={handleSkip}
 						mode={configuration.mode}
 						onGrade={handleGrade}
+						hideGradeButtons={isSkipPending}
 					/>
 				</div>
 			</motion.section>

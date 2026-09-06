@@ -17,6 +17,8 @@ interface AnswerFormProps {
 	onSkip: () => void;
 	mode: GameMode;
 	onGrade: (grade: ReviewGrade) => void;
+	/** Tras un skip en práctica "otra vez" ya quedó decidido: no hace falta elegir. */
+	hideGradeButtons?: boolean;
 }
 
 export function AnswerForm({
@@ -28,6 +30,7 @@ export function AnswerForm({
 	onSkip,
 	mode,
 	onGrade,
+	hideGradeButtons,
 }: AnswerFormProps) {
 	const isAnswerChecked = answerStatus !== "idle";
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -76,7 +79,7 @@ export function AnswerForm({
 				)}
 			</AnimatePresence>
 
-			{isAnswerChecked && mode === "practice" && (
+			{isAnswerChecked && mode === "practice" && !hideGradeButtons && (
 				<motion.div
 					variants={motionVariants.answerFeedbackEnter}
 					initial="hidden"
