@@ -1,8 +1,10 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { NavArrowDown } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { countries } from "@/data/countries";
+import { motionVariants } from "@/styles/animations";
 import { REGION_LABELS, REGIONS, type Region } from "@/types/country";
 
 interface CountryPickerModalProps {
@@ -193,19 +195,30 @@ export function CountryPickerModal({
 								</button>
 							</div>
 
-							{isExpanded && (
-								<div className="grid max-h-56 grid-cols-2 gap-x-3 gap-y-0.5 overflow-y-auto px-2.5 py-2 min-[30rem]:grid-cols-3">
-									{regionCountries.map((country) => (
-										<CountryCheckbox
-											key={country.code}
-											label={country.name}
-											checked={selected.has(country.code)}
-											disabled={isCountryDisabled?.(country.code)}
-											onChange={() => toggleCountry(country.code)}
-										/>
-									))}
-								</div>
-							)}
+							<AnimatePresence initial={false}>
+								{isExpanded && (
+									<motion.div
+										key="content"
+										variants={motionVariants.collapseExpand}
+										initial="hidden"
+										animate="visible"
+										exit="exit"
+										className="overflow-hidden"
+									>
+										<div className="grid max-h-56 grid-cols-2 gap-x-3 gap-y-0.5 overflow-y-auto px-2.5 py-2 min-[30rem]:grid-cols-3">
+											{regionCountries.map((country) => (
+												<CountryCheckbox
+													key={country.code}
+													label={country.name}
+													checked={selected.has(country.code)}
+													disabled={isCountryDisabled?.(country.code)}
+													onChange={() => toggleCountry(country.code)}
+												/>
+											))}
+										</div>
+									</motion.div>
+								)}
+							</AnimatePresence>
 						</section>
 					);
 				})}

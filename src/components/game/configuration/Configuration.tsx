@@ -226,7 +226,14 @@ export function Configuration() {
 				profile={learningData.profile}
 				onSaveProfile={saveProfile}
 				mode={mode}
-				onModeChange={(value) => updateSettings({ mode: value })}
+				onModeChange={(value) =>
+					// Competitivo siempre es difícil y aleatorio: no son ajustables.
+					updateSettings(
+						value === "competitive"
+							? { mode: value, order: "random", difficulty: "hard" }
+							: { mode: value },
+					)
+				}
 				order={order}
 				onOrderChange={(value) => updateSettings({ order: value })}
 				timerDuration={timerDuration}

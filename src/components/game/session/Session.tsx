@@ -4,7 +4,7 @@ import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { useGame } from "@/hooks/useGame";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import { motionVariants } from "@/styles/animations";
-import { type AnswerStatus, DEFAULT_TIMER_DURATION } from "@/types/country";
+import { type AnswerStatus, DEFAULT_TIMER_DURATION, type Region } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
 import { isCorrectAnswer } from "@/utils/normalize-answer";
 import { getScopeLabel } from "@/utils/practice-scope";
@@ -54,21 +54,33 @@ export function Session() {
 	const firstAttemptResultsRef = useRef<Record<string, boolean>>({});
 	const startTimeRef = useRef<number | null>(null);
 	// El cronómetro se pausa mientras se muestra el resultado de una bandera
-	// (antes de pasar a la siguiente), para que esa espera no cuente como
-	// tiempo de carrera.
+	// (antes de pasar a la siguiente) y mientras está abierto el modal de
+	// abandonar, para que esas esperas no cuenten como tiempo de carrera.
 	const isClockPausedRef = useRef(false);
+	const exitModalOpenedAtRef = useRef<number | null>(null);
 
 	const practiceQueue = usePracticeQueue({
 		initialCodes: countries.map((country) => country.code),
 		countryHistory: learningData.countryHistory,
 		onGrade: (code, grade, isFirstAttempt) => gradeCountryReview(code, grade, isFirstAttempt),
 		onFinish: () => {
+			const regionBreakdown: Partial<Record<Region, { correct: number; total: number }>> = {};
+
+			for (const country of countries) {
+				const isCorrect = firstAttemptResultsRef.current[country.code] ?? false;
+				const entry = regionBreakdown[country.region] ?? { correct: 0, total: 0 };
+				entry.total += 1;
+				if (isCorrect) entry.correct += 1;
+				regionBreakdown[country.region] = entry;
+			}
+
 			finishGame({
 				mode: "practice",
 				score: calculateScore(correctAnswers, countries.length),
 				correctAnswers,
 				totalCountries: countries.length,
 				scope: activeGame?.configuration.scope ?? { type: "world" },
+				regionBreakdown,
 			});
 		},
 	});
@@ -112,6 +124,7 @@ export function Session() {
 	useEffect(() => {
 		if (!isTimedPractice) return;
 		if (answerStatus !== "idle") return;
+		if (isExitModalOpen) return;
 		if (timeLeft <= 0) {
 			handleSkip();
 			return;
@@ -120,7 +133,7 @@ export function Session() {
 			setTimeLeft((currentValue) => currentValue - 1);
 		}, 1000);
 		return () => window.clearTimeout(timeoutId);
-	}, [isTimedPractice, timeLeft, answerStatus]);
+	}, [isTimedPractice, timeLeft, answerStatus, isExitModalOpen]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: handleGrade estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
@@ -202,6 +215,26 @@ export function Session() {
 		recordFirstAttempt(currentCountry.code, isCorrect);
 	}
 
+	/** Pausa el temporizador de práctica y el cronómetro del rush mientras se decide si abandonar. */
+	function handleOpenExitModal() {
+		isClockPausedRef.current = true;
+		exitModalOpenedAtRef.current = Date.now();
+		setIsExitModalOpen(true);
+	}
+
+	/** Al seguir practicando, el tiempo que estuvo abierto el modal no cuenta para el cronómetro del rush. */
+	function handleCancelExit() {
+		if (exitModalOpenedAtRef.current !== null) {
+			const pausedMs = Date.now() - exitModalOpenedAtRef.current;
+			if (startTimeRef.current !== null) {
+				startTimeRef.current += pausedMs;
+			}
+			exitModalOpenedAtRef.current = null;
+		}
+		isClockPausedRef.current = false;
+		setIsExitModalOpen(false);
+	}
+
 	function handleGrade(grade: ReviewGrade) {
 		practiceQueue.grade(grade);
 		setIsSkipPending(false);
@@ -243,7 +276,7 @@ export function Session() {
 					timeLeft={isTimedPractice ? timeLeft : undefined}
 					timerDuration={isTimedPractice ? timerDuration : undefined}
 					elapsedMs={isCompetitiveMode ? elapsedMs : undefined}
-					onExit={() => setIsExitModalOpen(true)}
+					onExit={handleOpenExitModal}
 				/>
 
 				<div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-[0.65rem] min-[30rem]:gap-[clamp(0.75rem,2vh,1.5rem)]">
@@ -262,11 +295,7 @@ export function Session() {
 				</div>
 			</motion.section>
 
-			<ConfirmationModal
-				isOpen={isExitModalOpen}
-				onCancel={() => setIsExitModalOpen(false)}
-				onConfirm={exitGame}
-			/>
+			<ConfirmationModal isOpen={isExitModalOpen} onCancel={handleCancelExit} onConfirm={exitGame} />
 		</>
 	);
 }

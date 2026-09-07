@@ -19,8 +19,8 @@ function CompetitiveResults({ result }: { result: Extract<GameResult, { mode: "c
 				¡Completado!
 			</h1>
 
-			<div className="my-4 flex size-26 shrink-0 flex-col place-items-center justify-center rounded-full border-[0.45rem] border-primary-border bg-primary-soft text-primary sm:my-6 sm:size-[clamp(7.5rem,20vw,9rem)]">
-				<strong className="text-[1.5rem] leading-none tabular-nums sm:text-[clamp(1.7rem,5vw,2.3rem)]">
+			<div className="my-4 flex h-26 w-auto min-w-26 shrink-0 flex-col place-items-center justify-center rounded-full border-[0.45rem] border-primary-border bg-primary-soft px-5 text-primary sm:my-6 sm:h-[clamp(7.5rem,20vw,9rem)] sm:min-w-[clamp(7.5rem,20vw,9rem)]">
+				<strong className="text-[1.35rem] leading-none tabular-nums whitespace-nowrap sm:text-[clamp(1.5rem,4.2vw,2.1rem)]">
 					{formatElapsedTime(result.elapsedMs)}
 				</strong>
 				<span className="mt-1 text-[0.7rem] font-bold">tiempo</span>

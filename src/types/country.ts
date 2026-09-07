@@ -73,6 +73,13 @@ export interface PracticeGameResult extends GameResultBase {
 	mode: "practice";
 	score: number;
 	correctAnswers: number;
+	/**
+	 * Desglose por continente de los países de la sesión (independiente de
+	 * cómo se armó el scope: continentes completos y/o países sueltos), para
+	 * actualizar el puntaje de cada continente involucrado, no solo cuando el
+	 * scope es exactamente un continente.
+	 */
+	regionBreakdown: Partial<Record<Region, { correct: number; total: number }>>;
 }
 
 /** Competitivo = "rush": se cronometra la sesión completa, no cada bandera. */

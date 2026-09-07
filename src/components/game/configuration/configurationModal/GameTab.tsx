@@ -72,26 +72,28 @@ export function GameTab({
 				</div>
 			</Fieldset>
 
-			<Fieldset legend="Orden">
-				<div className="grid grid-cols-2 gap-1.5">
-					<OptionTile
-						name="settings-order"
-						value="alphabetical"
-						checked={order === "alphabetical"}
-						onChange={() => onOrderChange("alphabetical")}
-					>
-						Alfabético
-					</OptionTile>
-					<OptionTile
-						name="settings-order"
-						value="random"
-						checked={order === "random"}
-						onChange={() => onOrderChange("random")}
-					>
-						Aleatorio
-					</OptionTile>
-				</div>
-			</Fieldset>
+			{mode === "practice" && (
+				<Fieldset legend="Orden">
+					<div className="grid grid-cols-2 gap-1.5">
+						<OptionTile
+							name="settings-order"
+							value="alphabetical"
+							checked={order === "alphabetical"}
+							onChange={() => onOrderChange("alphabetical")}
+						>
+							Alfabético
+						</OptionTile>
+						<OptionTile
+							name="settings-order"
+							value="random"
+							checked={order === "random"}
+							onChange={() => onOrderChange("random")}
+						>
+							Aleatorio
+						</OptionTile>
+					</div>
+				</Fieldset>
+			)}
 
 			{mode === "practice" && (
 				<Fieldset legend="Temporizador">
@@ -132,43 +134,52 @@ export function GameTab({
 				</Fieldset>
 			)}
 
-			<Fieldset
-				legend={
-					<span className="inline-flex items-center gap-2">
-						Dificultad
-						<Tooltip
-							position="left"
-							label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')."
-						>
-							<span
-								className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.625rem] font-extrabold"
-								aria-hidden="true"
+			{mode === "practice" && (
+				<Fieldset
+					legend={
+						<span className="inline-flex items-center gap-2">
+							Dificultad
+							<Tooltip
+								position="left"
+								label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')."
 							>
-								?
-							</span>
-						</Tooltip>
-					</span>
-				}
-			>
-				<div className="grid grid-cols-2 gap-1.5">
-					<OptionTile
-						name="settings-difficulty"
-						value="easy"
-						checked={difficulty === "easy"}
-						onChange={() => onDifficultyChange("easy")}
-					>
-						Fácil
-					</OptionTile>
-					<OptionTile
-						name="settings-difficulty"
-						value="hard"
-						checked={difficulty === "hard"}
-						onChange={() => onDifficultyChange("hard")}
-					>
-						Difícil
-					</OptionTile>
-				</div>
-			</Fieldset>
+								<span
+									className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.625rem] font-extrabold"
+									aria-hidden="true"
+								>
+									?
+								</span>
+							</Tooltip>
+						</span>
+					}
+				>
+					<div className="grid grid-cols-2 gap-1.5">
+						<OptionTile
+							name="settings-difficulty"
+							value="easy"
+							checked={difficulty === "easy"}
+							onChange={() => onDifficultyChange("easy")}
+						>
+							Fácil
+						</OptionTile>
+						<OptionTile
+							name="settings-difficulty"
+							value="hard"
+							checked={difficulty === "hard"}
+							onChange={() => onDifficultyChange("hard")}
+						>
+							Difícil
+						</OptionTile>
+					</div>
+				</Fieldset>
+			)}
+
+			{mode === "competitive" && (
+				<p className="m-0 text-[0.8rem] text-text-placeholder">
+					En modo competitivo el orden es aleatorio y la dificultad es difícil siempre, para que
+					el ranking compare partidas equivalentes.
+				</p>
+			)}
 
 			<Fieldset legend="Tema">
 				<ThemeSwitcher />

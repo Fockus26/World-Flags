@@ -304,15 +304,23 @@ export function formatScore(score: number): string {
 	return Number.isInteger(score) ? score.toFixed(0) : score.toFixed(1);
 }
 
-/** Formatea milisegundos como "m:ss" (o "ss.d s" si dura menos de un minuto). */
-/** Formatea milisegundos como "m:ss.cc" (minutos:segundos.centésimas), ej. 85590 -> "1:25.59". */
+/**
+ * Formatea milisegundos como "m:ss.cc" (minutos:segundos.centésimas), ej.
+ * 85590 -> "1:25.59". Si dura menos de un minuto, omite los minutos en vez
+ * de mostrar "0:" (ej. 32250 -> "32.25", no "0:32.25").
+ */
 export function formatElapsedTime(elapsedMs: number): string {
 	const totalHundredths = Math.round(elapsedMs / 10);
 	const minutes = Math.floor(totalHundredths / 6000);
 	const seconds = Math.floor((totalHundredths % 6000) / 100);
 	const hundredths = totalHundredths % 100;
+	const hundredthsLabel = String(hundredths).padStart(2, "0");
 
-	return `${minutes}:${String(seconds).padStart(2, "0")}.${String(hundredths).padStart(2, "0")}`;
+	if (minutes === 0) {
+		return `${seconds}.${hundredthsLabel}`;
+	}
+
+	return `${minutes}:${String(seconds).padStart(2, "0")}.${hundredthsLabel}`;
 }
 
 export function saveReviewResult(

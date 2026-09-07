@@ -29,11 +29,8 @@ import {
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
 import { prepareCountries } from "@/utils/prepare-countries";
-import {
-	getExactSingleRegion,
-	getScopeCountryCodes,
-	getScopeRegionKey,
-} from "@/utils/practice-scope";
+import { getScopeCountryCodes, getScopeRegionKey } from "@/utils/practice-scope";
+import { calculateScore } from "@/utils/score";
 
 /**
  * Varias acciones seguidas (calificar una bandera y de paso marcarla como
@@ -74,7 +71,15 @@ export function useGame() {
 	const isCountryPracticedToday = (countryCode: string) =>
 		hasPracticedCountryToday(learningData, countryCode);
 
-	const startGame = (configuration: GameConfigurationType): boolean => {
+	const startGame = (requestedConfiguration: GameConfigurationType): boolean => {
+		// El modo competitivo ("rush") siempre es difícil y aleatorio: no son
+		// ajustables, así que se fuerzan acá sin importar qué haya quedado
+		// guardado (incluida configuración vieja de antes de esta regla).
+		const configuration: GameConfigurationType =
+			requestedConfiguration.mode === "competitive"
+				? { ...requestedConfiguration, order: "random", difficulty: "hard" }
+				: requestedConfiguration;
+
 		let effectiveConfiguration = configuration;
 
 		if (configuration.mode === "practice") {
@@ -120,13 +125,22 @@ export function useGame() {
 		dispatch(setLastResult(result));
 		dispatch(setActiveGame(null));
 
-		// El puntaje de práctica solo tiene sentido por continente (getExactSingleRegion);
-		// el mejor tiempo del rush también aplica a "Todo el mundo" (getScopeRegionKey).
+		// El puntaje de práctica se actualiza para CADA continente que tuvo
+		// países en la sesión (regionBreakdown), sin importar si el scope era
+		// un solo continente, varios combinados, o países sueltos de cada uno.
+		// El mejor tiempo del rush, en cambio, también aplica a "Todo el mundo"
+		// (getScopeRegionKey) pero no se desglosa por continente.
 		if (result.mode === "practice") {
-			const region = getExactSingleRegion(result.scope);
-			if (!region) return;
+			let updatedData = getCurrentLearningData();
 
-			const updatedData = registerRegionGame(getCurrentLearningData(), region, result.score);
+			for (const [region, stats] of Object.entries(result.regionBreakdown) as [
+				Region,
+				{ correct: number; total: number },
+			][]) {
+				const score = calculateScore(stats.correct, stats.total);
+				updatedData = registerRegionGame(updatedData, region, score);
+			}
+
 			dispatch(setLearningData(updatedData));
 			return;
 		}

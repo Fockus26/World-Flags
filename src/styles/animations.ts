@@ -91,6 +91,19 @@ export const motionVariants = {
 			transition: motionTransition(0.2),
 		},
 	},
+	collapseExpand: {
+		hidden: { height: 0, opacity: 0 },
+		visible: {
+			height: "auto",
+			opacity: 1,
+			transition: motionTransition(0.22),
+		},
+		exit: {
+			height: 0,
+			opacity: 0,
+			transition: motionTransition(0.18, "easeIn"),
+		},
+	},
 	dropdownAppear: {
 		hidden: { opacity: 0, y: -4, scale: 0.98 },
 		visible: {
