@@ -9,6 +9,7 @@ interface UserSummaryProps {
 	learnedCountries: number;
 	totalCountries: number;
 	onOpenModal: () => void;
+	className?: string;
 }
 
 export function UserSummary({
@@ -19,11 +20,12 @@ export function UserSummary({
 	learnedCountries,
 	totalCountries,
 	onOpenModal,
+	className,
 }: UserSummaryProps) {
 	return (
 		<motion.button
 			type="button"
-			className="group flex w-full touch-manipulation cursor-pointer items-center gap-3.5 rounded-md bg-surface text-left text-surface-soft transition-[background-color,transform] duration-180 ease-in-out hover:bg-surface-hover active:bg-surface-hover focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-surface-soft"
+			className={`group flex w-full touch-manipulation cursor-pointer items-center gap-3.5 rounded-md bg-surface text-left text-surface-soft transition-[background-color,transform] duration-180 ease-in-out hover:bg-surface-hover active:bg-surface-hover focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-surface-soft ${className ?? ""}`}
 			variants={motionVariants.contentEnter}
 			initial="hidden"
 			animate="visible"

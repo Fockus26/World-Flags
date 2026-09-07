@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
+import { IconButton } from "@/components/ui/IconButton";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useGame } from "@/hooks/useGame";
 import { motionVariants } from "@/styles/animations";
@@ -106,18 +108,64 @@ export function Configuration() {
 				initial="hidden"
 				animate="visible"
 			>
-				<UserSummary
-					name={learningData.profile.name}
-					avatarUrl={getAvatarUrl(
-						learningData.profile.avatarStyle,
-						learningData.profile.avatarSeed,
-					)}
-					accountLabel={accountLabel}
-					learningProgress={learningProgress}
-					learnedCountries={learnedCountries}
-					totalCountries={196}
-					onOpenModal={() => setIsConfigurationModalOpen(true)}
-				/>
+				<div className="flex items-center gap-2">
+					<UserSummary
+						className="min-w-0 flex-1"
+						name={learningData.profile.name}
+						avatarUrl={getAvatarUrl(
+							learningData.profile.avatarStyle,
+							learningData.profile.avatarSeed,
+						)}
+						accountLabel={accountLabel}
+						learningProgress={learningProgress}
+						learnedCountries={learnedCountries}
+						totalCountries={196}
+						onOpenModal={() => setIsConfigurationModalOpen(true)}
+					/>
+
+					<Tooltip label="Ranking" position="left" side="bottom">
+						<IconButton
+							type="button"
+							color="neutral"
+							variant="text"
+							aria-label="Ver ranking"
+							onClick={() => setIsLeaderboardOpen(true)}
+						>
+							🏆
+						</IconButton>
+					</Tooltip>
+
+					<Tooltip
+						label={
+							customCodes.length > 0
+								? `${customCodes.length} país${customCodes.length === 1 ? "" : "es"} elegidos a mano`
+								: "Elegir países específicos"
+						}
+						position="left"
+						side="bottom"
+					>
+						<span className="relative inline-flex">
+							<IconButton
+								type="button"
+								color="neutral"
+								variant="text"
+								aria-label="Elegir países específicos"
+								onClick={() => setIsCountryPickerOpen(true)}
+							>
+								📍
+							</IconButton>
+
+							{customCodes.length > 0 && (
+								<span
+									aria-hidden="true"
+									className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-black text-primary-soft"
+								>
+									{customCodes.length}
+								</span>
+							)}
+						</span>
+					</Tooltip>
+				</div>
 
 				<header className="shrink-0">
 					<h1
@@ -154,7 +202,6 @@ export function Configuration() {
 						regionBestTimes={learningData.regionBestTimes}
 						mode={mode}
 						getRegionPracticeProgress={getRegionPracticeProgress}
-						onOpenCustomPicker={() => setIsCountryPickerOpen(true)}
 					/>
 
 					{blockedMessage && (
@@ -166,22 +213,11 @@ export function Configuration() {
 					<Button type="submit">Comenzar práctica</Button>
 				</form>
 
-				<div className="flex flex-col gap-2">
-					{dueCount > 0 && (
-						<Button color="secondary" type="button" onClick={startDailyPractice}>
-							Práctica diaria ({dueCount})
-						</Button>
-					)}
-
-					<Button
-						color="neutral"
-						variant="outline"
-						type="button"
-						onClick={() => setIsLeaderboardOpen(true)}
-					>
-						🏆 Ranking
+				{dueCount > 0 && (
+					<Button color="secondary" type="button" onClick={startDailyPractice}>
+						Práctica diaria ({dueCount})
 					</Button>
-				</div>
+				)}
 			</motion.section>
 
 			<ConfigurationModal

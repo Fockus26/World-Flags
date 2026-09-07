@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/Button";
 import { Fieldset } from "@/components/ui/Fieldset";
 import {
 	type GameMode,
@@ -19,7 +18,6 @@ interface RegionSelectorProps {
 	regionBestTimes: Partial<Record<PracticeRegion, number>>;
 	mode: GameMode;
 	getRegionPracticeProgress: (region: Region) => { practiced: number; total: number };
-	onOpenCustomPicker: () => void;
 }
 
 function getPracticedLabel(practiced: number, total: number): string | undefined {
@@ -35,7 +33,6 @@ export function RegionSelector({
 	regionBestTimes,
 	mode,
 	getRegionPracticeProgress,
-	onOpenCustomPicker,
 }: RegionSelectorProps) {
 	const isWorldSelected = scope.type === "world";
 	const selectedRegions = scope.type === "custom" ? scope.regions : [];
@@ -115,18 +112,6 @@ export function RegionSelector({
 					);
 				})}
 			</div>
-
-			<Button
-				type="button"
-				variant="text"
-				color="secondary"
-				className="justify-self-start"
-				onClick={onOpenCustomPicker}
-			>
-				{customCodes.length > 0
-					? `Países elegidos a mano (${customCodes.length})`
-					: "Elegir países específicos…"}
-			</Button>
 		</Fieldset>
 	);
 }
