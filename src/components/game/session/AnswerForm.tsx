@@ -95,7 +95,7 @@ export function AnswerForm({
 						Comprobar
 					</Button>
 					<Button type="button" variant="outline" color="neutral" onClick={onSkip}>
-						Skip
+						Saltar
 					</Button>
 				</div>
 			)}

@@ -65,6 +65,8 @@ export function RegionOption({
 	active:text-(--app-score-active-color)
 	has-checked:bg-(--app-score-background)
 	has-checked:text-(--app-score-active-color)
+	has-checked:[&_.region-check]:border-(--app-score-color)
+	has-checked:[&_.region-check]:bg-(--app-score-color)
 	transition duration-200 ease-in-out
 	hover:-translate-y-0.5
 	active:translate-y-0
@@ -130,25 +132,45 @@ export function RegionOption({
 						{label}
 					</span>
 
-					{score !== null && (
-						<Tooltip id={tooltipId} label="Promedio de tus últimas 3 partidas">
-							<button
-								type="button"
-								className="
-									shrink-0
-									rounded-sm
-									text-xs
-									font-black
-									transition-transform
-									duration-200
-									hover:scale-105
-								"
-								aria-describedby={tooltipId}
-							>
-								{formatScore(score)}/10
-							</button>
-						</Tooltip>
-					)}
+					<span className="flex shrink-0 items-center gap-1.5">
+						{score !== null && (
+							<Tooltip id={tooltipId} label="Promedio de tus últimas 3 partidas">
+								<button
+									type="button"
+									className="
+										shrink-0
+										rounded-sm
+										text-xs
+										font-black
+										transition-transform
+										duration-200
+										hover:scale-105
+									"
+									aria-describedby={tooltipId}
+								>
+									{formatScore(score)}/10
+								</button>
+							</Tooltip>
+						)}
+
+						<span
+							aria-hidden="true"
+							className="
+								region-check
+								flex
+								size-4
+								shrink-0
+								items-center
+								justify-center
+								rounded-sm
+								border-2
+								border-(--app-score-color)/35
+								bg-transparent
+								transition-colors
+								duration-200
+							"
+						/>
+					</span>
 				</span>
 
 				<span

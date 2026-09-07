@@ -33,7 +33,7 @@ export function UserSummary({
 			onClick={onOpenModal}
 		>
 			<img
-				className="size-13 sm:size-16 shrink-0 rounded-md object-cover"
+				className="size-13 sm:size-16 shrink-0 rounded-full object-cover"
 				src={avatarUrl}
 				alt=""
 				aria-hidden="true"

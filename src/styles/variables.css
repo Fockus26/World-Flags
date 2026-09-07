@@ -1,148 +1,148 @@
 :root {
 	/* Brand */
-	--app-color-primary: #2563eb;
-	--app-color-primary-hover: #1d4ed8;
-	--app-color-primary-soft: #e2ecff;
-	--app-color-primary-border: #93c5fd;
+	--app-color-primary: #6d5ef0;
+	--app-color-primary-hover: #5b4bdb;
+	--app-color-primary-soft: #ecebfe;
+	--app-color-primary-border: #cfc8fb;
 
-	--app-color-secondary: #6d28d9;
-	--app-color-secondary-hover: #5b21b6;
-	--app-color-secondary-soft: #e9e2ff;
-	--app-color-secondary-border: #c4b5fd;
+	--app-color-secondary: #b34bd1;
+	--app-color-secondary-hover: #9b3ab8;
+	--app-color-secondary-soft: #f6e9fb;
+	--app-color-secondary-border: #e6c6f2;
 
 	/* Surfaces */
-	--app-color-surface: #f1f4f8;
-	--app-color-surface-hover: #e2e8f0;
-	--app-color-surface-soft: #0f172a;
-	--app-color-surface-border: #cbd5e1;
+	--app-color-surface: #f7f7fb;
+	--app-color-surface-hover: #eeedf6;
+	--app-color-surface-soft: #1c1b2e;
+	--app-color-surface-border: #e4e2f2;
 
 	/* Typography */
-	--app-color-text-placeholder: #64748b;
+	--app-color-text-placeholder: #6b6880;
 
 	/* Success */
-	--app-color-success: #15803d;
-	--app-color-success-hover: #166534;
-	--app-color-success-soft: #ddf6e5;
-	--app-color-success-border: #86efac;
+	--app-color-success: #1fa971;
+	--app-color-success-hover: #178a5c;
+	--app-color-success-soft: #e3f8ee;
+	--app-color-success-border: #a7e8cb;
 
 	/* Warning */
-	--app-color-warning: #b45309;
-	--app-color-warning-hover: #92400e;
-	--app-color-warning-soft: #fff0cc;
-	--app-color-warning-border: #fcd34d;
+	--app-color-warning: #d97a13;
+	--app-color-warning-hover: #b8630b;
+	--app-color-warning-soft: #fdf0dc;
+	--app-color-warning-border: #f3caa0;
 
 	/* Danger */
-	--app-color-danger: #dc2626;
-	--app-color-danger-hover: #b91c1c;
-	--app-color-danger-soft: #ffe5e5;
-	--app-color-danger-border: #fca5a5;
+	--app-color-danger: #e0435f;
+	--app-color-danger-hover: #c22e49;
+	--app-color-danger-soft: #fde8ec;
+	--app-color-danger-border: #f3b8c4;
 
 	/* Neutral */
-	--app-color-neutral: #475569;
-	--app-color-neutral-hover: #334155;
-	--app-color-neutral-soft: #e4eaf2;
-	--app-color-neutral-border: #cbd5e1;
+	--app-color-neutral: #57536b;
+	--app-color-neutral-hover: #403c54;
+	--app-color-neutral-soft: #eeedf6;
+	--app-color-neutral-border: #d8d5e8;
 
 	/* Overlay */
-	--app-color-overlay: rgb(15 23 42 / 56%);
+	--app-color-overlay: rgb(28 20 46 / 55%);
 }
 
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme]) {
 		/* Brand */
-		--app-color-primary: #6e8cff;
-		--app-color-primary-hover: #8da2e8;
-		--app-color-primary-soft: #1f2b5a;
-		--app-color-primary-border: #3e4f9d;
+		--app-color-primary: #9b8bff;
+		--app-color-primary-hover: #b3a6ff;
+		--app-color-primary-soft: #2c2650;
+		--app-color-primary-border: #493f7d;
 
-		--app-color-secondary: #b8a4ff;
-		--app-color-secondary-hover: #c9baff;
-		--app-color-secondary-soft: #2d1f4b;
-		--app-color-secondary-border: #5c4292;
+		--app-color-secondary: #e19bec;
+		--app-color-secondary-hover: #eab8f0;
+		--app-color-secondary-soft: #3a1f45;
+		--app-color-secondary-border: #5c3566;
 
 		/* Surfaces */
-		--app-color-surface: #111827;
-		--app-color-surface-hover: #1f2937;
-		--app-color-surface-soft: #f8fafc;
-		--app-color-surface-border: #334155;
+		--app-color-surface: #14121f;
+		--app-color-surface-hover: #262238;
+		--app-color-surface-soft: #f1eefc;
+		--app-color-surface-border: #34304a;
 
 		/* Typography */
-		--app-color-text-placeholder: #94a3b8;
+		--app-color-text-placeholder: #a29cc0;
 
 		/* Success */
-		--app-color-success: #4ade80;
-		--app-color-success-hover: #86efac;
-		--app-color-success-soft: #16321f;
-		--app-color-success-border: #2d5940;
+		--app-color-success: #4fd399;
+		--app-color-success-hover: #7fe0b5;
+		--app-color-success-soft: #173829;
+		--app-color-success-border: #245a41;
 
 		/* Warning */
-		--app-color-warning: #fbbf24;
-		--app-color-warning-hover: #fcd34d;
-		--app-color-warning-soft: #451a03;
-		--app-color-warning-border: #78350f;
+		--app-color-warning: #f2a53d;
+		--app-color-warning-hover: #f6bd6b;
+		--app-color-warning-soft: #3c2a10;
+		--app-color-warning-border: #5c421a;
 
 		/* Danger */
-		--app-color-danger: #f87171;
-		--app-color-danger-hover: #fca5a5;
-		--app-color-danger-soft: #450a0a;
-		--app-color-danger-border: #7f1d1d;
+		--app-color-danger: #f2748c;
+		--app-color-danger-hover: #f6a0b1;
+		--app-color-danger-soft: #3c1620;
+		--app-color-danger-border: #5c2432;
 
 		/* Neutral */
-		--app-color-neutral: #cbd5e1;
-		--app-color-neutral-hover: #e2e8f0;
-		--app-color-neutral-soft: #1f2937;
-		--app-color-neutral-border: #475569;
+		--app-color-neutral: #c8c4dc;
+		--app-color-neutral-hover: #dedbea;
+		--app-color-neutral-soft: #262238;
+		--app-color-neutral-border: #3c3854;
 
 		/* Overlay */
-		--app-color-overlay: rgb(2 6 23 / 72%);
+		--app-color-overlay: rgb(8 6 16 / 70%);
 	}
 }
 
 :root[data-theme="dark"] {
 	/* Brand */
-	--app-color-primary: #6e8cff;
-	--app-color-primary-hover: #8da2e8;
-	--app-color-primary-soft: #1f2b5a;
-	--app-color-primary-border: #3e4f9d;
+	--app-color-primary: #9b8bff;
+	--app-color-primary-hover: #b3a6ff;
+	--app-color-primary-soft: #2c2650;
+	--app-color-primary-border: #493f7d;
 
-	--app-color-secondary: #b8a4ff;
-	--app-color-secondary-hover: #c9baff;
-	--app-color-secondary-soft: #2d1f4b;
-	--app-color-secondary-border: #5c4292;
+	--app-color-secondary: #e19bec;
+	--app-color-secondary-hover: #eab8f0;
+	--app-color-secondary-soft: #3a1f45;
+	--app-color-secondary-border: #5c3566;
 
 	/* Surfaces */
-	--app-color-surface: #111827;
-	--app-color-surface-hover: #1f2937;
-	--app-color-surface-soft: #f8fafc;
-	--app-color-surface-border: #334155;
+	--app-color-surface: #14121f;
+	--app-color-surface-hover: #262238;
+	--app-color-surface-soft: #f1eefc;
+	--app-color-surface-border: #34304a;
 
 	/* Typography */
-	--app-color-text-placeholder: #94a3b8;
+	--app-color-text-placeholder: #a29cc0;
 
 	/* Success */
-	--app-color-success: #4ade80;
-	--app-color-success-hover: #86efac;
-	--app-color-success-soft: #16321f;
-	--app-color-success-border: #2d5940;
+	--app-color-success: #4fd399;
+	--app-color-success-hover: #7fe0b5;
+	--app-color-success-soft: #173829;
+	--app-color-success-border: #245a41;
 
 	/* Warning */
-	--app-color-warning: #fbbf24;
-	--app-color-warning-hover: #fcd34d;
-	--app-color-warning-soft: #451a03;
-	--app-color-warning-border: #78350f;
+	--app-color-warning: #f2a53d;
+	--app-color-warning-hover: #f6bd6b;
+	--app-color-warning-soft: #3c2a10;
+	--app-color-warning-border: #5c421a;
 
 	/* Danger */
-	--app-color-danger: #f87171;
-	--app-color-danger-hover: #fca5a5;
-	--app-color-danger-soft: #450a0a;
-	--app-color-danger-border: #7f1d1d;
+	--app-color-danger: #f2748c;
+	--app-color-danger-hover: #f6a0b1;
+	--app-color-danger-soft: #3c1620;
+	--app-color-danger-border: #5c2432;
 
 	/* Neutral */
-	--app-color-neutral: #cbd5e1;
-	--app-color-neutral-hover: #e2e8f0;
-	--app-color-neutral-soft: #1f2937;
-	--app-color-neutral-border: #475569;
+	--app-color-neutral: #c8c4dc;
+	--app-color-neutral-hover: #dedbea;
+	--app-color-neutral-soft: #262238;
+	--app-color-neutral-border: #3c3854;
 
 	/* Overlay */
-	--app-color-overlay: rgb(2 6 23 / 72%);
+	--app-color-overlay: rgb(8 6 16 / 70%);
 }

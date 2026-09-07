@@ -10,26 +10,26 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const baseClass =
-	"inline-flex min-h-10 cursor-pointer items-center justify-center rounded-md border px-4 py-2 font-[inherit] font-extrabold transition-[background-color,border-color,color,transform,opacity,translate,outline-color] duration-180 ease-in-out focus-visible:outline-3 focus-visible:outline-offset-3 disabled:cursor-not-allowed disabled:border-neutral-border disabled:bg-neutral-hover disabled:text-neutral-soft disabled:opacity-70 hover:not-disabled:-translate-y-0.5 active:not-disabled:-translate-y-0.5 md:py-3";
+	"inline-flex min-h-10 cursor-pointer items-center justify-center rounded-full border px-5 py-2 font-[inherit] font-extrabold transition-[background-color,border-color,color,transform,opacity,translate,outline-color,box-shadow] duration-180 ease-in-out focus-visible:outline-3 focus-visible:outline-offset-3 disabled:cursor-not-allowed disabled:border-neutral-border disabled:bg-neutral-hover disabled:text-neutral-soft disabled:opacity-70 disabled:shadow-none hover:not-disabled:-translate-y-0.5 active:not-disabled:-translate-y-0.5 md:py-3";
 
 const variantClass: Record<ButtonVariant, Record<ButtonColor, string>> = {
 	contained: {
 		primary:
-			"border-primary-border bg-primary text-primary-soft focus-visible:outline-primary-border hover:not-disabled:border-primary-hover hover:not-disabled:bg-primary-hover active:not-disabled:border-primary-hover active:not-disabled:bg-primary-hover",
+			"border-primary-border bg-primary text-primary-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-primary)_60%,transparent)] focus-visible:outline-primary-border hover:not-disabled:border-primary-hover hover:not-disabled:bg-primary-hover active:not-disabled:border-primary-hover active:not-disabled:bg-primary-hover",
 
 		secondary:
-			"border-secondary-border bg-secondary text-secondary-soft focus-visible:outline-secondary-border hover:not-disabled:border-secondary-hover hover:not-disabled:bg-secondary-hover active:not-disabled:border-secondary-hover active:not-disabled:bg-secondary-hover",
+			"border-secondary-border bg-secondary text-secondary-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-secondary)_60%,transparent)] focus-visible:outline-secondary-border hover:not-disabled:border-secondary-hover hover:not-disabled:bg-secondary-hover active:not-disabled:border-secondary-hover active:not-disabled:bg-secondary-hover",
 
 		success:
-			"border-success-border bg-success text-success-soft focus-visible:outline-success-border hover:not-disabled:border-success-hover hover:not-disabled:bg-success-hover active:not-disabled:border-success-hover active:not-disabled:bg-success-hover",
+			"border-success-border bg-success text-success-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-success)_50%,transparent)] focus-visible:outline-success-border hover:not-disabled:border-success-hover hover:not-disabled:bg-success-hover active:not-disabled:border-success-hover active:not-disabled:bg-success-hover",
 
 		warning:
-			"border-warning-border bg-warning text-warning-soft focus-visible:outline-warning-border hover:not-disabled:border-warning-hover hover:not-disabled:bg-warning-hover active:not-disabled:border-warning-hover active:not-disabled:bg-warning-hover",
+			"border-warning-border bg-warning text-warning-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-warning)_50%,transparent)] focus-visible:outline-warning-border hover:not-disabled:border-warning-hover hover:not-disabled:bg-warning-hover active:not-disabled:border-warning-hover active:not-disabled:bg-warning-hover",
 
-		danger: "border-danger-border bg-danger text-danger-soft focus-visible:outline-danger-border hover:not-disabled:border-danger-hover hover:not-disabled:bg-danger-hover active:not-disabled:border-danger-hover active:not-disabled:bg-danger-hover",
+		danger: "border-danger-border bg-danger text-danger-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-danger)_50%,transparent)] focus-visible:outline-danger-border hover:not-disabled:border-danger-hover hover:not-disabled:bg-danger-hover active:not-disabled:border-danger-hover active:not-disabled:bg-danger-hover",
 
 		neutral:
-			"border-neutral-border bg-neutral text-neutral-soft focus-visible:outline-neutral-border hover:not-disabled:border-neutral-hover hover:not-disabled:bg-neutral-hover active:not-disabled:border-neutral-hover active:not-disabled:bg-neutral-hover",
+			"border-neutral-border bg-neutral text-neutral-soft shadow-[0_8px_20px_-8px_color-mix(in_srgb,var(--color-neutral)_35%,transparent)] focus-visible:outline-neutral-border hover:not-disabled:border-neutral-hover hover:not-disabled:bg-neutral-hover active:not-disabled:border-neutral-hover active:not-disabled:bg-neutral-hover",
 	},
 
 	outline: {
