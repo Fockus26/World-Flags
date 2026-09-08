@@ -56,21 +56,28 @@ export function Modal({
 		return () => document.removeEventListener("keydown", handleKeyDown);
 	}, [onClose, isOpen]);
 
+	// Mide el contenido real (getBoundingClientRect) en vez de confiar en
+	// entries[0].contentRect del ResizeObserver: ambos deberían coincidir,
+	// pero en la práctica quedaban desincronizados (el modal no encogía al
+	// desactivar el temporizador, o no crecía lo suficiente al activarlo),
+	// dejando mal el padding inferior. Medir siempre de la misma forma evita
+	// esa desincronización. `newHeight` puede ser 0 legítimamente (ej. el
+	// contenido tarda un frame en montar), así que no se descarta con un
+	// chequeo de truthiness.
 	useIsomorphicLayoutEffect(() => {
 		if (!animateHeight || !isOpen || !contentRef.current) {
 			return;
 		}
 
 		const element = contentRef.current;
-		setHeight(element.getBoundingClientRect().height);
 
-		const observer = new ResizeObserver((entries) => {
-			const newHeight = entries[0]?.contentRect.height;
-			if (newHeight) {
-				setHeight(newHeight);
-			}
-		});
+		function measure() {
+			setHeight(element.getBoundingClientRect().height);
+		}
 
+		measure();
+
+		const observer = new ResizeObserver(measure);
 		observer.observe(element);
 		return () => observer.disconnect();
 	}, [animateHeight, isOpen]);
