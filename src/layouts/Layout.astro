@@ -4,10 +4,35 @@ import "@/styles/global.css";
 interface Props {
 	title: string;
 	description?: string;
+	/** Ruta relativa a una imagen usada como og:image / twitter:image. */
+	image?: string;
 }
 
-const { title, description = "Aplicación para aprender las banderas de los países del mundo." } =
-	Astro.props;
+const {
+	title,
+	description = "Aprende las banderas de los 196 países del mundo con repetición espaciada estilo Anki: practica por continente, compite a contrarreloj y sube al ranking mundial.",
+	image = "/pwa-512x512.png",
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const socialImageURL = new URL(image, Astro.site);
+
+const structuredData = {
+	"@context": "https://schema.org",
+	"@type": "WebApplication",
+	name: "World Flags",
+	alternateName: "Banderas del Mundo",
+	description,
+	url: canonicalURL.toString(),
+	applicationCategory: "EducationalApplication",
+	operatingSystem: "Any (PWA)",
+	inLanguage: "es",
+	offers: {
+		"@type": "Offer",
+		price: "0",
+		priceCurrency: "USD",
+	},
+};
 ---
 
 <!doctype html>
@@ -18,15 +43,38 @@ const { title, description = "Aplicación para aprender las banderas de los paí
 			name="viewport"
 			content="width=device-width, initial-scale=1"
 		/>
+
+		<!-- SEO -->
 		<meta name="description" content={description} />
+		<meta name="robots" content="index, follow" />
+		<link rel="canonical" href={canonicalURL} />
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="World Flags" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:image" content={socialImageURL} />
+		<meta property="og:locale" content="es_ES" />
+
+		<!-- Twitter card -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={socialImageURL} />
+
+		<!-- Datos estructurados para resultados enriquecidos -->
+		<script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
 
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" sizes="any" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-		<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content="#6e8cff" media="(prefers-color-scheme: dark)" />
+		<meta name="apple-mobile-web-app-title" content="Banderas" />
+		<meta name="theme-color" content="#6d5ef0" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#9b8bff" media="(prefers-color-scheme: dark)" />
 		<link rel="manifest" href="/manifest.webmanifest" />
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -52,6 +100,12 @@ const { title, description = "Aplicación para aprender las banderas de los paí
 	</head>
 
 	<body>
+		<a
+			href="#main-content"
+			class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-1000 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:font-bold focus:text-primary-soft focus:outline-3 focus:outline-offset-3 focus:outline-primary-border"
+		>
+			Saltar al contenido principal
+		</a>
 		<slot />
 	</body>
 </html>

@@ -25,7 +25,10 @@ function FlagGameContent() {
 
 export default function FlagGame() {
 	return (
-		<main className="relative grid h-dvh w-full place-items-center overflow-hidden p-[0.4rem] sm:p-[clamp(0.5rem,2vh,1.5rem)]">
+		<main
+			id="main-content"
+			className="relative grid h-dvh w-full place-items-center overflow-hidden p-[0.4rem] sm:p-[clamp(0.5rem,2vh,1.5rem)]"
+		>
 			<FlagGameContent />
 		</main>
 	);

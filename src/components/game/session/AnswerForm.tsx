@@ -67,13 +67,13 @@ export function AnswerForm({
 
 			<AnimatePresence mode="popLayout" initial={false}>
 				{answerStatus === "correct" && (
-					<FeedbackMessage key="correct" variant="success">
+					<FeedbackMessage key="correct" variant="success" role="status">
 						Correcto: <strong className="text-inherit">{countryName}</strong>
 					</FeedbackMessage>
 				)}
 
 				{answerStatus === "incorrect" && (
-					<FeedbackMessage key="incorrect" variant="danger">
+					<FeedbackMessage key="incorrect" variant="danger" role="alert">
 						La respuesta correcta es <strong>{countryName}</strong>.
 					</FeedbackMessage>
 				)}
