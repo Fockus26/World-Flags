@@ -47,6 +47,26 @@ export function GameEffects() {
 	 * Authenticated:
 	 *     localStorage + Supabase -> Redux
 	 */
+	/**
+	 * Red de seguridad: si Supabase Auth no resuelve (red caída, mal
+	 * configurado), `status` se queda en "loading" para siempre y el invitado
+	 * ve su progreso vacío. Tras 2.5 s sin resolver, se hidrata desde
+	 * localStorage igualmente (si luego llega la sesión, el efecto de abajo
+	 * re-hidrata). No se toca `hydrationStatus` "ready" para no habilitar el
+	 * push a Supabase antes de tiempo.
+	 */
+	useEffect(() => {
+		if (status !== "loading") {
+			return;
+		}
+
+		const timeoutId = setTimeout(() => {
+			dispatch(setLearningData(getLearningData()));
+		}, 2500);
+
+		return () => clearTimeout(timeoutId);
+	}, [status, dispatch]);
+
 	useEffect(() => {
 		if (status === "loading") {
 			return;

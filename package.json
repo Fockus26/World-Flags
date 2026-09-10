@@ -11,7 +11,8 @@
 		"preview": "astro preview",
 		"astro": "astro",
 		"format": "biome format ./src --write",
-		"lint": "biome check ./src --write"
+		"lint": "biome check ./src --write",
+		"test:e2e": "playwright test"
 	},
 	"dependencies": {
 		"@astrojs/check": "^0.9.10",
@@ -30,6 +31,7 @@
 		"typescript": "^5.9.2"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.63.0",
 		"@tailwindcss/vite": "^4.3.3",
 		"@types/react": "^19.2.18",
 		"@types/react-dom": "^19.2.4",

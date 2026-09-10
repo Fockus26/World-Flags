@@ -8,7 +8,7 @@
 	:root {
 		font-family: var(--font-sans);
 		color: var(--color-text);
-		background: var(--color-surface-soft);
+		background: var(--background);
 		font-synthesis: none;
 		text-rendering: optimizeLegibility;
 	}

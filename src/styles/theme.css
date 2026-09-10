@@ -19,6 +19,7 @@
 	/* ===========================
 	   Typography
 	=========================== */
+	--color-text: var(--foreground);
 	--color-text-placeholder: var(--app-color-text-placeholder);
 
 	/* ===========================

@@ -76,7 +76,6 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			animateHeight
 			className="w-[min(28rem,92vw)] text-left"
 			ariaLabelledby="leaderboard-title"
 		>

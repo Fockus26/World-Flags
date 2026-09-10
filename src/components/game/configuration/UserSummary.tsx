@@ -41,7 +41,7 @@ export function UserSummary({
 
 			<span className="flex min-w-0 flex-1 flex-col gap-1  pr-3.5 py-1 sm:py-2.5">
 				<span className="flex min-w-0 items-baseline gap-2">
-					<strong className="overflow-hidden text-4 text-ellipsis whitespace-nowrap">
+					<strong className="overflow-hidden text-base text-ellipsis whitespace-nowrap">
 						{name}
 					</strong>
 

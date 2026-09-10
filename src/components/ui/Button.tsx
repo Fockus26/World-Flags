@@ -70,6 +70,17 @@ const brand: Record<
 	},
 };
 
+/**
+ * Texto legible (AA) para las variantes sin relleno pleno: se mezcla el color
+ * de marca hacia `--foreground`. Como `--foreground` vira con el tema (casi
+ * negro en claro, casi blanco en oscuro), la misma fórmula oscurece el texto
+ * sobre fondos claros y lo aclara sobre fondos oscuros. Antes se usaba el
+ * color de marca tal cual y quedaba en ~2.7-4:1 en modo claro.
+ */
+function readableFg(base: string): string {
+	return `color-mix(in oklab, ${base} 62%, var(--foreground))`;
+}
+
 function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
 	const c = brand[color];
 	const style = { "--button-bg-pressed": c.hover } as Record<string, string>;
@@ -88,7 +99,7 @@ function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
 				"--button-bg": c.soft,
 				"--button-bg-hover": c.base,
 				"--button-bg-pressed": c.base,
-				"--button-fg": c.base,
+				"--button-fg": readableFg(c.base),
 			});
 			break;
 		case "outline":
@@ -96,7 +107,7 @@ function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
 				"--button-bg": "transparent",
 				"--button-bg-hover": c.soft,
 				"--button-bg-pressed": c.soft,
-				"--button-fg": c.base,
+				"--button-fg": readableFg(c.base),
 				border: `1px solid ${c.base}`,
 			});
 			break;
@@ -105,7 +116,7 @@ function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
 				"--button-bg": "transparent",
 				"--button-bg-hover": c.soft,
 				"--button-bg-pressed": c.soft,
-				"--button-fg": c.base,
+				"--button-fg": readableFg(c.base),
 			});
 			break;
 	}

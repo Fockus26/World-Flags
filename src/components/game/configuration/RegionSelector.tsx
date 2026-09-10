@@ -81,8 +81,12 @@ export function RegionSelector({
 			<div
 				className="
 					grid
+					min-h-0
 					grid-cols-2
 					gap-3
+					overflow-y-auto
+					overscroll-contain
+					pr-1
 					min-[44rem]:grid-cols-3
 				"
 			>

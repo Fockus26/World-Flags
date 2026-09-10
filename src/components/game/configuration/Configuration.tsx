@@ -219,11 +219,18 @@ export function Configuration() {
 						</FeedbackMessage>
 					)}
 
-					<Button type="submit">Comenzar práctica</Button>
+					<Button type="submit" className="shrink-0">
+						Comenzar práctica
+					</Button>
 				</form>
 
 				{dueCount > 0 && (
-					<Button color="secondary" type="button" onClick={startDailyPractice}>
+					<Button
+						color="secondary"
+						type="button"
+						className="shrink-0"
+						onClick={startDailyPractice}
+					>
 						Práctica diaria ({dueCount})
 					</Button>
 				)}

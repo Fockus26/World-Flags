@@ -27,5 +27,11 @@ export default defineConfig({
 		resolve: {
 			dedupe: ["react", "react-dom"],
 		},
+		// Pre-empaquetar las deps grandes en un solo pase al arrancar. Sin
+		// esto, Vite las descubre de forma perezosa y reoptimiza a mitad de
+		// carga -> 504 "Outdated Optimize Dep" y la isla no hidrata.
+		optimizeDeps: {
+			include: ["react", "react-dom", "@heroui/react", "react-aria-components", "framer-motion"],
+		},
 	},
 });

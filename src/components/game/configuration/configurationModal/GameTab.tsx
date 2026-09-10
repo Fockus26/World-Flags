@@ -20,7 +20,7 @@ function HelpHint({ label }: { label: string }) {
 			<button
 				type="button"
 				aria-label={label}
-				className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.625rem] font-extrabold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
+				className="inline-flex size-5 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.7rem] font-extrabold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
 			>
 				<span aria-hidden="true">?</span>
 			</button>

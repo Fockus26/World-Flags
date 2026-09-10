@@ -40,7 +40,7 @@ export function OptionTile({
 				value={value}
 				checked={checked}
 				onChange={onChange}
-				className="absolute size-px opacity-0"
+				className="pointer-events-none absolute size-px opacity-0"
 			/>
 			<span className="px-3 py-2 text-xs font-bold sm:text-sm">{children}</span>
 		</label>

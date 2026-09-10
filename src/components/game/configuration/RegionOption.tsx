@@ -59,23 +59,21 @@ export function RegionOption({
 			className={`
 	relative flex min-h-16 min-w-0 touch-manipulation cursor-pointer items-center rounded-md border border-l-4
 	border-(--app-score-color)
-	text-(--app-score-color)
-	outline-(--app-score-color)
+	text-surface-soft
 	hover:bg-(--app-score-background)
-	hover:text-(--app-score-active-color)
 	active:bg-(--app-score-background)
-	active:text-(--app-score-active-color)
 	has-checked:bg-(--app-score-background)
-	has-checked:text-(--app-score-active-color)
+	has-checked:border-primary
 	has-checked:[&_.region-check]:border-(--app-score-color)
 	has-checked:[&_.region-check]:bg-(--app-score-color)
 	transition duration-200 ease-in-out
 	hover:-translate-y-0.5
 	active:translate-y-0
 	active:scale-[0.98]
-	hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
-	active:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
-	has-checked:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
+	hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_35%,transparent)]
+	active:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_35%,transparent)]
+	has-checked:shadow-[0_0_0_2px_var(--color-primary)]
+	outline-[var(--focus)]
 	has-focus-visible:outline-[3px]
 	has-focus-visible:outline-offset-3
 	min-[44rem]:min-h-19
@@ -196,7 +194,7 @@ export function RegionOption({
 				</span>
 
 				{practicedLabel && (
-					<span className="text-(--app-score-color) text-[0.68rem] font-bold">
+					<span className="text-surface-soft text-[0.68rem] font-bold">
 						{practicedLabel}
 					</span>
 				)}
