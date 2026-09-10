@@ -1,136 +1,191 @@
-import { type ButtonHTMLAttributes, forwardRef } from "react";
+import { Button as HeroButton } from "@heroui/react";
+import type { CSSProperties, MouseEvent, ReactNode, Ref } from "react";
 
-type ButtonColor = "primary" | "secondary" | "danger" | "warning" | "success" | "neutral";
+type ButtonColor =
+	| "primary"
+	| "secondary"
+	| "danger"
+	| "warning"
+	| "success"
+	| "neutral";
 type ButtonVariant = "contained" | "outline" | "text" | "soft";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps {
 	color?: ButtonColor;
 	variant?: ButtonVariant;
 	pressed?: boolean;
+	type?: "button" | "submit" | "reset";
+	disabled?: boolean;
+	className?: string;
+	style?: CSSProperties;
+	children?: ReactNode;
+	onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+	"aria-label"?: string;
+	"aria-describedby"?: string;
+	ref?: Ref<HTMLButtonElement>;
+	fullWidth?: boolean;
+	isIconOnly?: boolean;
 }
 
-const baseClass =
-	"inline-flex min-h-10 cursor-pointer items-center justify-center rounded-full border px-5 py-2 font-[inherit] font-extrabold transition-[background-color,border-color,color,transform,opacity,translate,outline-color,box-shadow] duration-180 ease-in-out focus-visible:outline-3 focus-visible:outline-offset-3 disabled:cursor-not-allowed disabled:border-neutral-border disabled:bg-neutral-hover disabled:text-neutral-soft disabled:opacity-70 disabled:shadow-none hover:not-disabled:-translate-y-0.5 active:not-disabled:-translate-y-0.5 md:py-3";
-
-const variantClass: Record<ButtonVariant, Record<ButtonColor, string>> = {
-	contained: {
-		primary:
-			"border-primary-border bg-primary text-primary-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-primary)_60%,transparent)] focus-visible:outline-primary-border hover:not-disabled:border-primary-hover hover:not-disabled:bg-primary-hover active:not-disabled:border-primary-hover active:not-disabled:bg-primary-hover",
-
-		secondary:
-			"border-secondary-border bg-secondary text-secondary-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-secondary)_60%,transparent)] focus-visible:outline-secondary-border hover:not-disabled:border-secondary-hover hover:not-disabled:bg-secondary-hover active:not-disabled:border-secondary-hover active:not-disabled:bg-secondary-hover",
-
-		success:
-			"border-success-border bg-success text-success-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-success)_50%,transparent)] focus-visible:outline-success-border hover:not-disabled:border-success-hover hover:not-disabled:bg-success-hover active:not-disabled:border-success-hover active:not-disabled:bg-success-hover",
-
-		warning:
-			"border-warning-border bg-warning text-warning-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-warning)_50%,transparent)] focus-visible:outline-warning-border hover:not-disabled:border-warning-hover hover:not-disabled:bg-warning-hover active:not-disabled:border-warning-hover active:not-disabled:bg-warning-hover",
-
-		danger: "border-danger-border bg-danger text-danger-soft shadow-[0_10px_24px_-8px_color-mix(in_srgb,var(--color-danger)_50%,transparent)] focus-visible:outline-danger-border hover:not-disabled:border-danger-hover hover:not-disabled:bg-danger-hover active:not-disabled:border-danger-hover active:not-disabled:bg-danger-hover",
-
-		neutral:
-			"border-neutral-border bg-neutral text-neutral-soft shadow-[0_8px_20px_-8px_color-mix(in_srgb,var(--color-neutral)_35%,transparent)] focus-visible:outline-neutral-border hover:not-disabled:border-neutral-hover hover:not-disabled:bg-neutral-hover active:not-disabled:border-neutral-hover active:not-disabled:bg-neutral-hover",
+/**
+ * HeroUI pinta el botón con las custom props `--button-bg`,
+ * `--button-bg-hover`, `--button-bg-pressed` y `--button-fg`. Se usa el
+ * `variant="primary"` de HeroUI como base (layout, press, focus ring, radio)
+ * y se reescriben esas variables con los tokens de marca, conservando los
+ * 6 colores × 4 variantes que ya usaba el juego.
+ */
+const brand: Record<
+	ButtonColor,
+	{ base: string; hover: string; soft: string }
+> = {
+	primary: {
+		base: "var(--color-primary)",
+		hover: "var(--color-primary-hover)",
+		soft: "var(--color-primary-soft)",
 	},
-
-	outline: {
-		primary:
-			"border-primary bg-transparent text-primary focus-visible:outline-primary hover:not-disabled:border-primary-hover hover:not-disabled:bg-primary-soft hover:not-disabled:text-primary-hover active:not-disabled:border-primary-hover active:not-disabled:bg-primary-soft active:not-disabled:text-primary-hover",
-
-		secondary:
-			"border-secondary bg-transparent text-secondary focus-visible:outline-secondary hover:not-disabled:border-secondary-hover hover:not-disabled:bg-secondary-soft hover:not-disabled:text-secondary-hover active:not-disabled:border-secondary-hover active:not-disabled:bg-secondary-soft active:not-disabled:text-secondary-hover",
-
-		success:
-			"border-success bg-transparent text-success focus-visible:outline-success hover:not-disabled:border-success-hover hover:not-disabled:bg-success-soft hover:not-disabled:text-success-hover active:not-disabled:border-success-hover active:not-disabled:bg-success-soft active:not-disabled:text-success-hover",
-
-		warning:
-			"border-warning bg-transparent text-warning focus-visible:outline-warning hover:not-disabled:border-warning-hover hover:not-disabled:bg-warning-soft hover:not-disabled:text-warning-hover active:not-disabled:border-warning-hover active:not-disabled:bg-warning-soft active:not-disabled:text-warning-hover",
-
-		danger: "border-danger bg-transparent text-danger focus-visible:outline-danger hover:not-disabled:border-danger-hover hover:not-disabled:bg-danger-soft hover:not-disabled:text-danger-hover active:not-disabled:border-danger-hover active:not-disabled:bg-danger-soft active:not-disabled:text-danger-hover",
-
-		neutral:
-			"border-neutral bg-transparent text-neutral focus-visible:outline-neutral hover:not-disabled:border-neutral-hover hover:not-disabled:bg-neutral-soft hover:not-disabled:text-neutral-hover active:not-disabled:border-neutral-hover active:not-disabled:bg-neutral-soft active:not-disabled:text-neutral-hover",
+	secondary: {
+		base: "var(--color-secondary)",
+		hover: "var(--color-secondary-hover)",
+		soft: "var(--color-secondary-soft)",
 	},
-
-	text: {
-		primary:
-			"border-transparent bg-transparent text-primary focus-visible:outline-primary-border hover:not-disabled:bg-primary-soft hover:not-disabled:text-primary-hover active:not-disabled:bg-primary-soft active:not-disabled:text-primary-hover",
-
-		secondary:
-			"border-transparent bg-transparent text-secondary focus-visible:outline-secondary-border hover:not-disabled:bg-secondary-soft hover:not-disabled:text-secondary-hover active:not-disabled:bg-secondary-soft active:not-disabled:text-secondary-hover",
-
-		success:
-			"border-transparent bg-transparent text-success focus-visible:outline-success-border hover:not-disabled:bg-success-soft hover:not-disabled:text-success-hover active:not-disabled:bg-success-soft active:not-disabled:text-success-hover",
-
-		warning:
-			"border-transparent bg-transparent text-warning focus-visible:outline-warning-border hover:not-disabled:bg-warning-soft hover:not-disabled:text-warning-hover active:not-disabled:bg-warning-soft active:not-disabled:text-warning-hover",
-
-		danger: "border-transparent bg-transparent text-danger focus-visible:outline-danger-border hover:not-disabled:bg-danger-soft hover:not-disabled:text-danger-hover active:not-disabled:bg-danger-soft active:not-disabled:text-danger-hover",
-
-		neutral:
-			"border-transparent bg-transparent text-neutral focus-visible:outline-neutral-border hover:not-disabled:bg-neutral-soft hover:not-disabled:text-neutral-hover active:not-disabled:bg-neutral-soft active:not-disabled:text-neutral-hover",
+	danger: {
+		base: "var(--color-danger)",
+		hover: "var(--color-danger-hover)",
+		soft: "var(--color-danger-soft)",
 	},
-
-	soft: {
-		primary:
-			"border-primary-border bg-primary-soft text-primary focus-visible:outline-primary-border hover:not-disabled:bg-primary hover:not-disabled:text-primary-soft active:not-disabled:bg-primary active:not-disabled:text-primary-soft",
-
-		secondary:
-			"border-secondary-border bg-secondary-soft text-secondary focus-visible:outline-secondary-border hover:not-disabled:bg-secondary hover:not-disabled:text-secondary-soft active:not-disabled:bg-secondary active:not-disabled:text-secondary-soft",
-
-		success:
-			"border-success-border bg-success-soft text-success focus-visible:outline-success-border hover:not-disabled:bg-success hover:not-disabled:text-success-soft active:not-disabled:bg-success active:not-disabled:text-success-soft",
-
-		warning:
-			"border-warning-border bg-warning-soft text-warning focus-visible:outline-warning-border hover:not-disabled:bg-warning hover:not-disabled:text-warning-soft active:not-disabled:bg-warning active:not-disabled:text-warning-soft",
-
-		danger: "border-danger-border bg-danger-soft text-danger focus-visible:outline-danger-border hover:not-disabled:bg-danger hover:not-disabled:text-danger-soft active:not-disabled:bg-danger active:not-disabled:text-danger-soft",
-
-		neutral:
-			"border-neutral-border bg-neutral-soft text-neutral focus-visible:outline-neutral-border hover:not-disabled:bg-neutral hover:not-disabled:text-neutral-soft active:not-disabled:bg-neutral active:not-disabled:text-neutral-soft",
+	warning: {
+		base: "var(--color-warning)",
+		hover: "var(--color-warning-hover)",
+		soft: "var(--color-warning-soft)",
+	},
+	success: {
+		base: "var(--color-success)",
+		hover: "color-mix(in oklab, var(--color-success) 86%, black)",
+		soft: "var(--color-success-soft)",
+	},
+	neutral: {
+		base: "var(--color-neutral)",
+		hover: "var(--color-neutral-hover)",
+		soft: "var(--color-neutral-soft)",
 	},
 };
 
-function derivePressedClasses(classes: string): string {
-	return classes
-		.split(" ")
-		.filter((cls) => cls.startsWith("hover:not-disabled:"))
-		.map((cls) => `!${cls.replace("hover:not-disabled:", "")}`)
-		.join(" ");
+/**
+ * Texto legible (AA) para las variantes sin relleno pleno: se mezcla el color
+ * de marca hacia `--foreground`. Como `--foreground` vira con el tema (casi
+ * negro en claro, casi blanco en oscuro), la misma fórmula oscurece el texto
+ * sobre fondos claros y lo aclara sobre fondos oscuros. Antes se usaba el
+ * color de marca tal cual y quedaba en ~2.7-4:1 en modo claro.
+ */
+function readableFg(base: string): string {
+	return `color-mix(in oklab, ${base} 62%, var(--foreground))`;
 }
 
-const pressedVariantClass = Object.fromEntries(
-	(Object.keys(variantClass) as ButtonVariant[]).map((variant) => [
-		variant,
-		Object.fromEntries(
-			(Object.keys(variantClass[variant]) as ButtonColor[]).map((color) => [
-				color,
-				derivePressedClasses(variantClass[variant][color]),
-			]),
-		),
-	]),
-) as Record<ButtonVariant, Record<ButtonColor, string>>;
+function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
+	const c = brand[color];
+	const style = { "--button-bg-pressed": c.hover } as Record<string, string>;
 
-const pressedBaseClass = "!-translate-y-0.5";
+	switch (variant) {
+		case "contained":
+			Object.assign(style, {
+				"--button-bg": c.base,
+				"--button-bg-hover": c.hover,
+				"--button-bg-pressed": c.hover,
+				"--button-fg": "var(--btn-contained-fg)",
+			});
+			break;
+		case "soft":
+			// Hover/press: se ahonda el tinte suave (sin llegar al color pleno),
+			// así el texto `readableFg` mantiene contraste AA en todos los
+			// estados sin depender de invertir el color del texto.
+			Object.assign(style, {
+				"--button-bg": c.soft,
+				"--button-bg-hover": `color-mix(in oklab, ${c.base} 22%, ${c.soft})`,
+				"--button-bg-pressed": `color-mix(in oklab, ${c.base} 32%, ${c.soft})`,
+				"--button-fg": readableFg(c.base),
+			});
+			break;
+		case "outline":
+			Object.assign(style, {
+				"--button-bg": "transparent",
+				"--button-bg-hover": c.soft,
+				"--button-bg-pressed": c.soft,
+				"--button-fg": readableFg(c.base),
+				border: `1px solid ${c.base}`,
+			});
+			break;
+		case "text":
+			Object.assign(style, {
+				"--button-bg": "transparent",
+				"--button-bg-hover": c.soft,
+				"--button-bg-pressed": c.soft,
+				"--button-fg": readableFg(c.base),
+			});
+			break;
+	}
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-	{ color = "primary", variant = "contained", pressed = false, className, ...props },
+	return style as CSSProperties;
+}
+
+/**
+ * - Foco de teclado = mismo aspecto que el hover (pinta `--button-bg-hover`).
+ * - En `soft` el hover/press/foco llevan el color pleno de fondo, así que el
+ *   texto pasa a `--btn-contained-fg` (blanco/negro según tema) para no
+ *   quedar oscuro-sobre-color.
+ */
+// Foco de teclado = mismo aspecto que el hover: se pinta `--button-bg-hover`.
+// El `!` es imprescindible porque `--button-*` se fija con `style` inline en
+// el componente y sin `!important` una clase no lo puede pisar.
+const HOVER_LIKE_FOCUS =
+	"data-[focus-visible]:[--button-bg:var(--button-bg-hover)]!";
+
+function interactionClassName(_variant: ButtonVariant): string {
+	return HOVER_LIKE_FOCUS;
+}
+
+export function Button({
+	color = "primary",
+	variant = "contained",
+	pressed = false,
+	type = "button",
+	disabled,
+	className,
+	style,
+	children,
+	onClick,
+	fullWidth,
+	isIconOnly,
 	ref,
-) {
+	...rest
+}: ButtonProps) {
+	// Por defecto los botones ocupan el ancho de su contenedor (dentro de una
+	// fila flex/grid eso los reparte equitativamente). Los de solo ícono y
+	// quien pase `fullWidth={false}` (cabeceras de modal, etc.) quedan al
+	// ancho del contenido.
+	const isFullWidth = fullWidth ?? !isIconOnly;
+
 	return (
-		<button
-			{...props}
+		<HeroButton
 			ref={ref}
-			className={[
-				baseClass,
-				variantClass[variant][color],
-				pressed ? pressedBaseClass : "",
-				pressed ? pressedVariantClass[variant][color] : "",
-				className ?? "",
-			]
+			type={type}
+			variant="primary"
+			size="lg"
+			fullWidth={isFullWidth}
+			isIconOnly={isIconOnly}
+			isDisabled={disabled}
+			data-pressed={pressed || undefined}
+			onPress={
+				onClick ? () => onClick({} as MouseEvent<HTMLButtonElement>) : undefined
+			}
+			className={[interactionClassName(variant), className]
 				.filter(Boolean)
 				.join(" ")}
-		/>
+			style={{ ...colorVars(color, variant), ...style }}
+			{...rest}
+		>
+			{children}
+		</HeroButton>
 	);
-});
+}
 
 Button.displayName = "Button";

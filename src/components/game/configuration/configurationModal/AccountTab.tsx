@@ -1,12 +1,9 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Fieldset } from "@/components/ui/Fieldset";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { motionVariants } from "@/styles/animations";
 import {
 	AVATAR_STYLE_OPTIONS,
-	AVATAR_STYLES,
 	type AvatarStyle,
 	type UserProfile,
 } from "@/types/progress";
@@ -58,60 +55,50 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 					setView((current) => (current === "profile" ? "session" : "profile"))
 				}
 			>
-				{view === "profile" ? "Gestionar sesión →" : "← Volver a personalización"}
+				{view === "profile"
+					? "Gestionar sesión →"
+					: "← Volver a personalización"}
 			</button>
 
-			<motion.div>
-				<AnimatePresence mode="wait" initial={false}>
-					{view === "profile" ? (
-						<motion.div
-							key="profile"
-							className="flex flex-col gap-4"
-							variants={motionVariants.tabContentSwitch}
-							initial="hidden"
-							animate="visible"
-							exit="hidden"
-						>
-							<Input
-								id="profile-name"
-								label="Nombre"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								onBlur={handleNameBlur}
-								maxLength={24}
-							/>
+			{view === "profile" ? (
+				<div
+					key="profile"
+					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-left-1 duration-200"
+				>
+					<Input
+						id="profile-name"
+						label="Nombre"
+						value={name}
+						onChange={(e) => setName(e.target.value)}
+						onBlur={handleNameBlur}
+						maxLength={24}
+					/>
 
-							<Fieldset className="gap-3" legend="Avatar" hideLegend>
-								<Select
-									id="avatar-style-select"
-									label="Avatar"
-									options={AVATAR_STYLE_OPTIONS}
-									value={profile.avatarStyle}
-									onChange={(value) =>
-										handleAvatarStyleChange(value as AvatarStyle)
-									}
-								/>
-								<Avatar
-									avatarStyle={profile.avatarStyle}
-									value={profile.avatarSeed}
-									onChange={handleAvatarSeedChange}
-								/>
-							</Fieldset>
-						</motion.div>
-					) : (
-						<motion.div
-							key="session"
-							className="flex flex-col gap-4"
-							variants={motionVariants.tabContentSwitch}
-							initial="hidden"
-							animate="visible"
-							exit="hidden"
-						>
-							<AuthSection />
-						</motion.div>
-					)}
-				</AnimatePresence>
-			</motion.div>
+					<Fieldset className="gap-3" legend="Avatar" hideLegend>
+						<Select
+							id="avatar-style-select"
+							label="Avatar"
+							options={AVATAR_STYLE_OPTIONS}
+							value={profile.avatarStyle}
+							onChange={(value) =>
+								handleAvatarStyleChange(value as AvatarStyle)
+							}
+						/>
+						<Avatar
+							avatarStyle={profile.avatarStyle}
+							value={profile.avatarSeed}
+							onChange={handleAvatarSeedChange}
+						/>
+					</Fieldset>
+				</div>
+			) : (
+				<div
+					key="session"
+					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-1 duration-200"
+				>
+					<AuthSection />
+				</div>
+			)}
 		</div>
 	);
 }

@@ -40,7 +40,9 @@ export function RegionOption({
 
 	const scoreStyle: ScoreStyle = {
 		"--app-score-color":
-			score !== null ? getScoreColor(score, isDarkTheme) : "var(--color-neutral-hover)",
+			score !== null
+				? getScoreColor(score, isDarkTheme)
+				: "var(--color-neutral-hover)",
 
 		"--app-score-background":
 			score !== null
@@ -57,23 +59,24 @@ export function RegionOption({
 			className={`
 	relative flex min-h-16 min-w-0 touch-manipulation cursor-pointer items-center rounded-md border border-l-4
 	border-(--app-score-color)
-	text-(--app-score-color)
-	outline-(--app-score-color)
+	text-surface-soft
 	hover:bg-(--app-score-background)
-	hover:text-(--app-score-active-color)
 	active:bg-(--app-score-background)
-	active:text-(--app-score-active-color)
+	has-focus-visible:bg-(--app-score-background)
 	has-checked:bg-(--app-score-background)
-	has-checked:text-(--app-score-active-color)
+	has-checked:border-2 has-checked:border-l-4
 	has-checked:[&_.region-check]:border-(--app-score-color)
 	has-checked:[&_.region-check]:bg-(--app-score-color)
 	transition duration-200 ease-in-out
 	hover:-translate-y-0.5
+	has-focus-visible:-translate-y-0.5
 	active:translate-y-0
 	active:scale-[0.98]
-	hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
-	active:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
-	has-checked:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_30%,transparent)]
+	hover:shadow-[0_0_0_2px_var(--app-score-color)]
+	active:shadow-[0_0_0_2px_var(--app-score-color)]
+	has-focus-visible:shadow-[0_0_0_2px_var(--app-score-color)]
+	has-checked:shadow-[0_0_0_2px_var(--app-score-color)]
+	outline-[var(--focus)]
 	has-focus-visible:outline-[3px]
 	has-focus-visible:outline-offset-3
 	min-[44rem]:min-h-19
@@ -134,7 +137,10 @@ export function RegionOption({
 
 					<span className="flex shrink-0 items-center gap-1.5">
 						{score !== null && (
-							<Tooltip id={tooltipId} label="Promedio de tus últimas 3 partidas">
+							<Tooltip
+								id={tooltipId}
+								label="Promedio de tus últimas 3 partidas"
+							>
 								<button
 									type="button"
 									className="
@@ -185,11 +191,13 @@ export function RegionOption({
 					"
 				>
 					<span>{countryCount} países</span>
-					{bestTimeLabel && <span className="font-black">⏱ {bestTimeLabel}</span>}
+					{bestTimeLabel && (
+						<span className="font-black">⏱ {bestTimeLabel}</span>
+					)}
 				</span>
 
 				{practicedLabel && (
-					<span className="text-(--app-score-color) text-[0.68rem] font-bold">
+					<span className="text-surface-soft text-[0.68rem] font-bold">
 						{practicedLabel}
 					</span>
 				)}

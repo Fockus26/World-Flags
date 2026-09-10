@@ -1,0 +1,105 @@
+/**
+ * Puente de tema: reescribe los tokens base de HeroUI v3 con la paleta de
+ * marca de World Flags (el morado de `variables.css`). HeroUI deriva solos los
+ * `-hover` / `-soft` / `-foreground` vía `color-mix`, así que solo hace falta
+ * pisar los tokens base.
+ *
+ * El modo oscuro lo maneja `data-theme="dark"` en <html> (lo escribe
+ * `ThemeEffects`), que es el mismo selector que usa HeroUI.
+ */
+
+@layer theme {
+	:root,
+	[data-theme="light"],
+	.dark,
+	[data-theme="dark"] {
+		/* HeroUI deja los campos sin borde por defecto (solo sombra). En este
+		   diseño las tarjetas son claras/planas, así que se les da un borde
+		   visible y un poco más de alto para que se lean como campos. */
+		--field-border-width: 1px;
+		--field-radius: calc(var(--radius) * 0.85);
+	}
+
+	:root,
+	[data-theme="light"] {
+		--radius: 0.75rem;
+		/* ≥3:1 sobre #fff (WCAG 1.4.11 para bordes de controles). */
+		--field-border: #9c96c4;
+		--font-sans:
+			"Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+			sans-serif;
+
+		--background: #f2f1f8;
+		--foreground: #1c1b2e;
+		--surface: #ffffff;
+		--surface-foreground: #1c1b2e;
+		--overlay: #ffffff;
+		--overlay-foreground: #1c1b2e;
+		--muted: #6b6880;
+		--default: #eeedf6;
+		--default-foreground: #1c1b2e;
+		--border: #e4e2f2;
+		--separator: #ece9f6;
+
+		--accent: #6d5ef0;
+		--accent-foreground: #f7f6ff;
+		--secondary: #b34bd1;
+		--secondary-foreground: #f9f0fc;
+
+		--success: #1fa971;
+		--success-foreground: #06281c;
+		--warning: #d97a13;
+		--warning-foreground: #2c1704;
+		--danger: #e0435f;
+		--danger-foreground: #fff2f4;
+
+		/* Relleno con un gris muy suave (no blanco) para que inputs y selects
+		   se separen del fondo blanco de las tarjetas y modales. */
+		--field-background: #f1eff8;
+		--field-foreground: #1c1b2e;
+		--backdrop: rgb(28 20 46 / 55%);
+
+		/* Texto de los botones "contained": los fondos de marca en claro son
+		   medios/saturados -> texto blanco; en oscuro son pasteles -> texto
+		   casi negro (ver bloque dark). Un único valor sirve para los 6
+		   colores porque la paleta entera vira igual entre temas. */
+		--btn-contained-fg: #ffffff;
+	}
+
+	.dark,
+	[data-theme="dark"] {
+		--background: #14121f;
+		--foreground: #f1eefc;
+		--surface: #1b1930;
+		--surface-foreground: #f1eefc;
+		--overlay: #1b1930;
+		--overlay-foreground: #f1eefc;
+		--muted: #a29cc0;
+		--default: #262238;
+		--default-foreground: #f1eefc;
+		--border: #34304a;
+		--separator: #2c2942;
+
+		--accent: #9b8bff;
+		--accent-foreground: #12101c;
+		--secondary: #e19bec;
+		--secondary-foreground: #2a1430;
+
+		--success: #4fd399;
+		--success-foreground: #06281c;
+		--warning: #f2a53d;
+		--warning-foreground: #2c1704;
+		--danger: #f2748c;
+		--danger-foreground: #2c0b12;
+
+		/* Un pelín más claro que la superficie del modal (#1b1930) para
+		   separar el campo del fondo. */
+		--field-background: #2b2740;
+		--field-foreground: #f1eefc;
+		/* ≥3:1 sobre el fondo del campo. */
+		--field-border: #6f6a94;
+		--backdrop: rgb(8 6 16 / 70%);
+
+		--btn-contained-fg: #14121f;
+	}
+}

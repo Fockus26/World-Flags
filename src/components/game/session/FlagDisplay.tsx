@@ -21,7 +21,7 @@ export function FlagDisplay({ countryCode }: { countryCode: string }) {
 				src={`https://flagcdn.com/${countryCode}.svg`}
 				alt="Bandera que debes identificar"
 				variants={motionVariants.flagEnter}
-				initial="hidden"
+				initial={false}
 				animate="visible"
 			/>
 		</div>

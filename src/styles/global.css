@@ -1,12 +1,14 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 @import "./variables.css";
 @import "./theme.css";
+@import "./heroui-theme.css";
 
 @layer base {
 	:root {
 		font-family: var(--font-sans);
 		color: var(--color-text);
-		background: var(--color-surface-soft);
+		background: var(--background);
 		font-synthesis: none;
 		text-rendering: optimizeLegibility;
 	}
@@ -28,14 +30,14 @@
 		height: 100%;
 		margin: 0;
 		overflow: hidden;
-		color: var(--color-surface-soft);
+		color: var(--foreground);
 		background:
 			radial-gradient(
 				circle at top left,
 				color-mix(in srgb, var(--color-primary) 12%, transparent),
 				transparent 34rem
 			),
-			var(--color-surface);
+			var(--background);
 	}
 
 	button {

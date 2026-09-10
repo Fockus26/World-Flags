@@ -22,5 +22,16 @@ export default defineConfig({
 	],
 	vite: {
 		plugins: [tailwindcss()],
+		// react-aria-components (par de HeroUI) debe compartir la misma copia
+		// de React que el resto de la isla.
+		resolve: {
+			dedupe: ["react", "react-dom"],
+		},
+		// Pre-empaquetar las deps grandes en un solo pase al arrancar. Sin
+		// esto, Vite las descubre de forma perezosa y reoptimiza a mitad de
+		// carga -> 504 "Outdated Optimize Dep" y la isla no hidrata.
+		optimizeDeps: {
+			include: ["react", "react-dom", "@heroui/react", "react-aria-components", "framer-motion"],
+		},
 	},
 });

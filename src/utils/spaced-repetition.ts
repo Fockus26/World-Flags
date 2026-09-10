@@ -41,7 +41,10 @@ export function calculateNextReview(
 	}
 
 	const repetitions = previousRepetitions + 1;
-	const easeFactor = Math.max(MIN_EASE_FACTOR, previousEase + GRADE_EASE_DELTA[grade]);
+	const easeFactor = Math.max(
+		MIN_EASE_FACTOR,
+		previousEase + GRADE_EASE_DELTA[grade],
+	);
 
 	let intervalDays: number;
 	if (repetitions === 1) {
@@ -49,7 +52,9 @@ export function calculateNextReview(
 	} else if (repetitions === 2) {
 		intervalDays = 6;
 	} else {
-		intervalDays = Math.round(previousInterval * easeFactor * GRADE_FACTOR[grade]);
+		intervalDays = Math.round(
+			previousInterval * easeFactor * GRADE_FACTOR[grade],
+		);
 	}
 
 	return {

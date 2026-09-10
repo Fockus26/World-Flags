@@ -2,12 +2,16 @@ import { supabase } from "@/lib/supabase";
 
 import type { UserLearningData } from "@/types/progress";
 
-import { hasLearningProgress } from "./learning-storage";
+import { hasLearningProgress, mergePracticeState } from "./learning-storage";
 
-export async function fetchRemoteLearningData(userId: string): Promise<UserLearningData | null> {
+export async function fetchRemoteLearningData(
+	userId: string,
+): Promise<UserLearningData | null> {
 	const { data, error } = await supabase
 		.from("user_learning_data")
-		.select("profile, country_history, region_game_scores, last_configuration")
+		.select(
+			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country",
+		)
 		.eq("user_id", userId)
 		.maybeSingle();
 
@@ -26,21 +30,23 @@ export async function fetchRemoteLearningData(userId: string): Promise<UserLearn
 		countryHistory: data.country_history,
 		regionGameScores: data.region_game_scores,
 		lastConfiguration: data.last_configuration,
-		// No existen columnas en Supabase todavía: el candado diario por país y
-		// las mejores marcas de tiempo solo viven en localStorage por ahora, no
-		// se sincronizan entre dispositivos.
-		regionBestTimes: {},
-		lastPracticeByCountry: {},
+		regionBestTimes: data.region_best_times ?? {},
+		lastPracticeByCountry: data.last_practice_by_country ?? {},
 	};
 }
 
-export async function pushLearningData(userId: string, data: UserLearningData): Promise<void> {
+export async function pushLearningData(
+	userId: string,
+	data: UserLearningData,
+): Promise<void> {
 	const { error } = await supabase.from("user_learning_data").upsert({
 		user_id: userId,
 		profile: data.profile,
 		country_history: data.countryHistory,
 		region_game_scores: data.regionGameScores,
+		region_best_times: data.regionBestTimes,
 		last_configuration: data.lastConfiguration,
+		last_practice_by_country: data.lastPracticeByCountry,
 		updated_at: new Date().toISOString(),
 	});
 
@@ -84,11 +90,26 @@ export async function syncOnLogin(
 	}
 
 	/**
-	 * La cuenta ya tiene progreso.
-	 *
-	 * El progreso del invitado NO modifica la cuenta.
+	 * La cuenta ya tiene progreso: gana lo remoto, PERO el candado diario y las
+	 * mejores marcas se fusionan con lo local para no perder una jornada en
+	 * curso en este dispositivo (ni una marca batida sin conexión).
 	 */
-	return remote;
+	const merged: UserLearningData = {
+		...remote,
+		...mergePracticeState(remote, localData),
+	};
+
+	// Si el merge aportó algo que no estaba en remoto, se sube de vuelta.
+	if (
+		JSON.stringify(merged.lastPracticeByCountry) !==
+			JSON.stringify(remote.lastPracticeByCountry) ||
+		JSON.stringify(merged.regionBestTimes) !==
+			JSON.stringify(remote.regionBestTimes)
+	) {
+		await pushLearningData(userId, merged);
+	}
+
+	return merged;
 }
 
 export interface LeaderboardEntry {
@@ -104,7 +125,9 @@ export interface LeaderboardEntry {
  * `leaderboard_entries` es pública y liviana (nombre + tiempo), así que esto
  * no debería ser un problema salvo con muchísimos usuarios.
  */
-export async function fetchLeaderboard(scope: string): Promise<LeaderboardEntry[]> {
+export async function fetchLeaderboard(
+	scope: string,
+): Promise<LeaderboardEntry[]> {
 	const { data, error } = await supabase
 		.from("leaderboard_entries")
 		.select("user_id, display_name, best_time_ms")

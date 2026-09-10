@@ -40,7 +40,10 @@ export function prepareCountries(
 	countries: readonly Country[],
 	configuration: GameConfiguration,
 ): Country[] {
-	const filteredCountries = resolveScopeCountries(countries, configuration.scope);
+	const filteredCountries = resolveScopeCountries(
+		countries,
+		configuration.scope,
+	);
 
 	if (configuration.order === "random") {
 		return shuffle(filteredCountries);
@@ -49,7 +52,10 @@ export function prepareCountries(
 	// Un solo continente completo (sin países sueltos ni mezcla): alfabético
 	// simple, como antes. Cualquier otra combinación (mundo, varios
 	// continentes, países sueltos) se agrupa por continente.
-	if (configuration.scope.type === "world" || !getExactSingleRegion(configuration.scope)) {
+	if (
+		configuration.scope.type === "world" ||
+		!getExactSingleRegion(configuration.scope)
+	) {
 		return sortWorldCountries(filteredCountries);
 	}
 

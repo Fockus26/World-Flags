@@ -1,8 +1,13 @@
 import { Button } from "@/components/ui/Button";
+import { useTheme } from "@/hooks/useTheme";
 import type { GameResult } from "@/types/country";
 import { formatElapsedTime } from "@/utils/learning-storage";
 import { getScopeLabel } from "@/utils/practice-scope";
-import { getScoreBackgroundColor, getScoreColor, getScoreMessage } from "@/utils/score";
+import {
+	getScoreBackgroundColor,
+	getScoreColor,
+	getScoreMessage,
+} from "@/utils/score";
 
 interface ResultsProps {
 	result: GameResult;
@@ -10,7 +15,11 @@ interface ResultsProps {
 	onExit: () => void;
 }
 
-function CompetitiveResults({ result }: { result: Extract<GameResult, { mode: "competitive" }> }) {
+function CompetitiveResults({
+	result,
+}: {
+	result: Extract<GameResult, { mode: "competitive" }>;
+}) {
 	return (
 		<>
 			<p className="m-0 text-text-placeholder">Rush terminado</p>
@@ -34,10 +43,17 @@ function CompetitiveResults({ result }: { result: Extract<GameResult, { mode: "c
 	);
 }
 
-function PracticeResults({ result }: { result: Extract<GameResult, { mode: "practice" }> }) {
-	const scoreColor = getScoreColor(result.score);
-	const scoreBackground = getScoreBackgroundColor(result.score);
-	const percentage = Math.round((result.correctAnswers / result.totalCountries) * 100);
+function PracticeResults({
+	result,
+}: {
+	result: Extract<GameResult, { mode: "practice" }>;
+}) {
+	const isDark = useTheme().resolvedTheme === "dark";
+	const scoreColor = getScoreColor(result.score, isDark);
+	const scoreBackground = getScoreBackgroundColor(result.score, isDark);
+	const percentage = Math.round(
+		(result.correctAnswers / result.totalCountries) * 100,
+	);
 
 	return (
 		<>
@@ -76,7 +92,7 @@ export function Results({ result, onRestart, onExit }: ResultsProps) {
 	const scopeLabel = getScopeLabel(result.scope);
 
 	return (
-		<section className="flex max-h-full w-[min(100%,38rem)] flex-col items-center overflow-auto rounded-2xl border border-surface bg-surface p-4 text-center sm:p-[clamp(1.5rem,4vh,2.5rem)]">
+		<section className="flex max-h-full w-[min(100%,38rem)] flex-col items-center overflow-auto rounded-2xl border border-surface-border bg-surface p-4 text-center shadow-xl sm:p-[clamp(1.5rem,4vh,2.5rem)]">
 			{result.mode === "competitive" ? (
 				<CompetitiveResults result={result} />
 			) : (

@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { FlagDisplay } from "@/components/game/session/FlagDisplay";
@@ -7,7 +6,6 @@ import { GradeButtons } from "@/components/ui/GradeButtons";
 import { countries } from "@/data/countries";
 import { useGame } from "@/hooks/useGame";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
-import { motionTransition, motionVariants } from "@/styles/animations";
 import type { ReviewGrade } from "@/types/progress";
 
 interface DailyPracticeProps {
@@ -35,7 +33,9 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 		onFinish,
 	});
 
-	const currentCountry = countries.find((country) => country.code === currentCode);
+	const currentCountry = countries.find(
+		(country) => country.code === currentCode,
+	);
 
 	function handleGrade(gradeValue: ReviewGrade) {
 		grade(gradeValue);
@@ -71,12 +71,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 
 	return (
 		<>
-			<motion.section
-				className="flex h-[min(100%,45rem)] md:h-[min(100%, 50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-surface-border bg-surface p-[0.85rem] min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
-				variants={motionVariants.contentEnter}
-				initial="hidden"
-				animate="visible"
-			>
+			<section className="flex h-[min(100%,45rem)] md:h-[min(100%,50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-surface-border bg-surface p-[0.85rem] animate-in fade-in-0 slide-in-from-bottom-2 duration-300 min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]">
 				<Header
 					regionLabel="Práctica diaria"
 					currentIndex={completedCount}
@@ -87,51 +82,31 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 				<div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-[0.65rem] min-[30rem]:gap-[clamp(0.75rem,2vh,1.5rem)]">
 					<FlagDisplay countryCode={currentCountry.code} />
 
-					<motion.div
-						className="flex flex-col items-center gap-3"
-						layout
-						transition={{ layout: motionTransition(0.2) }}
-					>
-						<AnimatePresence mode="popLayout" initial={false}>
-							{!isRevealed ? (
-								<motion.button
-									key="hint"
-									type="button"
-									layout
-									onClick={() => setIsRevealed(true)}
-									className="m-0 cursor-pointer border-0 bg-transparent p-0 text-center text-[0.95rem] text-text-placeholder"
-									variants={motionVariants.feedbackEnter}
-									initial="hidden"
-									animate="visible"
-									exit="exit"
-								>
-									Presiona{" "}
-									<kbd className="hidden rounded-sm border border-surface-border bg-surface-soft px-2 py-[0.15rem] text-[0.85rem] text-secondary-soft min-[44rem]:inline">
-										Espacio
-									</kbd>{" "}
-									<span className="min-[44rem]:hidden">Toca aquí</span>
-									<span className="hidden min-[44rem]:inline">para revelar</span>
-								</motion.button>
-							) : (
-								<motion.div
-									key="answer"
-									layout
-									className="flex w-full flex-col items-center gap-3"
-									variants={motionVariants.answerFeedbackEnter}
-									initial="hidden"
-									animate="visible"
-									exit="exit"
-								>
-									<p className="m-0 text-center font-extrabold text-[1.4rem] text-surface-soft">
-										{currentCountry.name}
-									</p>
-									<GradeButtons onGrade={handleGrade} />
-								</motion.div>
-							)}
-						</AnimatePresence>
-					</motion.div>
+					<div className="flex flex-col items-center gap-3">
+						{!isRevealed ? (
+							<button
+								type="button"
+								onClick={() => setIsRevealed(true)}
+								className="m-0 cursor-pointer border-0 bg-transparent p-0 text-center text-[0.95rem] text-text-placeholder animate-in fade-in-0 duration-150"
+							>
+								Presiona{" "}
+								<kbd className="hidden rounded-sm border border-surface-border bg-surface-soft px-2 py-[0.15rem] text-[0.85rem] text-secondary-soft min-[44rem]:inline">
+									Espacio
+								</kbd>{" "}
+								<span className="min-[44rem]:hidden">Toca aquí</span>
+								<span className="hidden min-[44rem]:inline">para revelar</span>
+							</button>
+						) : (
+							<div className="flex w-full flex-col items-center gap-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
+								<p className="m-0 text-center font-extrabold text-[1.4rem] text-surface-soft">
+									{currentCountry.name}
+								</p>
+								<GradeButtons onGrade={handleGrade} />
+							</div>
+						)}
+					</div>
 				</div>
-			</motion.section>
+			</section>
 
 			<ConfirmationModal
 				isOpen={isExitModalOpen}

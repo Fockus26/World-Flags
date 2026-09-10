@@ -9,6 +9,8 @@ import {
 } from "@/types/country";
 import type {
 	CountriesLearningHistory,
+	LastPracticeByCountry,
+	RegionBestTimes,
 	ReviewGrade,
 	ReviewState,
 	UserLearningData,
@@ -42,13 +44,19 @@ function migrateCountryHistory(
 	if (!history) return {};
 
 	return Object.fromEntries(
-		Object.entries(history).map(([code, entry]) => [code, { review: entry.review ?? null }]),
+		Object.entries(history).map(([code, entry]) => [
+			code,
+			{ review: entry.review ?? null },
+		]),
 	);
 }
 
 /** Configuraciones guardadas antes del scope combinable tenían `region` en vez de `scope`. */
 function migrateConfiguration(
-	configuration: (Partial<GameConfiguration> & { region?: PracticeRegion }) | null | undefined,
+	configuration:
+		| (Partial<GameConfiguration> & { region?: PracticeRegion })
+		| null
+		| undefined,
 ): GameConfiguration | null {
 	if (!configuration) return null;
 
@@ -168,7 +176,8 @@ export function updateLastConfiguration(
 		lastConfiguration: {
 			scope: currentData.lastConfiguration?.scope ?? DEFAULT_SCOPE,
 			order: currentData.lastConfiguration?.order ?? "alphabetical",
-			timerDuration: currentData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			timerDuration:
+				currentData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
 			timerEnabled: currentData.lastConfiguration?.timerEnabled ?? false,
 			difficulty: currentData.lastConfiguration?.difficulty ?? "hard",
 			mode: currentData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE,
@@ -186,7 +195,11 @@ export function registerCountryAttempt(
 	countryCode: string,
 	isCorrect: boolean,
 ): UserLearningData {
-	return saveReviewResult(currentData, countryCode, isCorrect ? "good" : "again");
+	return saveReviewResult(
+		currentData,
+		countryCode,
+		isCorrect ? "good" : "again",
+	);
 }
 
 export function registerRegionGame(
@@ -250,7 +263,50 @@ export function getUnpracticedCodesToday(
 	countryCodes: readonly string[],
 	today: string = getLocalDateString(),
 ): string[] {
-	return countryCodes.filter((code) => data.lastPracticeByCountry[code] !== today);
+	return countryCodes.filter(
+		(code) => data.lastPracticeByCountry[code] !== today,
+	);
+}
+
+/**
+ * Une el candado diario y las mejores marcas de dos orígenes (localStorage y
+ * Supabase) sin que uno pise al otro:
+ *
+ * - `lastPracticeByCountry`: por país se queda la fecha más reciente, para que
+ *   una jornada en curso local sobreviva a un login que trae datos remotos
+ *   viejos (y viceversa).
+ * - `regionBestTimes`: por continente se queda el menor tiempo (la mejor marca).
+ */
+export function mergePracticeState(
+	base: Pick<UserLearningData, "lastPracticeByCountry" | "regionBestTimes">,
+	incoming: Pick<UserLearningData, "lastPracticeByCountry" | "regionBestTimes">,
+): Pick<UserLearningData, "lastPracticeByCountry" | "regionBestTimes"> {
+	const lastPracticeByCountry: LastPracticeByCountry = {
+		...base.lastPracticeByCountry,
+	};
+
+	for (const [code, date] of Object.entries(incoming.lastPracticeByCountry)) {
+		if (!date) continue;
+		const current = lastPracticeByCountry[code];
+		if (current === undefined || date > current) {
+			lastPracticeByCountry[code] = date;
+		}
+	}
+
+	const regionBestTimes: RegionBestTimes = { ...base.regionBestTimes };
+
+	for (const [region, timeMs] of Object.entries(incoming.regionBestTimes) as [
+		PracticeRegion,
+		number | undefined,
+	][]) {
+		if (timeMs === undefined) continue;
+		const current = regionBestTimes[region];
+		if (current === undefined || timeMs < current) {
+			regionBestTimes[region] = timeMs;
+		}
+	}
+
+	return { lastPracticeByCountry, regionBestTimes };
 }
 
 export function registerCountryPracticed(
@@ -273,8 +329,11 @@ export function isCountryLearned(review: ReviewState | null): boolean {
 	return review !== null && review.repetitions > 0;
 }
 
-export function countLearnedCountries(history: CountriesLearningHistory): number {
-	return Object.values(history).filter(({ review }) => isCountryLearned(review)).length;
+export function countLearnedCountries(
+	history: CountriesLearningHistory,
+): number {
+	return Object.values(history).filter(({ review }) => isCountryLearned(review))
+		.length;
 }
 
 export function calculateLearningProgress(
@@ -290,7 +349,9 @@ export function calculateLearningProgress(
 	return Math.round((learnedCountries / totalCountries) * 100);
 }
 
-export function calculateRegionAverage(scores: number[] | undefined): number | null {
+export function calculateRegionAverage(
+	scores: number[] | undefined,
+): number | null {
 	if (!scores?.length) {
 		return null;
 	}
@@ -328,7 +389,8 @@ export function saveReviewResult(
 	countryCode: string,
 	grade: ReviewGrade,
 ): UserLearningData {
-	const previousReview = currentData.countryHistory[countryCode]?.review ?? null;
+	const previousReview =
+		currentData.countryHistory[countryCode]?.review ?? null;
 
 	const updatedData: UserLearningData = {
 		...currentData,
@@ -343,5 +405,7 @@ export function saveReviewResult(
 }
 
 export function getDueCountries(history: CountriesLearningHistory): string[] {
-	return Object.keys(history).filter((code) => isDue(history[code]?.review ?? null));
+	return Object.keys(history).filter((code) =>
+		isDue(history[code]?.review ?? null),
+	);
 }

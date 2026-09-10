@@ -4,7 +4,11 @@ import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { useGame } from "@/hooks/useGame";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import { motionVariants } from "@/styles/animations";
-import { type AnswerStatus, DEFAULT_TIMER_DURATION, type Region } from "@/types/country";
+import {
+	type AnswerStatus,
+	DEFAULT_TIMER_DURATION,
+	type Region,
+} from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
 import { isCorrectAnswer } from "@/utils/normalize-answer";
 import { getScopeLabel } from "@/utils/practice-scope";
@@ -31,14 +35,22 @@ const RUSH_ADVANCE_MS = 900;
 const SKIP_REVEAL_MS = 1500;
 
 export function Session() {
-	const { activeGame, learningData, exitGame, finishGame, attemptCountry, gradeCountryReview } =
-		useGame();
+	const {
+		activeGame,
+		learningData,
+		exitGame,
+		finishGame,
+		attemptCountry,
+		gradeCountryReview,
+	} = useGame();
 
 	const countries = activeGame?.countries ?? [];
-	const timerDuration = activeGame?.configuration.timerDuration ?? DEFAULT_TIMER_DURATION;
+	const timerDuration =
+		activeGame?.configuration.timerDuration ?? DEFAULT_TIMER_DURATION;
 	const isPracticeMode = activeGame?.configuration.mode === "practice";
 	const isCompetitiveMode = activeGame?.configuration.mode === "competitive";
-	const isTimedPractice = isPracticeMode && (activeGame?.configuration.timerEnabled ?? false);
+	const isTimedPractice =
+		isPracticeMode && (activeGame?.configuration.timerEnabled ?? false);
 
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [answer, setAnswer] = useState("");
@@ -62,13 +74,19 @@ export function Session() {
 	const practiceQueue = usePracticeQueue({
 		initialCodes: countries.map((country) => country.code),
 		countryHistory: learningData.countryHistory,
-		onGrade: (code, grade, isFirstAttempt) => gradeCountryReview(code, grade, isFirstAttempt),
+		onGrade: (code, grade, isFirstAttempt) =>
+			gradeCountryReview(code, grade, isFirstAttempt),
 		onFinish: () => {
-			const regionBreakdown: Partial<Record<Region, { correct: number; total: number }>> = {};
+			const regionBreakdown: Partial<
+				Record<Region, { correct: number; total: number }>
+			> = {};
 
 			for (const country of countries) {
 				const isCorrect = firstAttemptResultsRef.current[country.code] ?? false;
-				const entry = regionBreakdown[country.region] ?? { correct: 0, total: 0 };
+				const entry = regionBreakdown[country.region] ?? {
+					correct: 0,
+					total: 0,
+				};
 				entry.total += 1;
 				if (isCorrect) entry.correct += 1;
 				regionBreakdown[country.region] = entry;
@@ -164,7 +182,9 @@ export function Session() {
 	function advanceCompetitive() {
 		if (isLastCountry) {
 			const finalElapsedMs =
-				startTimeRef.current !== null ? Date.now() - startTimeRef.current : elapsedMs;
+				startTimeRef.current !== null
+					? Date.now() - startTimeRef.current
+					: elapsedMs;
 
 			finishGame({
 				mode: "competitive",
@@ -196,7 +216,11 @@ export function Session() {
 		if (!currentCountry || answerStatus !== "idle" || !answer.trim()) {
 			return;
 		}
-		const isCorrect = isCorrectAnswer(answer, currentCountry.name, configuration.difficulty);
+		const isCorrect = isCorrectAnswer(
+			answer,
+			currentCountry.name,
+			configuration.difficulty,
+		);
 
 		if (configuration.mode === "competitive") {
 			attemptCountry(currentCountry.code, isCorrect);
@@ -264,15 +288,19 @@ export function Session() {
 	return (
 		<>
 			<motion.section
-				className="flex h-[min(100%,45rem)] md:h-[min(100%, 50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-surface-border bg-surface p-[0.85rem] min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
+				className="flex h-[min(100%,45rem)] md:h-[min(100%,50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-surface-border bg-surface p-[0.85rem] min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
 				variants={motionVariants.contentEnter}
-				initial="hidden"
+				initial={false}
 				animate="visible"
 			>
 				<Header
 					regionLabel={scopeLabel}
-					currentIndex={isPracticeMode ? practiceQueue.completedCount : currentIndex}
-					totalCountries={isPracticeMode ? practiceQueue.totalCount : countries.length}
+					currentIndex={
+						isPracticeMode ? practiceQueue.completedCount : currentIndex
+					}
+					totalCountries={
+						isPracticeMode ? practiceQueue.totalCount : countries.length
+					}
 					timeLeft={isTimedPractice ? timeLeft : undefined}
 					timerDuration={isTimedPractice ? timerDuration : undefined}
 					elapsedMs={isCompetitiveMode ? elapsedMs : undefined}
@@ -295,7 +323,11 @@ export function Session() {
 				</div>
 			</motion.section>
 
-			<ConfirmationModal isOpen={isExitModalOpen} onCancel={handleCancelExit} onConfirm={exitGame} />
+			<ConfirmationModal
+				isOpen={isExitModalOpen}
+				onCancel={handleCancelExit}
+				onConfirm={exitGame}
+			/>
 		</>
 	);
 }

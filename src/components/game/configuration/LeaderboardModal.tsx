@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Modal } from "@/components/ui/Modal";
 import { useAuth } from "@/hooks/useAuth";
-import { type LeaderboardEntry, fetchLeaderboard } from "@/utils/cloud-storage";
+import { fetchLeaderboard, type LeaderboardEntry } from "@/utils/cloud-storage";
 import { formatElapsedTime } from "@/utils/learning-storage";
 
 interface LeaderboardModalProps {
@@ -29,7 +29,9 @@ function LeaderboardRow({
 			}`}
 		>
 			<span className="flex min-w-0 items-center gap-2.5">
-				<span className="w-6 shrink-0 text-right font-black tabular-nums">#{rank}</span>
+				<span className="w-6 shrink-0 text-right font-black tabular-nums">
+					#{rank}
+				</span>
 				<span className="truncate font-bold">{entry.displayName}</span>
 			</span>
 			<span className="shrink-0 font-extrabold tabular-nums">
@@ -56,7 +58,8 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 				if (!cancelled) setEntries(result);
 			})
 			.catch(() => {
-				if (!cancelled) setError("No se pudo cargar el ranking. Intenta de nuevo más tarde.");
+				if (!cancelled)
+					setError("No se pudo cargar el ranking. Intenta de nuevo más tarde.");
 			});
 
 		return () => {
@@ -64,7 +67,8 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 		};
 	}, [isOpen]);
 
-	const myIndex = entries?.findIndex((entry) => entry.userId === user?.id) ?? -1;
+	const myIndex =
+		entries?.findIndex((entry) => entry.userId === user?.id) ?? -1;
 	const myRank = myIndex >= 0 ? myIndex + 1 : null;
 	const isMeInTop = myRank !== null && myRank <= TOP_COUNT;
 
@@ -72,7 +76,6 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			animateHeight
 			className="w-[min(28rem,92vw)] text-left"
 			ariaLabelledby="leaderboard-title"
 		>
@@ -80,7 +83,13 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 				<h2 id="leaderboard-title" className="m-0">
 					Ranking — Todo el mundo
 				</h2>
-				<Button variant="text" color="danger" type="button" onClick={onClose}>
+				<Button
+					variant="text"
+					color="danger"
+					type="button"
+					fullWidth={false}
+					onClick={onClose}
+				>
 					Cerrar
 				</Button>
 			</header>
@@ -127,12 +136,15 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 				</>
 			)}
 
-			{status === "authenticated" && entries !== null && entries.length > 0 && myRank === null && (
-				<p className="mt-3 mb-0 text-[0.8rem] text-text-placeholder">
-					Todavía no tienes un tiempo registrado: completa una práctica competitiva de "Todo
-					el mundo" para entrar al ranking.
-				</p>
-			)}
+			{status === "authenticated" &&
+				entries !== null &&
+				entries.length > 0 &&
+				myRank === null && (
+					<p className="mt-3 mb-0 text-[0.8rem] text-text-placeholder">
+						Todavía no tienes un tiempo registrado: completa una práctica
+						competitiva de "Todo el mundo" para entrar al ranking.
+					</p>
+				)}
 
 			{status !== "authenticated" && (
 				<p className="mt-3 mb-0 text-[0.8rem] text-text-placeholder">

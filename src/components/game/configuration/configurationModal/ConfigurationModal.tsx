@@ -1,9 +1,13 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { Tabs } from "@heroui/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { motionVariants } from "@/styles/animations";
-import type { Difficulty, GameMode, PracticeOrder, TimerDuration } from "@/types/country";
+import type {
+	Difficulty,
+	GameMode,
+	PracticeOrder,
+	TimerDuration,
+} from "@/types/country";
 import type { UserProfile } from "@/types/progress";
 import { AccountTab } from "./AccountTab";
 import { GameTab } from "./GameTab";
@@ -27,11 +31,6 @@ interface ConfigurationModalProps {
 	onDifficultyChange: (difficulty: Difficulty) => void;
 }
 
-const TABS: { id: ConfigurationModalTab; label: string }[] = [
-	{ id: "account", label: "Usuario" },
-	{ id: "game", label: "Juego" },
-];
-
 export function ConfigurationModal({
 	isOpen,
 	onClose,
@@ -54,82 +53,56 @@ export function ConfigurationModal({
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			animateHeight
-			className="w-[min(30rem,92vw)] text-left !overflow-y-visible"
+			className="w-[min(30rem,92vw)] text-left"
 			ariaLabelledby="user-modal-title"
 		>
 			<header className="mb-3 flex items-center justify-between">
-				<h2>Perfil y configuración</h2>
-				<Button variant="text" color="danger" type="button" onClick={onClose}>
+				<h2 id="user-modal-title">Perfil y configuración</h2>
+				<Button
+					variant="text"
+					color="danger"
+					type="button"
+					fullWidth={false}
+					onClick={onClose}
+				>
 					Cerrar
 				</Button>
 			</header>
 
-			<div className="mb-4 flex" role="tablist" aria-label="Secciones">
-				{TABS.map((tab) => (
-					<button
-						key={tab.id}
-						type="button"
-						role="tab"
-						aria-selected={activeTab === tab.id}
-						aria-controls={`panel-${tab.id}`}
-						className="relative flex-1 cursor-pointer border-0 border-b-2 border-transparent bg-transparent px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-placeholder transition-colors duration-150 hover:text-surface-soft active:text-surface-soft aria-selected:text-surface-soft focus-visible:text-surface-soft"
-						onClick={() => setActiveTab(tab.id)}
-					>
-						{tab.label}
-						{activeTab === tab.id && (
-							<motion.span
-								className="absolute right-0 bottom-px left-0 h-0.5 bg-surface-soft"
-								layoutId="configurationTabIndicator"
-								transition={{ type: "spring", stiffness: 500, damping: 40 }}
-							/>
-						)}
-					</button>
-				))}
-			</div>
+			<Tabs
+				selectedKey={activeTab}
+				onSelectionChange={(key) => setActiveTab(key as ConfigurationModalTab)}
+			>
+				<Tabs.List aria-label="Secciones" className="mb-4">
+					<Tabs.Tab id="account">Usuario</Tabs.Tab>
+					<Tabs.Tab id="game">Juego</Tabs.Tab>
+				</Tabs.List>
 
-			<motion.div>
-				<AnimatePresence mode="wait" initial={false}>
-					{activeTab === "account" ? (
-						<motion.div
-							key="account"
-							role="tabpanel"
-							aria-labelledby="tab-account"
-							className="flex flex-col gap-4"
-							variants={motionVariants.tabContentSwitch}
-							initial="hidden"
-							animate="visible"
-							exit="hidden"
-						>
-							<AccountTab profile={profile} onSaveProfile={onSaveProfile} />
-						</motion.div>
-					) : (
-						<motion.div
-							key="game"
-							role="tabpanel"
-							aria-labelledby="tab-game"
-							className="flex flex-col gap-4"
-							variants={motionVariants.tabContentSwitch}
-							initial="hidden"
-							animate="visible"
-							exit="hidden"
-						>
-							<GameTab
-								mode={mode}
-								onModeChange={onModeChange}
-								order={order}
-								onOrderChange={onOrderChange}
-								timerDuration={timerDuration}
-								onTimerDurationChange={onTimerDurationChange}
-								timerEnabled={timerEnabled}
-								onTimerEnabledChange={onTimerEnabledChange}
-								difficulty={difficulty}
-								onDifficultyChange={onDifficultyChange}
-							/>
-						</motion.div>
-					)}
-				</AnimatePresence>
-			</motion.div>
+				<Tabs.Panel
+					id="account"
+					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-1 duration-200"
+				>
+					<AccountTab profile={profile} onSaveProfile={onSaveProfile} />
+				</Tabs.Panel>
+
+				<Tabs.Panel
+					id="game"
+					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-1 duration-200"
+				>
+					<GameTab
+						mode={mode}
+						onModeChange={onModeChange}
+						order={order}
+						onOrderChange={onOrderChange}
+						timerDuration={timerDuration}
+						onTimerDurationChange={onTimerDurationChange}
+						timerEnabled={timerEnabled}
+						onTimerEnabledChange={onTimerEnabledChange}
+						difficulty={difficulty}
+						onDifficultyChange={onDifficultyChange}
+					/>
+				</Tabs.Panel>
+			</Tabs>
 		</Modal>
 	);
 }

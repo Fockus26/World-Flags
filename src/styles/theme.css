@@ -19,6 +19,7 @@
 	/* ===========================
 	   Typography
 	=========================== */
+	--color-text: var(--foreground);
 	--color-text-placeholder: var(--app-color-text-placeholder);
 
 	/* ===========================
@@ -58,9 +59,14 @@
 
 	/* ===========================
 	   Overlay
+	   OJO: HeroUI usa el namespace `overlay` de Tailwind para el FONDO de sus
+	   superficies flotantes (modal, popover, menú, tooltip) — tiene que ser
+	   opaco. El scrim oscuro translúcido de antes ahora es `--backdrop`. Por
+	   eso `overlay` apunta al token de HeroUI (`--overlay`), no al viejo
+	   `--app-color-overlay`.
 	=========================== */
 
-	--color-overlay: var(--app-color-overlay);
+	--color-overlay: var(--overlay);
 
 	/* ===========================
 	   Radios — escala más generosa (HeroUI-ish): reemplaza la escala por

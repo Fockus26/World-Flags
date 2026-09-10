@@ -8,7 +8,9 @@ export function useTheme() {
 
 	const theme = useAppSelector((state) => state.theme.theme);
 
-	const systemPrefersDark = useAppSelector((state) => state.theme.systemPrefersDark);
+	const systemPrefersDark = useAppSelector(
+		(state) => state.theme.systemPrefersDark,
+	);
 
 	const resolvedTheme: ResolvedTheme =
 		theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;

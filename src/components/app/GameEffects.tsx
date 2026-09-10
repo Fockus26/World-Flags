@@ -6,7 +6,11 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 import { setHydrationStatus, setLearningData } from "@/store/slices/gameSlice";
 
-import { pushLearningData, syncOnLogin, upsertLeaderboardEntry } from "@/utils/cloud-storage";
+import {
+	pushLearningData,
+	syncOnLogin,
+	upsertLeaderboardEntry,
+} from "@/utils/cloud-storage";
 
 import {
 	clearLearningData,
@@ -25,7 +29,12 @@ export function GameEffects() {
 
 	const hydratedUserRef = useRef<string | null>(null);
 
-	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+	/** `status` del render anterior: distingue un logout real de un invitado normal. */
+	const previousStatusRef = useRef<typeof status | null>(null);
+
+	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+		undefined,
+	);
 
 	const pushedWorldBestRef = useRef<number | undefined>(undefined);
 
@@ -38,16 +47,36 @@ export function GameEffects() {
 	 * Authenticated:
 	 *     localStorage + Supabase -> Redux
 	 */
+	/**
+	 * Red de seguridad: si Supabase Auth no resuelve (red caída, mal
+	 * configurado), `status` se queda en "loading" para siempre y el invitado
+	 * ve su progreso vacío. Tras 2.5 s sin resolver, se hidrata desde
+	 * localStorage igualmente (si luego llega la sesión, el efecto de abajo
+	 * re-hidrata). No se toca `hydrationStatus` "ready" para no habilitar el
+	 * push a Supabase antes de tiempo.
+	 */
+	useEffect(() => {
+		if (status !== "loading") {
+			return;
+		}
+
+		const timeoutId = setTimeout(() => {
+			dispatch(setLearningData(getLearningData()));
+		}, 2500);
+
+		return () => clearTimeout(timeoutId);
+	}, [status, dispatch]);
+
 	useEffect(() => {
 		if (status === "loading") {
 			return;
 		}
 
+		const previousStatus = previousStatusRef.current;
+		previousStatusRef.current = status;
+
 		/**
 		 * USER IS GUEST
-		 *
-		 * Any data that belonged to the authenticated session
-		 * must not remain available to the guest session.
 		 */
 		if (status === "guest") {
 			clearTimeout(pushTimeoutRef.current);
@@ -55,16 +84,22 @@ export function GameEffects() {
 			hydratedUserRef.current = null;
 
 			/**
-			 * Clear the local authenticated cache.
+			 * Logout real (authenticated -> guest): mientras se estuvo
+			 * autenticado las acciones del juego persistieron los datos del
+			 * usuario en localStorage, así que hay que limpiarlos para que no
+			 * queden disponibles para la sesión de invitado.
 			 *
-			 * This is important because while authenticated,
-			 * game actions may have persisted the user's data
-			 * locally.
+			 * Carga normal de invitado: NO se limpia — se hidrata desde
+			 * localStorage para que el progreso del invitado (incluido el
+			 * candado diario "practicado hoy") sobreviva a una recarga.
 			 */
-			clearLearningData();
-			const guestData = createDefaultLearningData();
+			if (previousStatus === "authenticated") {
+				clearLearningData();
+				dispatch(setLearningData(createDefaultLearningData()));
+			} else {
+				dispatch(setLearningData(getLearningData()));
+			}
 
-			dispatch(setLearningData(guestData));
 			dispatch(setHydrationStatus("ready"));
 
 			return;
@@ -73,7 +108,11 @@ export function GameEffects() {
 		/**
 		 * USER IS AUTHENTICATED
 		 */
-		if (status !== "authenticated" || !user || hydratedUserRef.current === user.id) {
+		if (
+			status !== "authenticated" ||
+			!user ||
+			hydratedUserRef.current === user.id
+		) {
 			return;
 		}
 
@@ -190,14 +229,28 @@ export function GameEffects() {
 
 		const worldBestMs = learningData.regionBestTimes.world;
 
-		if (worldBestMs === undefined || pushedWorldBestRef.current === worldBestMs) {
+		if (
+			worldBestMs === undefined ||
+			pushedWorldBestRef.current === worldBestMs
+		) {
 			return;
 		}
 
 		pushedWorldBestRef.current = worldBestMs;
 
-		void upsertLeaderboardEntry(user.id, "world", learningData.profile.name, worldBestMs);
-	}, [learningData.regionBestTimes.world, learningData.profile.name, status, user, hydrationStatus]);
+		void upsertLeaderboardEntry(
+			user.id,
+			"world",
+			learningData.profile.name,
+			worldBestMs,
+		);
+	}, [
+		learningData.regionBestTimes.world,
+		learningData.profile.name,
+		status,
+		user,
+		hydrationStatus,
+	]);
 
 	/**
 	 * Cleanup pending push.

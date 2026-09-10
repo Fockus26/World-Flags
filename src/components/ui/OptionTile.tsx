@@ -8,21 +8,41 @@ interface OptionTileProps {
 	children: ReactNode;
 }
 
-export function OptionTile({ name, value, checked, onChange, children }: OptionTileProps) {
+/**
+ * Opción segmentada de selección única (radio nativo accesible) alineada con
+ * los tokens de HeroUI (`--accent`, `--default`, `--border`, `--radius`).
+ */
+export function OptionTile({
+	name,
+	value,
+	checked,
+	onChange,
+	children,
+}: OptionTileProps) {
 	return (
-		<label className="group relative flex w-full min-w-0 cursor-pointer items-center justify-center rounded-md border bg-primary-soft border-primary-border transition-colors duration-180 ease-in-out hover:bg-primary active:bg-primary has-checked:bg-primary has-focus:outline-3 has-focus:outline-offset-3 has-focus:outline-primary-border min-h-10 sm:min-h-11.5">
+		<label
+			className="
+				group relative flex w-full min-w-0 cursor-pointer items-center justify-center
+				rounded-[var(--radius)] border border-[var(--border)] bg-[var(--default)]
+				text-[var(--default-foreground)]
+				transition-colors duration-150 ease-in-out
+				min-h-10 sm:min-h-11
+				hover:bg-[var(--default-hover)]
+				has-checked:border-[var(--accent)] has-checked:bg-[var(--accent)]
+				has-checked:text-[var(--accent-foreground)]
+				has-focus-visible:outline has-focus-visible:outline-2 has-focus-visible:outline-offset-2
+				has-focus-visible:outline-[var(--focus)]
+			"
+		>
 			<input
 				type="radio"
 				name={name}
 				value={value}
 				checked={checked}
 				onChange={onChange}
-				tabIndex={0}
-				className="absolute size-px opacity-0"
+				className="pointer-events-none absolute size-px opacity-0"
 			/>
-			<span className="px-2 py-2 text-primary group-hover:text-primary-soft group-active:text-primary-soft group-has-checked:text-primary-soft text-xs font-bold sm:px-3 sm:py-2.5 sm:text-sm">
-				{children}
-			</span>
+			<span className="px-3 py-2 text-xs font-bold sm:text-sm">{children}</span>
 		</label>
 	);
 }

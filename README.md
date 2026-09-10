@@ -171,6 +171,7 @@ Styling is done with **Tailwind CSS** utility classes, backed by shared design t
 1. Create a [Supabase](https://supabase.com) project and set up:
    - Auth (email/password)
    - A private `user_learning_data` table for per-user progress (RLS: owner-only read/write)
+   - The daily-lock / best-time columns — run [supabase/practice-sync.sql](./supabase/practice-sync.sql) once in the SQL editor so `lastPracticeByCountry` and `regionBestTimes` sync across devices
    - The public leaderboard table — run [supabase/leaderboard.sql](./supabase/leaderboard.sql) once in the SQL editor
 2. Create a `.env` file with:
    ```env

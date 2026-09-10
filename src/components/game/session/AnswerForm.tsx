@@ -48,7 +48,10 @@ export function AnswerForm({
 			transition={{ layout: motionTransition(0.2) }}
 			onSubmit={onSubmit}
 		>
-			<label htmlFor="country-answer" className="font-extrabold text-surface-soft">
+			<label
+				htmlFor="country-answer"
+				className="font-extrabold text-surface-soft"
+			>
 				¿Qué país representa esta bandera?
 			</label>
 
@@ -74,7 +77,7 @@ export function AnswerForm({
 
 				{answerStatus === "incorrect" && (
 					<FeedbackMessage key="incorrect" variant="danger" role="alert">
-						La respuesta correcta es <strong>{countryName}</strong>.
+						La respuesta correcta es <strong>{countryName}</strong>
 					</FeedbackMessage>
 				)}
 			</AnimatePresence>
@@ -82,7 +85,7 @@ export function AnswerForm({
 			{isAnswerChecked && mode === "practice" && !hideGradeButtons && (
 				<motion.div
 					variants={motionVariants.answerFeedbackEnter}
-					initial="hidden"
+					initial={false}
 					animate="visible"
 				>
 					<GradeButtons onGrade={onGrade} />
@@ -90,11 +93,16 @@ export function AnswerForm({
 			)}
 
 			{!isAnswerChecked && (
-				<div className="flex gap-2">
-					<Button type="submit" disabled={!answer.trim()} className="flex-1">
+				<div className="grid grid-cols-[2fr_1fr] gap-2">
+					<Button type="submit" disabled={!answer.trim()}>
 						Comprobar
 					</Button>
-					<Button type="button" variant="outline" color="neutral" onClick={onSkip}>
+					<Button
+						type="button"
+						variant="outline"
+						color="neutral"
+						onClick={onSkip}
+					>
 						Saltar
 					</Button>
 				</div>

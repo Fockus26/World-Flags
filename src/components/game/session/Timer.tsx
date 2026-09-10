@@ -5,7 +5,10 @@ type TimerTone = "primary" | "warning" | "danger";
 const DANGER_THRESHOLD = 3;
 const WARNING_THRESHOLD = 7;
 
-const timerClasses: Record<TimerTone, { track: string; progress: string; text: string }> = {
+const timerClasses: Record<
+	TimerTone,
+	{ track: string; progress: string; text: string }
+> = {
 	primary: {
 		track: "stroke-primary-soft",
 		progress: "stroke-primary",

@@ -12,6 +12,22 @@ import {
 	type TimerDuration,
 } from "@/types/country";
 
+/** Botón "?" enfocable: el texto de ayuda va en `aria-label` (lo oyen los
+ *  lectores de pantalla al enfocar) y también en el tooltip visual para ratón. */
+function HelpHint({ label }: { label: string }) {
+	return (
+		<Tooltip position="left" label={label}>
+			<button
+				type="button"
+				aria-label={label}
+				className="inline-flex size-5 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.7rem] font-extrabold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
+			>
+				<span aria-hidden="true">?</span>
+			</button>
+		</Tooltip>
+	);
+}
+
 interface GameTabProps {
 	mode: GameMode;
 	onModeChange: (mode: GameMode) => void;
@@ -43,17 +59,7 @@ export function GameTab({
 				legend={
 					<span className="inline-flex items-center gap-2">
 						Modo de juego
-						<Tooltip
-							position="left"
-							label="Competitivo: a contrarreloj, se cronometra toda la sesión y se guarda tu mejor tiempo por continente; fallar o usar skip suma penalización de tiempo. Práctica: sin puntuación por tiempo, califica cada bandera para repasarla con repetición espaciada."
-						>
-							<span
-								className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.625rem] font-extrabold"
-								aria-hidden="true"
-							>
-								?
-							</span>
-						</Tooltip>
+						<HelpHint label="Competitivo: contrarreloj, guarda tu mejor tiempo; fallar penaliza. Práctica: sin cronómetro, calificas cada bandera para repasarla." />
 					</span>
 				}
 			>
@@ -139,17 +145,7 @@ export function GameTab({
 					legend={
 						<span className="inline-flex items-center gap-2">
 							Dificultad
-							<Tooltip
-								position="left"
-								label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')."
-							>
-								<span
-									className="hidden md:inline-flex size-4 items-center justify-center rounded-full bg-surface-hover text-text-placeholder text-[0.625rem] font-extrabold"
-									aria-hidden="true"
-								>
-									?
-								</span>
-							</Tooltip>
+							<HelpHint label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')." />
 						</span>
 					}
 				>
@@ -176,8 +172,8 @@ export function GameTab({
 
 			{mode === "competitive" && (
 				<p className="m-0 text-[0.8rem] text-text-placeholder">
-					En modo competitivo el orden es aleatorio y la dificultad es difícil siempre, para que
-					el ranking compare partidas equivalentes.
+					En modo competitivo el orden es aleatorio y la dificultad es difícil
+					siempre, para que el ranking compare partidas equivalentes.
 				</p>
 			)}
 
