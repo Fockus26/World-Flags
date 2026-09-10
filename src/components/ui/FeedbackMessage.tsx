@@ -36,7 +36,6 @@ export function FeedbackMessage({
 		}, autoDismissMs);
 
 		return () => window.clearTimeout(timeoutId);
-		// biome-ignore lint/correctness/useExhaustiveDependencies: onDismiss estabilizado por React Compiler (ver docs/components.md)
 	}, [autoDismissMs, onDismiss]);
 
 	return (
