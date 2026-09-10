@@ -78,11 +78,17 @@ export function ConfigurationModal({
 					<Tabs.Tab id="game">Juego</Tabs.Tab>
 				</Tabs.List>
 
-				<Tabs.Panel id="account" className="flex flex-col gap-4">
+				<Tabs.Panel
+					id="account"
+					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-1 duration-200"
+				>
 					<AccountTab profile={profile} onSaveProfile={onSaveProfile} />
 				</Tabs.Panel>
 
-				<Tabs.Panel id="game" className="flex flex-col gap-4">
+				<Tabs.Panel
+					id="game"
+					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-1 duration-200"
+				>
 					<GameTab
 						mode={mode}
 						onModeChange={onModeChange}

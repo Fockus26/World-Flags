@@ -1,10 +1,8 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/hooks/useAuth";
-import { motionTransition, motionVariants } from "@/styles/animations";
 import { EmailConfirmationPending } from "./EmailConfirmationPending";
 
 type AuthMode = "signin" | "signup";
@@ -79,166 +77,123 @@ export function AuthSection() {
 				? "pending"
 				: "form";
 
+	if (view === "authenticated") {
+		return (
+			<div className="flex flex-col gap-3 animate-in fade-in-0 duration-200">
+				<p className="m-0 text-[0.875rem]">
+					Sesión iniciada como <strong>{user?.email}</strong>
+				</p>
+
+				<Button color="danger" type="button" onClick={() => signOut()}>
+					Cerrar sesión
+				</Button>
+			</div>
+		);
+	}
+
+	if (view === "pending" && pendingConfirmation) {
+		return (
+			<div className="animate-in fade-in-0 slide-in-from-right-1 duration-200">
+				<EmailConfirmationPending
+					email={pendingConfirmation.email}
+					password={pendingConfirmation.password}
+					onCancel={() => setPendingConfirmation(null)}
+				/>
+			</div>
+		);
+	}
+
 	return (
-		<AnimatePresence mode="wait" initial={false}>
-			{view === "authenticated" && (
-				<motion.div
-					key="authenticated"
-					className="flex flex-col gap-3"
-					variants={motionVariants.tabContentSwitch}
-					initial={false}
-					animate="visible"
-					exit="hidden"
-				>
-					<p className="m-0 text-[0.875rem]">
-						Sesión iniciada como <strong>{user?.email}</strong>
-					</p>
+		<div className="flex flex-col gap-3 animate-in fade-in-0 duration-200">
+			<p className="m-0 text-text-placeholder text-[0.8rem]">
+				Estás en modo invitado. Tu progreso se guarda solo en este dispositivo.
+			</p>
 
-					<Button color="danger" type="button" onClick={() => signOut()}>
-						Cerrar sesión
-					</Button>
-				</motion.div>
-			)}
-
-			{view === "pending" && pendingConfirmation && (
-				<motion.div
-					key="pending"
-					variants={motionVariants.tabContentSwitch}
-					initial={false}
-					animate="visible"
-					exit="hidden"
-				>
-					<EmailConfirmationPending
-						email={pendingConfirmation.email}
-						password={pendingConfirmation.password}
-						onCancel={() => setPendingConfirmation(null)}
-					/>
-				</motion.div>
-			)}
-
-			{view === "form" && (
-				<motion.div
-					key="form"
-					className="flex flex-col gap-3"
-					variants={motionVariants.tabContentSwitch}
-					initial={false}
-					animate="visible"
-					exit="hidden"
-				>
-					<p className="m-0 text-text-placeholder text-[0.8rem]">
-						Estás en modo invitado. Tu progreso se guarda solo en este
-						dispositivo.
-					</p>
-
-					<div className="mb-1 flex" role="tablist" aria-label="Tipo de acceso">
-						{(["signin", "signup"] as const).map((item) => (
-							<button
-								key={item}
-								type="button"
-								role="tab"
-								aria-selected={mode === item}
-								className="relative flex-1 cursor-pointer px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-placeholder transition-colors duration-150 hover:text-surface-soft active:text-surface-soft aria-selected:text-surface-soft focus:text-surface-soft"
-								onClick={() => {
-									setMode(item);
-									setError(null);
-								}}
-							>
-								{item === "signin" ? "Iniciar sesión" : "Crear cuenta"}
-								{mode === item && (
-									<motion.span
-										className="absolute right-0 bottom-px left-0 h-0.5 bg-surface-soft"
-										layoutId="authModeIndicator"
-										transition={{ type: "spring", stiffness: 500, damping: 40 }}
-									/>
-								)}
-							</button>
-						))}
-					</div>
-
-					<motion.form
-						className="flex flex-col gap-3"
-						layout
-						transition={{ layout: motionTransition(0.2) }}
-						onSubmit={handleSubmit}
+			<div className="mb-1 flex" role="tablist" aria-label="Tipo de acceso">
+				{(["signin", "signup"] as const).map((item) => (
+					<button
+						key={item}
+						type="button"
+						role="tab"
+						aria-selected={mode === item}
+						className="relative flex-1 cursor-pointer px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-placeholder transition-colors duration-150 hover:text-surface-soft active:text-surface-soft aria-selected:text-surface-soft focus-visible:text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--focus)]"
+						onClick={() => {
+							setMode(item);
+							setError(null);
+						}}
 					>
+						{item === "signin" ? "Iniciar sesión" : "Crear cuenta"}
+						{mode === item && (
+							<span className="absolute right-0 bottom-px left-0 h-0.5 bg-surface-soft" />
+						)}
+					</button>
+				))}
+			</div>
+
+			<form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+				<Input
+					id="auth-email"
+					type="email"
+					label="Correo"
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
+					required
+				/>
+				<Input
+					id="auth-password"
+					type="password"
+					label="Contraseña"
+					value={password}
+					onChange={(e) => setPassword(e.target.value)}
+					minLength={6}
+					required
+				/>
+				{mode === "signup" && (
+					<div className="animate-in fade-in-0 slide-in-from-top-1 duration-200">
 						<Input
-							id="auth-email"
-							type="email"
-							label="Correo"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							required
-						/>
-						<Input
-							id="auth-password"
+							id="auth-confirm-password"
 							type="password"
-							label="Contraseña"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
+							label="Repetir contraseña"
+							value={confirmPassword}
+							onChange={(e) => setConfirmPassword(e.target.value)}
 							minLength={6}
 							required
 						/>
-						<AnimatePresence mode="popLayout" initial={false}>
-							{mode === "signup" && (
-								<motion.div
-									key="confirm-password"
-									layout
-									transition={{ layout: motionTransition(0.2) }}
-									variants={motionVariants.answerFeedbackEnter}
-									initial={false}
-									animate="visible"
-									exit="exit"
-								>
-									<Input
-										id="auth-confirm-password"
-										type="password"
-										label="Repetir contraseña"
-										value={confirmPassword}
-										onChange={(e) => setConfirmPassword(e.target.value)}
-										minLength={6}
-										required
-									/>
-								</motion.div>
-							)}
-						</AnimatePresence>
-						<AnimatePresence mode="popLayout">
-							{error && (
-								<FeedbackMessage
-									variant="danger"
-									size="sm"
-									role="alert"
-									autoDismissMs={5000}
-									onDismiss={() => setError(null)}
-								>
-									{error}
-								</FeedbackMessage>
-							)}
-						</AnimatePresence>
-						<Button type="submit" disabled={isSubmitting}>
-							{isSubmitting
-								? "Un momento…"
-								: mode === "signin"
-									? "Iniciar sesión"
-									: "Crear cuenta"}
-						</Button>
-					</motion.form>
-
-					<div className="my-1 flex items-center gap-3 text-text-placeholder text-xs">
-						<span className="h-px flex-1 bg-[var(--border)]" />
-						o
-						<span className="h-px flex-1 bg-[var(--border)]" />
 					</div>
-
-					<Button
-						variant="text"
-						color="neutral"
-						type="button"
-						onClick={() => signInWithGoogle()}
+				)}
+				{error && (
+					<FeedbackMessage
+						variant="danger"
+						size="sm"
+						role="alert"
+						autoDismissMs={5000}
+						onDismiss={() => setError(null)}
 					>
-						Continuar con Google
-					</Button>
-				</motion.div>
-			)}
-		</AnimatePresence>
+						{error}
+					</FeedbackMessage>
+				)}
+				<Button type="submit" disabled={isSubmitting}>
+					{isSubmitting
+						? "Un momento…"
+						: mode === "signin"
+							? "Iniciar sesión"
+							: "Crear cuenta"}
+				</Button>
+			</form>
+
+			<div className="my-1 flex items-center gap-3 text-text-placeholder text-xs">
+				<span className="h-px flex-1 bg-[var(--border)]" />o
+				<span className="h-px flex-1 bg-[var(--border)]" />
+			</div>
+
+			<Button
+				variant="text"
+				color="neutral"
+				type="button"
+				onClick={() => signInWithGoogle()}
+			>
+				Continuar con Google
+			</Button>
+		</div>
 	);
 }
