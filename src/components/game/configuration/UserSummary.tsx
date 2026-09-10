@@ -27,7 +27,7 @@ export function UserSummary({
 			type="button"
 			className={`group flex w-full touch-manipulation cursor-pointer items-center gap-3.5 rounded-md bg-surface text-left text-surface-soft transition-[background-color,transform] duration-180 ease-in-out hover:bg-surface-hover active:bg-surface-hover focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-surface-soft ${className ?? ""}`}
 			variants={motionVariants.contentEnter}
-			initial="hidden"
+			initial={false}
 			animate="visible"
 			aria-label={`${name}, progreso ${learningProgress} por ciento. Abrir perfil y configuración.`}
 			onClick={onOpenModal}

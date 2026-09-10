@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setSystemPrefersDark, setTheme, type ThemeMode } from "@/store/slices/themeSlice";
+import {
+	setSystemPrefersDark,
+	setTheme,
+	type ThemeMode,
+} from "@/store/slices/themeSlice";
 
 function isThemeMode(value: string | null): value is ThemeMode {
 	return value === "light" || value === "dark" || value === "system";
@@ -11,9 +15,12 @@ export function ThemeEffects() {
 
 	const theme = useAppSelector((state) => state.theme.theme);
 
-	const systemPrefersDark = useAppSelector((state) => state.theme.systemPrefersDark);
+	const systemPrefersDark = useAppSelector(
+		(state) => state.theme.systemPrefersDark,
+	);
 
-	const resolvedTheme = theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
+	const resolvedTheme =
+		theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
 
 	useEffect(() => {
 		const storedTheme = localStorage.getItem("theme");

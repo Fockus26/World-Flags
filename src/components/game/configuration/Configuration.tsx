@@ -20,8 +20,8 @@ import {
 	getDueCountries,
 } from "@/utils/learning-storage";
 import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
-import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
 import { CountryPickerModal } from "./CountryPickerModal";
+import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
 import { LeaderboardModal } from "./LeaderboardModal";
 import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
@@ -36,24 +36,31 @@ export function Configuration() {
 		getRegionPracticeProgress,
 		isCountryPracticedToday,
 	} = useGame();
-	const [isConfigurationModalOpen, setIsConfigurationModalOpen] = useState(false);
+	const [isConfigurationModalOpen, setIsConfigurationModalOpen] =
+		useState(false);
 	const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
 	const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 	const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 	const { status, user } = useAuth();
 
-	const accountLabel = status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
+	const accountLabel =
+		status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
 
 	const order = learningData.lastConfiguration?.order ?? "alphabetical";
-	const timerDuration = learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION;
+	const timerDuration =
+		learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION;
 	const timerEnabled = learningData.lastConfiguration?.timerEnabled ?? false;
-	const difficulty = learningData.lastConfiguration?.difficulty ?? DEFAULT_DIFFICULTY;
+	const difficulty =
+		learningData.lastConfiguration?.difficulty ?? DEFAULT_DIFFICULTY;
 	const mode = learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE;
 	const scope = learningData.lastConfiguration?.scope ?? DEFAULT_SCOPE;
 	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
 
 	const learnedCountries = countLearnedCountries(learningData.countryHistory);
-	const learningProgress = calculateLearningProgress(learningData.countryHistory, 196);
+	const learningProgress = calculateLearningProgress(
+		learningData.countryHistory,
+		196,
+	);
 
 	const dueCount = getDueCountries(learningData.countryHistory).length;
 
@@ -61,7 +68,9 @@ export function Configuration() {
 		event.preventDefault();
 
 		if (isEmptyScope(scope)) {
-			setBlockedMessage("Elige al menos un continente o algún país para practicar.");
+			setBlockedMessage(
+				"Elige al menos un continente o algún país para practicar.",
+			);
 			return;
 		}
 
@@ -105,7 +114,7 @@ export function Configuration() {
 					min-[44rem]:p-4
 				"
 				variants={motionVariants.contentEnter}
-				initial="hidden"
+				initial={false}
 				animate="visible"
 			>
 				<div className="flex items-center gap-2">
@@ -237,9 +246,13 @@ export function Configuration() {
 				order={order}
 				onOrderChange={(value) => updateSettings({ order: value })}
 				timerDuration={timerDuration}
-				onTimerDurationChange={(value) => updateSettings({ timerDuration: value })}
+				onTimerDurationChange={(value) =>
+					updateSettings({ timerDuration: value })
+				}
 				timerEnabled={timerEnabled}
-				onTimerEnabledChange={(value) => updateSettings({ timerEnabled: value })}
+				onTimerEnabledChange={(value) =>
+					updateSettings({ timerEnabled: value })
+				}
 				difficulty={difficulty}
 				onDifficultyChange={(value) => updateSettings({ difficulty: value })}
 			/>
@@ -248,7 +261,9 @@ export function Configuration() {
 				isOpen={isCountryPickerOpen}
 				onClose={() => setIsCountryPickerOpen(false)}
 				initialSelectedCodes={customCodes}
-				isCountryDisabled={mode === "practice" ? isCountryPracticedToday : undefined}
+				isCountryDisabled={
+					mode === "practice" ? isCountryPracticedToday : undefined
+				}
 				onConfirm={(countryCodes) => {
 					const regions = scope.type === "custom" ? scope.regions : [];
 					updateSettings({ scope: { type: "custom", regions, countryCodes } });

@@ -10,7 +10,14 @@ import { EmailConfirmationPending } from "./EmailConfirmationPending";
 type AuthMode = "signin" | "signup";
 
 export function AuthSection() {
-	const { status, user, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut } = useAuth();
+	const {
+		status,
+		user,
+		signInWithEmail,
+		signUpWithEmail,
+		signInWithGoogle,
+		signOut,
+	} = useAuth();
 
 	const [mode, setMode] = useState<AuthMode>("signin");
 	const [email, setEmail] = useState("");
@@ -35,10 +42,8 @@ export function AuthSection() {
 		setIsSubmitting(true);
 
 		if (mode === "signup") {
-			const { error: authError, needsEmailConfirmation } = await signUpWithEmail(
-				email,
-				password,
-			);
+			const { error: authError, needsEmailConfirmation } =
+				await signUpWithEmail(email, password);
 
 			if (authError) {
 				setIsSubmitting(false);
@@ -68,7 +73,11 @@ export function AuthSection() {
 	}
 
 	const view =
-		status === "authenticated" ? "authenticated" : pendingConfirmation ? "pending" : "form";
+		status === "authenticated"
+			? "authenticated"
+			: pendingConfirmation
+				? "pending"
+				: "form";
 
 	return (
 		<AnimatePresence mode="wait" initial={false}>
@@ -77,7 +86,7 @@ export function AuthSection() {
 					key="authenticated"
 					className="flex flex-col gap-3"
 					variants={motionVariants.tabContentSwitch}
-					initial="hidden"
+					initial={false}
 					animate="visible"
 					exit="hidden"
 				>
@@ -95,7 +104,7 @@ export function AuthSection() {
 				<motion.div
 					key="pending"
 					variants={motionVariants.tabContentSwitch}
-					initial="hidden"
+					initial={false}
 					animate="visible"
 					exit="hidden"
 				>
@@ -112,12 +121,13 @@ export function AuthSection() {
 					key="form"
 					className="flex flex-col gap-3"
 					variants={motionVariants.tabContentSwitch}
-					initial="hidden"
+					initial={false}
 					animate="visible"
 					exit="hidden"
 				>
 					<p className="m-0 text-text-placeholder text-[0.8rem]">
-						Estás en modo invitado. Tu progreso se guarda solo en este dispositivo.
+						Estás en modo invitado. Tu progreso se guarda solo en este
+						dispositivo.
 					</p>
 
 					<div className="mb-1 flex" role="tablist" aria-label="Tipo de acceso">
@@ -175,7 +185,7 @@ export function AuthSection() {
 									layout
 									transition={{ layout: motionTransition(0.2) }}
 									variants={motionVariants.answerFeedbackEnter}
-									initial="hidden"
+									initial={false}
 									animate="visible"
 									exit="exit"
 								>

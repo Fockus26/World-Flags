@@ -22,7 +22,9 @@ const countriesByRegion = REGIONS.reduce(
 	(map, region) => {
 		map[region] = countries
 			.filter((country) => country.region === region)
-			.sort((first, second) => spanishCollator.compare(first.name, second.name));
+			.sort((first, second) =>
+				spanishCollator.compare(first.name, second.name),
+			);
 		return map;
 	},
 	{} as Record<Region, typeof countries>,
@@ -35,7 +37,12 @@ interface CountryCheckboxProps {
 	onChange: () => void;
 }
 
-function CountryCheckbox({ label, checked, disabled, onChange }: CountryCheckboxProps) {
+function CountryCheckbox({
+	label,
+	checked,
+	disabled,
+	onChange,
+}: CountryCheckboxProps) {
 	return (
 		<label
 			className={`relative flex min-w-0 items-center gap-1.5 py-0.5 text-[0.82rem] ${disabled ? "cursor-not-allowed text-text-placeholder" : "cursor-pointer"}`}
@@ -66,8 +73,12 @@ export function CountryPickerModal({
 	isCountryDisabled,
 	onConfirm,
 }: CountryPickerModalProps) {
-	const [selected, setSelected] = useState<Set<string>>(() => new Set(initialSelectedCodes));
-	const [expandedRegions, setExpandedRegions] = useState<Set<Region>>(new Set());
+	const [selected, setSelected] = useState<Set<string>>(
+		() => new Set(initialSelectedCodes),
+	);
+	const [expandedRegions, setExpandedRegions] = useState<Set<Region>>(
+		new Set(),
+	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: solo se resetea al abrir, no en cada cambio de la selección inicial
 	useEffect(() => {
@@ -82,7 +93,9 @@ export function CountryPickerModal({
 		// Se abren de entrada los continentes que ya tienen algo elegido.
 		setExpandedRegions(
 			new Set(
-				REGIONS.filter((region) => countriesByRegion[region].some((c) => initialSet.has(c.code))),
+				REGIONS.filter((region) =>
+					countriesByRegion[region].some((c) => initialSet.has(c.code)),
+				),
 			),
 		);
 	}, [isOpen]);
@@ -113,7 +126,9 @@ export function CountryPickerModal({
 	}
 
 	function toggleAllInRegion(regionCodes: string[], allSelected: boolean) {
-		const selectableCodes = regionCodes.filter((code) => !isCountryDisabled?.(code));
+		const selectableCodes = regionCodes.filter(
+			(code) => !isCountryDisabled?.(code),
+		);
 		setSelected((current) => {
 			const next = new Set(current);
 			for (const code of selectableCodes) {
@@ -149,15 +164,18 @@ export function CountryPickerModal({
 			</header>
 
 			<p className="mt-0 mb-3 text-[0.85rem] text-text-placeholder">
-				Elige los países que quieres practicar. Cuentan como práctica solo ellos, no todo el
-				continente. Los ya practicados hoy aparecen bloqueados.
+				Elige los países que quieres practicar. Cuentan como práctica solo
+				ellos, no todo el continente. Los ya practicados hoy aparecen
+				bloqueados.
 			</p>
 
 			<div className="flex flex-col gap-1.5">
 				{REGIONS.map((region) => {
 					const regionCountries = countriesByRegion[region];
 					const regionCodes = regionCountries.map((country) => country.code);
-					const selectedCount = regionCodes.filter((code) => selected.has(code)).length;
+					const selectedCount = regionCodes.filter((code) =>
+						selected.has(code),
+					).length;
 					const allSelected = selectedCount === regionCodes.length;
 					const isExpanded = expandedRegions.has(region);
 
@@ -200,7 +218,7 @@ export function CountryPickerModal({
 									<motion.div
 										key="content"
 										variants={motionVariants.collapseExpand}
-										initial="hidden"
+										initial={false}
 										animate="visible"
 										exit="exit"
 										className="overflow-hidden"

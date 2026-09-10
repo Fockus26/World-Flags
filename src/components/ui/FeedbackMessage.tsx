@@ -48,7 +48,7 @@ export function FeedbackMessage({
 					? motionVariants.feedbackEnter
 					: motionVariants.answerFeedbackEnter
 			}
-			initial="hidden"
+			initial={false}
 			animate="visible"
 			exit="exit"
 		>

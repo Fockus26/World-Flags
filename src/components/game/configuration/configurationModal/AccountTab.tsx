@@ -58,7 +58,9 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 					setView((current) => (current === "profile" ? "session" : "profile"))
 				}
 			>
-				{view === "profile" ? "Gestionar sesión →" : "← Volver a personalización"}
+				{view === "profile"
+					? "Gestionar sesión →"
+					: "← Volver a personalización"}
 			</button>
 
 			<motion.div>
@@ -68,7 +70,7 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 							key="profile"
 							className="flex flex-col gap-4"
 							variants={motionVariants.tabContentSwitch}
-							initial="hidden"
+							initial={false}
 							animate="visible"
 							exit="hidden"
 						>
@@ -103,7 +105,7 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 							key="session"
 							className="flex flex-col gap-4"
 							variants={motionVariants.tabContentSwitch}
-							initial="hidden"
+							initial={false}
 							animate="visible"
 							exit="hidden"
 						>

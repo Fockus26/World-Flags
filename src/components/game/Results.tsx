@@ -2,7 +2,11 @@ import { Button } from "@/components/ui/Button";
 import type { GameResult } from "@/types/country";
 import { formatElapsedTime } from "@/utils/learning-storage";
 import { getScopeLabel } from "@/utils/practice-scope";
-import { getScoreBackgroundColor, getScoreColor, getScoreMessage } from "@/utils/score";
+import {
+	getScoreBackgroundColor,
+	getScoreColor,
+	getScoreMessage,
+} from "@/utils/score";
 
 interface ResultsProps {
 	result: GameResult;
@@ -10,7 +14,11 @@ interface ResultsProps {
 	onExit: () => void;
 }
 
-function CompetitiveResults({ result }: { result: Extract<GameResult, { mode: "competitive" }> }) {
+function CompetitiveResults({
+	result,
+}: {
+	result: Extract<GameResult, { mode: "competitive" }>;
+}) {
 	return (
 		<>
 			<p className="m-0 text-text-placeholder">Rush terminado</p>
@@ -34,10 +42,16 @@ function CompetitiveResults({ result }: { result: Extract<GameResult, { mode: "c
 	);
 }
 
-function PracticeResults({ result }: { result: Extract<GameResult, { mode: "practice" }> }) {
+function PracticeResults({
+	result,
+}: {
+	result: Extract<GameResult, { mode: "practice" }>;
+}) {
 	const scoreColor = getScoreColor(result.score);
 	const scoreBackground = getScoreBackgroundColor(result.score);
-	const percentage = Math.round((result.correctAnswers / result.totalCountries) * 100);
+	const percentage = Math.round(
+		(result.correctAnswers / result.totalCountries) * 100,
+	);
 
 	return (
 		<>

@@ -40,7 +40,9 @@ export function RegionOption({
 
 	const scoreStyle: ScoreStyle = {
 		"--app-score-color":
-			score !== null ? getScoreColor(score, isDarkTheme) : "var(--color-neutral-hover)",
+			score !== null
+				? getScoreColor(score, isDarkTheme)
+				: "var(--color-neutral-hover)",
 
 		"--app-score-background":
 			score !== null
@@ -134,7 +136,10 @@ export function RegionOption({
 
 					<span className="flex shrink-0 items-center gap-1.5">
 						{score !== null && (
-							<Tooltip id={tooltipId} label="Promedio de tus últimas 3 partidas">
+							<Tooltip
+								id={tooltipId}
+								label="Promedio de tus últimas 3 partidas"
+							>
 								<button
 									type="button"
 									className="
@@ -185,7 +190,9 @@ export function RegionOption({
 					"
 				>
 					<span>{countryCount} países</span>
-					{bestTimeLabel && <span className="font-black">⏱ {bestTimeLabel}</span>}
+					{bestTimeLabel && (
+						<span className="font-black">⏱ {bestTimeLabel}</span>
+					)}
 				</span>
 
 				{practicedLabel && (

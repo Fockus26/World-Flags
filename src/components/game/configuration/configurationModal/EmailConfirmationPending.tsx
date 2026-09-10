@@ -18,7 +18,9 @@ export function EmailConfirmationPending({
 	onCancel,
 }: EmailConfirmationPendingProps) {
 	const { signInWithEmail, resendConfirmationEmail } = useAuth();
-	const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
+	const [resendState, setResendState] = useState<"idle" | "sending" | "sent">(
+		"idle",
+	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: signInWithEmail está estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
@@ -47,8 +49,8 @@ export function EmailConfirmationPending({
 			<h3 className="m-0 text-surface-soft">Revisa tu correo</h3>
 
 			<p className="m-0 text-text-placeholder text-[0.875rem] leading-normal">
-				Te enviamos un enlace de confirmación a <strong>{email}</strong>. Esta pantalla se
-				cerrará sola cuando confirmes tu cuenta.
+				Te enviamos un enlace de confirmación a <strong>{email}</strong>. Esta
+				pantalla se cerrará sola cuando confirmes tu cuenta.
 			</p>
 
 			<div className="mt-2 flex gap-2">

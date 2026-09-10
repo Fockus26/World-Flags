@@ -176,8 +176,8 @@ export function GameTab({
 
 			{mode === "competitive" && (
 				<p className="m-0 text-[0.8rem] text-text-placeholder">
-					En modo competitivo el orden es aleatorio y la dificultad es difícil siempre, para que
-					el ranking compare partidas equivalentes.
+					En modo competitivo el orden es aleatorio y la dificultad es difícil
+					siempre, para que el ranking compare partidas equivalentes.
 				</p>
 			)}
 

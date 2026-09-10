@@ -14,7 +14,11 @@ import {
 	type GameResult,
 	type Region,
 } from "@/types/country";
-import type { ReviewGrade, UserLearningData, UserProfile } from "@/types/progress";
+import type {
+	ReviewGrade,
+	UserLearningData,
+	UserProfile,
+} from "@/types/progress";
 import {
 	getDueCountries,
 	getUnpracticedCodesToday,
@@ -28,8 +32,11 @@ import {
 	saveUserProfile,
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
+import {
+	getScopeCountryCodes,
+	getScopeRegionKey,
+} from "@/utils/practice-scope";
 import { prepareCountries } from "@/utils/prepare-countries";
-import { getScopeCountryCodes, getScopeRegionKey } from "@/utils/practice-scope";
 import { calculateScore } from "@/utils/score";
 
 /**
@@ -55,23 +62,32 @@ export function useGame() {
 
 	const lastResult = useAppSelector((state) => state.game.lastResult);
 
-	const dailyPracticeQueue = useAppSelector((state) => state.game.dailyPracticeQueue);
+	const dailyPracticeQueue = useAppSelector(
+		(state) => state.game.dailyPracticeQueue,
+	);
 
 	/** Cuántos países de esa región ya se practicaron hoy, de cuántos en total. */
 	const getRegionPracticeProgress = (region: Region) => {
-		const regionCodes = countries.filter((country) => country.region === region);
+		const regionCodes = countries.filter(
+			(country) => country.region === region,
+		);
 		const unpracticed = getUnpracticedCodesToday(
 			learningData,
 			regionCodes.map((country) => country.code),
 		);
 
-		return { practiced: regionCodes.length - unpracticed.length, total: regionCodes.length };
+		return {
+			practiced: regionCodes.length - unpracticed.length,
+			total: regionCodes.length,
+		};
 	};
 
 	const isCountryPracticedToday = (countryCode: string) =>
 		hasPracticedCountryToday(learningData, countryCode);
 
-	const startGame = (requestedConfiguration: GameConfigurationType): boolean => {
+	const startGame = (
+		requestedConfiguration: GameConfigurationType,
+	): boolean => {
 		// El modo competitivo ("rush") siempre es difícil y aleatorio: no son
 		// ajustables, así que se fuerzan acá sin importar qué haya quedado
 		// guardado (incluida configuración vieja de antes de esta regla).
@@ -83,7 +99,10 @@ export function useGame() {
 		let effectiveConfiguration = configuration;
 
 		if (configuration.mode === "practice") {
-			const requestedCodes = getScopeCountryCodes(countries, configuration.scope);
+			const requestedCodes = getScopeCountryCodes(
+				countries,
+				configuration.scope,
+			);
 			const effectiveCodes = getUnpracticedCodesToday(
 				getCurrentLearningData(),
 				requestedCodes,
@@ -107,7 +126,10 @@ export function useGame() {
 
 		// Se recuerda la selección tal como la pidió el usuario (no la
 		// recortada), para que la próxima vez vea marcado lo que eligió.
-		const updatedData = saveLastConfiguration(getCurrentLearningData(), configuration);
+		const updatedData = saveLastConfiguration(
+			getCurrentLearningData(),
+			configuration,
+		);
 
 		dispatch(setLearningData(updatedData));
 
@@ -148,7 +170,11 @@ export function useGame() {
 		const region = getScopeRegionKey(result.scope);
 		if (!region) return;
 
-		const updatedData = registerRegionBestTime(getCurrentLearningData(), region, result.elapsedMs);
+		const updatedData = registerRegionBestTime(
+			getCurrentLearningData(),
+			region,
+			result.elapsedMs,
+		);
 		dispatch(setLearningData(updatedData));
 	};
 
@@ -165,7 +191,8 @@ export function useGame() {
 		const started = startGame({
 			scope: lastResult.scope,
 			order: learningData.lastConfiguration?.order ?? "random",
-			timerDuration: learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
+			timerDuration:
+				learningData.lastConfiguration?.timerDuration ?? DEFAULT_TIMER_DURATION,
 			timerEnabled: learningData.lastConfiguration?.timerEnabled ?? false,
 			difficulty: learningData.lastConfiguration?.difficulty ?? "hard",
 			mode: learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE,
@@ -179,7 +206,11 @@ export function useGame() {
 	};
 
 	const attemptCountry = (countryCode: string, isCorrect: boolean) => {
-		const updatedData = registerCountryAttempt(getCurrentLearningData(), countryCode, isCorrect);
+		const updatedData = registerCountryAttempt(
+			getCurrentLearningData(),
+			countryCode,
+			isCorrect,
+		);
 
 		dispatch(setLearningData(updatedData));
 	};
@@ -194,7 +225,11 @@ export function useGame() {
 		grade: ReviewGrade,
 		markPracticed = false,
 	) => {
-		let updatedData = saveReviewResult(getCurrentLearningData(), countryCode, grade);
+		let updatedData = saveReviewResult(
+			getCurrentLearningData(),
+			countryCode,
+			grade,
+		);
 
 		if (markPracticed) {
 			updatedData = registerCountryPracticed(updatedData, countryCode);
@@ -220,7 +255,10 @@ export function useGame() {
 	};
 
 	const updateSettings = (partial: Partial<GameConfigurationType>) => {
-		const updatedData = updateLastConfiguration(getCurrentLearningData(), partial);
+		const updatedData = updateLastConfiguration(
+			getCurrentLearningData(),
+			partial,
+		);
 
 		dispatch(setLearningData(updatedData));
 	};

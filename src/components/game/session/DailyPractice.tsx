@@ -35,7 +35,9 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 		onFinish,
 	});
 
-	const currentCountry = countries.find((country) => country.code === currentCode);
+	const currentCountry = countries.find(
+		(country) => country.code === currentCode,
+	);
 
 	function handleGrade(gradeValue: ReviewGrade) {
 		grade(gradeValue);
@@ -74,7 +76,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 			<motion.section
 				className="flex h-[min(100%,45rem)] md:h-[min(100%, 50rem)] max-h-full w-[min(100%,58rem)] flex-col overflow-hidden rounded-lg border border-surface-border bg-surface p-[0.85rem] min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]"
 				variants={motionVariants.contentEnter}
-				initial="hidden"
+				initial={false}
 				animate="visible"
 			>
 				<Header
@@ -101,7 +103,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 									onClick={() => setIsRevealed(true)}
 									className="m-0 cursor-pointer border-0 bg-transparent p-0 text-center text-[0.95rem] text-text-placeholder"
 									variants={motionVariants.feedbackEnter}
-									initial="hidden"
+									initial={false}
 									animate="visible"
 									exit="exit"
 								>
@@ -110,7 +112,9 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 										Espacio
 									</kbd>{" "}
 									<span className="min-[44rem]:hidden">Toca aquí</span>
-									<span className="hidden min-[44rem]:inline">para revelar</span>
+									<span className="hidden min-[44rem]:inline">
+										para revelar
+									</span>
 								</motion.button>
 							) : (
 								<motion.div
@@ -118,7 +122,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 									layout
 									className="flex w-full flex-col items-center gap-3"
 									variants={motionVariants.answerFeedbackEnter}
-									initial="hidden"
+									initial={false}
 									animate="visible"
 									exit="exit"
 								>
