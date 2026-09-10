@@ -1,6 +1,8 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 @import "./variables.css";
 @import "./theme.css";
+@import "./heroui-theme.css";
 
 @layer base {
 	:root {

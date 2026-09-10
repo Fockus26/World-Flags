@@ -1,0 +1,78 @@
+/**
+ * Puente de tema: reescribe los tokens base de HeroUI v3 con la paleta de
+ * marca de World Flags (el morado de `variables.css`). HeroUI deriva solos los
+ * `-hover` / `-soft` / `-foreground` vía `color-mix`, así que solo hace falta
+ * pisar los tokens base.
+ *
+ * El modo oscuro lo maneja `data-theme="dark"` en <html> (lo escribe
+ * `ThemeEffects`), que es el mismo selector que usa HeroUI.
+ */
+
+@layer theme {
+	:root,
+	[data-theme="light"] {
+		--radius: 0.75rem;
+		--font-sans:
+			"Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+			sans-serif;
+
+		--background: #f2f1f8;
+		--foreground: #1c1b2e;
+		--surface: #ffffff;
+		--surface-foreground: #1c1b2e;
+		--overlay: #ffffff;
+		--overlay-foreground: #1c1b2e;
+		--muted: #6b6880;
+		--default: #eeedf6;
+		--default-foreground: #1c1b2e;
+		--border: #e4e2f2;
+		--separator: #ece9f6;
+
+		--accent: #6d5ef0;
+		--accent-foreground: #f7f6ff;
+		--secondary: #b34bd1;
+		--secondary-foreground: #f9f0fc;
+
+		--success: #1fa971;
+		--success-foreground: #06281c;
+		--warning: #d97a13;
+		--warning-foreground: #2c1704;
+		--danger: #e0435f;
+		--danger-foreground: #fff2f4;
+
+		--field-background: #ffffff;
+		--field-foreground: #1c1b2e;
+		--backdrop: rgb(28 20 46 / 55%);
+	}
+
+	.dark,
+	[data-theme="dark"] {
+		--background: #14121f;
+		--foreground: #f1eefc;
+		--surface: #1b1930;
+		--surface-foreground: #f1eefc;
+		--overlay: #1b1930;
+		--overlay-foreground: #f1eefc;
+		--muted: #a29cc0;
+		--default: #262238;
+		--default-foreground: #f1eefc;
+		--border: #34304a;
+		--separator: #2c2942;
+
+		--accent: #9b8bff;
+		--accent-foreground: #12101c;
+		--secondary: #e19bec;
+		--secondary-foreground: #2a1430;
+
+		--success: #4fd399;
+		--success-foreground: #06281c;
+		--warning: #f2a53d;
+		--warning-foreground: #2c1704;
+		--danger: #f2748c;
+		--danger-foreground: #2c0b12;
+
+		--field-background: #262238;
+		--field-foreground: #f1eefc;
+		--backdrop: rgb(8 6 16 / 70%);
+	}
+}
