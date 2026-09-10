@@ -51,12 +51,11 @@ export function UserSummary({
 				</span>
 
 				<span className="flex items-center gap-2">
+					{/* Puramente visual: el % ya lo anuncia el aria-label del botón
+					    y el texto de al lado, así que la barra va aria-hidden. */}
 					<span
 						className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-sm bg-surface-hover transition-colors group-hover:bg-surface group-active:bg-surface"
-						role="progressbar"
-						aria-valuemin={0}
-						aria-valuemax={100}
-						aria-valuenow={learningProgress}
+						aria-hidden="true"
 					>
 						<span
 							className="block h-full rounded-sm bg-surface-soft transition-[width] duration-180 ease-in-out"
