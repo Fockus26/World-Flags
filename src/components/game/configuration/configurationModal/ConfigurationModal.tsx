@@ -58,7 +58,13 @@ export function ConfigurationModal({
 		>
 			<header className="mb-3 flex items-center justify-between">
 				<h2 id="user-modal-title">Perfil y configuración</h2>
-				<Button variant="text" color="danger" type="button" onClick={onClose}>
+				<Button
+					variant="text"
+					color="danger"
+					type="button"
+					fullWidth={false}
+					onClick={onClose}
+				>
 					Cerrar
 				</Button>
 			</header>

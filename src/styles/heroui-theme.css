@@ -53,7 +53,9 @@
 		--danger: #e0435f;
 		--danger-foreground: #fff2f4;
 
-		--field-background: #ffffff;
+		/* Relleno con un gris muy suave (no blanco) para que inputs y selects
+		   se separen del fondo blanco de las tarjetas y modales. */
+		--field-background: #f1eff8;
 		--field-foreground: #1c1b2e;
 		--backdrop: rgb(28 20 46 / 55%);
 
@@ -90,9 +92,11 @@
 		--danger: #f2748c;
 		--danger-foreground: #2c0b12;
 
-		--field-background: #262238;
+		/* Un pelín más claro que la superficie del modal (#1b1930) para
+		   separar el campo del fondo. */
+		--field-background: #2b2740;
 		--field-foreground: #f1eefc;
-		/* ≥3:1 sobre #262238. */
+		/* ≥3:1 sobre el fondo del campo. */
 		--field-border: #6f6a94;
 		--backdrop: rgb(8 6 16 / 70%);
 

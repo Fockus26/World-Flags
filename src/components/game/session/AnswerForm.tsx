@@ -77,7 +77,7 @@ export function AnswerForm({
 
 				{answerStatus === "incorrect" && (
 					<FeedbackMessage key="incorrect" variant="danger" role="alert">
-						La respuesta correcta es <strong>{countryName}</strong>.
+						La respuesta correcta es <strong>{countryName}</strong>
 					</FeedbackMessage>
 				)}
 			</AnimatePresence>
@@ -93,8 +93,8 @@ export function AnswerForm({
 			)}
 
 			{!isAnswerChecked && (
-				<div className="flex gap-2">
-					<Button type="submit" disabled={!answer.trim()} className="flex-1">
+				<div className="grid grid-cols-[2fr_1fr] gap-2">
+					<Button type="submit" disabled={!answer.trim()}>
 						Comprobar
 					</Button>
 					<Button

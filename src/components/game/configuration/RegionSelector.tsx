@@ -87,6 +87,8 @@ export function RegionSelector({
 					overflow-x-hidden
 					overflow-y-auto
 					overscroll-contain
+					px-1
+					py-1.5
 					min-[44rem]:grid-cols-3
 				"
 			>

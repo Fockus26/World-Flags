@@ -59,7 +59,7 @@ export function GameTab({
 				legend={
 					<span className="inline-flex items-center gap-2">
 						Modo de juego
-						<HelpHint label="Competitivo: a contrarreloj, se cronometra toda la sesión y se guarda tu mejor tiempo por continente; fallar o usar skip suma penalización de tiempo. Práctica: sin puntuación por tiempo, califica cada bandera para repasarla con repetición espaciada." />
+						<HelpHint label="Competitivo: contrarreloj, guarda tu mejor tiempo; fallar penaliza. Práctica: sin cronómetro, calificas cada bandera para repasarla." />
 					</span>
 				}
 			>

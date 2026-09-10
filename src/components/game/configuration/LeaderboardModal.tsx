@@ -83,7 +83,13 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 				<h2 id="leaderboard-title" className="m-0">
 					Ranking — Todo el mundo
 				</h2>
-				<Button variant="text" color="danger" type="button" onClick={onClose}>
+				<Button
+					variant="text"
+					color="danger"
+					type="button"
+					fullWidth={false}
+					onClick={onClose}
+				>
 					Cerrar
 				</Button>
 			</header>

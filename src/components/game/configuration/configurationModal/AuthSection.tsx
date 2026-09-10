@@ -223,10 +223,10 @@ export function AuthSection() {
 						</Button>
 					</motion.form>
 
-					<div className="relative my-1 flex justify-center text-center before:absolute before:top-1/2 before:right-0 before:left-0 before:border-text-placeholder before:border-t">
-						<span className="relative z-10 bg-surface px-3 text-text-placeholder text-xs">
-							o
-						</span>
+					<div className="my-1 flex items-center gap-3 text-text-placeholder text-xs">
+						<span className="h-px flex-1 bg-[var(--border)]" />
+						o
+						<span className="h-px flex-1 bg-[var(--border)]" />
 					</div>
 
 					<Button

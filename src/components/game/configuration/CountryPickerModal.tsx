@@ -147,6 +147,17 @@ export function CountryPickerModal({
 		onClose();
 	}
 
+	function clearAll() {
+		setSelected((current) => {
+			// Conserva solo los ya practicados hoy (deshabilitados), si los hubiera.
+			const next = new Set<string>();
+			for (const code of current) {
+				if (isCountryDisabled?.(code)) next.add(code);
+			}
+			return next;
+		});
+	}
+
 	return (
 		<Modal
 			isOpen={isOpen}
@@ -158,16 +169,33 @@ export function CountryPickerModal({
 				<h2 id="country-picker-title" className="m-0">
 					Elegir países
 				</h2>
-				<Button variant="text" color="danger" type="button" onClick={onClose}>
+				<Button
+					variant="text"
+					color="danger"
+					type="button"
+					fullWidth={false}
+					onClick={onClose}
+				>
 					Cerrar
 				</Button>
 			</header>
 
-			<p className="mt-0 mb-3 text-[0.85rem] text-text-placeholder">
-				Elige los países que quieres practicar. Cuentan como práctica solo
-				ellos, no todo el continente. Los ya practicados hoy aparecen
-				bloqueados.
-			</p>
+			<div className="mt-0 mb-3 flex items-start justify-between gap-3">
+				<p className="text-[0.85rem] text-text-placeholder">
+					Elige los países que quieres practicar. Cuentan como práctica solo
+					ellos, no todo el continente. Los ya practicados hoy aparecen
+					bloqueados.
+				</p>
+				{selected.size > 0 && (
+					<button
+						type="button"
+						onClick={clearAll}
+						className="shrink-0 cursor-pointer whitespace-nowrap rounded-sm px-1 text-[0.78rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
+					>
+						Limpiar todo ({selected.size})
+					</button>
+				)}
+			</div>
 
 			<div className="flex flex-col gap-1.5">
 				{REGIONS.map((region) => {
@@ -204,13 +232,26 @@ export function CountryPickerModal({
 											: regionCodes.length}
 									</span>
 								</button>
-								<button
-									type="button"
-									className="shrink-0 cursor-pointer border-0 bg-transparent p-0 text-[0.72rem] font-bold text-secondary"
-									onClick={() => toggleAllInRegion(regionCodes, allSelected)}
-								>
-									{allSelected ? "Ninguno" : "Todos"}
-								</button>
+								<div className="flex shrink-0 items-center gap-2">
+									{selectedCount > 0 && (
+										<button
+											type="button"
+											className="cursor-pointer rounded-sm border-0 bg-transparent p-0.5 text-[0.72rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--focus)]"
+											onClick={() => toggleAllInRegion(regionCodes, true)}
+										>
+											Ninguno
+										</button>
+									)}
+									{!allSelected && (
+										<button
+											type="button"
+											className="cursor-pointer rounded-sm border-0 bg-transparent p-0.5 text-[0.72rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--focus)]"
+											onClick={() => toggleAllInRegion(regionCodes, false)}
+										>
+											Todos
+										</button>
+									)}
+								</div>
 							</div>
 
 							<AnimatePresence initial={false}>

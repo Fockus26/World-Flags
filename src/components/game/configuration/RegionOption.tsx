@@ -62,17 +62,20 @@ export function RegionOption({
 	text-surface-soft
 	hover:bg-(--app-score-background)
 	active:bg-(--app-score-background)
+	has-focus-visible:bg-(--app-score-background)
 	has-checked:bg-(--app-score-background)
-	has-checked:border-primary
+	has-checked:border-2 has-checked:border-l-4
 	has-checked:[&_.region-check]:border-(--app-score-color)
 	has-checked:[&_.region-check]:bg-(--app-score-color)
 	transition duration-200 ease-in-out
 	hover:-translate-y-0.5
+	has-focus-visible:-translate-y-0.5
 	active:translate-y-0
 	active:scale-[0.98]
-	hover:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_35%,transparent)]
-	active:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-score-color)_35%,transparent)]
-	has-checked:shadow-[0_0_0_2px_var(--color-primary)]
+	hover:shadow-[0_0_0_2px_var(--app-score-color)]
+	active:shadow-[0_0_0_2px_var(--app-score-color)]
+	has-focus-visible:shadow-[0_0_0_2px_var(--app-score-color)]
+	has-checked:shadow-[0_0_0_2px_var(--app-score-color)]
 	outline-[var(--focus)]
 	has-focus-visible:outline-[3px]
 	has-focus-visible:outline-offset-3

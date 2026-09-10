@@ -95,10 +95,13 @@ function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
 			});
 			break;
 		case "soft":
+			// Hover/press: se ahonda el tinte suave (sin llegar al color pleno),
+			// así el texto `readableFg` mantiene contraste AA en todos los
+			// estados sin depender de invertir el color del texto.
 			Object.assign(style, {
 				"--button-bg": c.soft,
-				"--button-bg-hover": c.base,
-				"--button-bg-pressed": c.base,
+				"--button-bg-hover": `color-mix(in oklab, ${c.base} 22%, ${c.soft})`,
+				"--button-bg-pressed": `color-mix(in oklab, ${c.base} 32%, ${c.soft})`,
 				"--button-fg": readableFg(c.base),
 			});
 			break;
@@ -124,6 +127,22 @@ function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
 	return style as CSSProperties;
 }
 
+/**
+ * - Foco de teclado = mismo aspecto que el hover (pinta `--button-bg-hover`).
+ * - En `soft` el hover/press/foco llevan el color pleno de fondo, así que el
+ *   texto pasa a `--btn-contained-fg` (blanco/negro según tema) para no
+ *   quedar oscuro-sobre-color.
+ */
+// Foco de teclado = mismo aspecto que el hover: se pinta `--button-bg-hover`.
+// El `!` es imprescindible porque `--button-*` se fija con `style` inline en
+// el componente y sin `!important` una clase no lo puede pisar.
+const HOVER_LIKE_FOCUS =
+	"data-[focus-visible]:[--button-bg:var(--button-bg-hover)]!";
+
+function interactionClassName(_variant: ButtonVariant): string {
+	return HOVER_LIKE_FOCUS;
+}
+
 export function Button({
 	color = "primary",
 	variant = "contained",
@@ -139,20 +158,28 @@ export function Button({
 	ref,
 	...rest
 }: ButtonProps) {
+	// Por defecto los botones ocupan el ancho de su contenedor (dentro de una
+	// fila flex/grid eso los reparte equitativamente). Los de solo ícono y
+	// quien pase `fullWidth={false}` (cabeceras de modal, etc.) quedan al
+	// ancho del contenido.
+	const isFullWidth = fullWidth ?? !isIconOnly;
+
 	return (
 		<HeroButton
 			ref={ref}
 			type={type}
 			variant="primary"
 			size="lg"
-			fullWidth={fullWidth}
+			fullWidth={isFullWidth}
 			isIconOnly={isIconOnly}
 			isDisabled={disabled}
 			data-pressed={pressed || undefined}
 			onPress={
 				onClick ? () => onClick({} as MouseEvent<HTMLButtonElement>) : undefined
 			}
-			className={className}
+			className={[interactionClassName(variant), className]
+				.filter(Boolean)
+				.join(" ")}
 			style={{ ...colorVars(color, variant), ...style }}
 			{...rest}
 		>

@@ -65,6 +65,7 @@ export function Header({
 						color="danger"
 						type="button"
 						onClick={onExit}
+						fullWidth={false}
 						aria-label="Abandonar"
 						className="gap-2 px-2 sm:px-4"
 					>
