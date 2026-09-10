@@ -40,7 +40,13 @@ export default defineConfig({
 			dedupe: ["react", "react-dom", "react/compiler-runtime"],
 		},
 		optimizeDeps: {
-			include: ["react", "react-dom", "react/compiler-runtime"],
+			include: [
+				"react",
+				"react-dom",
+				"react/compiler-runtime",
+				"@heroui/react",
+				"react-aria-components",
+			],
 		},
 		ssr: {
 			noExternal: ["@heroui/react", "react-aria-components"],

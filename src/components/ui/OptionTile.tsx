@@ -8,7 +8,13 @@ interface OptionTileProps {
 	children: ReactNode;
 }
 
-export function OptionTile({ name, value, checked, onChange, children }: OptionTileProps) {
+export function OptionTile({
+	name,
+	value,
+	checked,
+	onChange,
+	children,
+}: OptionTileProps) {
 	return (
 		<label className="group relative flex w-full min-w-0 cursor-pointer items-center justify-center rounded-md border bg-primary-soft border-primary-border transition-colors duration-180 ease-in-out hover:bg-primary active:bg-primary has-checked:bg-primary has-focus:outline-3 has-focus:outline-offset-3 has-focus:outline-primary-border min-h-10 sm:min-h-11.5">
 			<input

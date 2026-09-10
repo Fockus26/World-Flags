@@ -1,3 +1,4 @@
+import { Alert } from "@heroui/react";
 import { motion } from "framer-motion";
 import { type ReactNode, useEffect } from "react";
 import { motionTransition, motionVariants } from "@/styles/animations";
@@ -13,11 +14,6 @@ interface FeedbackMessageProps {
 	onDismiss?: () => void;
 	children: ReactNode;
 }
-
-const variantClass: Record<FeedbackVariant, string> = {
-	success: "border-success-border bg-success text-success-soft",
-	danger: "border-danger-border bg-danger-soft text-danger",
-};
 
 const sizeClass: Record<FeedbackSize, string> = {
 	sm: "px-3 py-2 text-xs font-semibold",
@@ -42,20 +38,24 @@ export function FeedbackMessage({
 		return () => window.clearTimeout(timeoutId);
 		// biome-ignore lint/correctness/useExhaustiveDependencies: onDismiss estabilizado por React Compiler (ver docs/components.md)
 	}, [autoDismissMs, onDismiss]);
+
 	return (
-		<motion.p
-			className={`m-0 rounded-md border ${variantClass[variant]} ${sizeClass[size]}`}
-			role={role}
+		<motion.div
 			layout
 			transition={{ layout: motionTransition(0.2) }}
 			variants={
-				size === "sm" ? motionVariants.feedbackEnter : motionVariants.answerFeedbackEnter
+				size === "sm"
+					? motionVariants.feedbackEnter
+					: motionVariants.answerFeedbackEnter
 			}
 			initial="hidden"
 			animate="visible"
 			exit="exit"
 		>
-			{children}
-		</motion.p>
+			<Alert status={variant} role={role} className={`m-0 ${sizeClass[size]}`}>
+				<Alert.Indicator />
+				<Alert.Content>{children}</Alert.Content>
+			</Alert>
+		</motion.div>
 	);
 }

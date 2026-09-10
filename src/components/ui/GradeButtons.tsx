@@ -51,7 +51,9 @@ export function GradeButtons({ onGrade }: GradeButtonsProps) {
 					className="flex gap-3 items-center"
 					onClick={() => handleClick(grade)}
 				>
-					<kbd className="hidden sm:inline font-[inherit] font-extrabold">{key}</kbd>
+					<kbd className="hidden sm:inline font-[inherit] font-extrabold">
+						{key}
+					</kbd>
 					{label}
 				</Button>
 			))}
