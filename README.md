@@ -50,16 +50,18 @@ The system allows users to:
 
 ## 🛠 Tech Stack
 
-- **Base framework:** Astro (static output — a single-page shell mounting one React tree; no SSR/multi-page routing is in use today)
+- **Base framework:** Astro 7 (static output — a single-page shell mounting one React tree; no SSR/multi-page routing is in use today)
 - **Interactive UI:** React 19 + TypeScript (React Compiler enabled via `babel-plugin-react-compiler`)
+- **Component library:** [HeroUI v3](https://www.heroui.com/) (`@heroui/react` + `@heroui/styles`) on top of Tailwind CSS v4
 - **Runtime / toolchain:** Bun
 - **Global state:** Redux Toolkit
 - **Auth & backend:** Supabase (client in `src/lib/supabase.ts`)
 - **Local persistence:** `localStorage`, wrapped by `src/utils/learning-storage.ts`
-- **Styling:** Tailwind CSS v4, with shared design tokens in `src/styles/variables.css`
-- **Animations:** Framer Motion, with reusable variants centralized in `src/styles/animations.ts`
+- **Styling:** Tailwind CSS v4 (CSS-first, no `tailwind.config.js`). Own tokens in `src/styles/variables.css` are bridged to HeroUI's tokens in `src/styles/heroui-theme.css`
+- **Animations:** `tw-animate-css` (ships with `@heroui/styles`) + CSS transitions. `framer-motion` is installed but effectively deprecated — it doesn't run in this stack (see `context/decisions/03-animaciones.md`)
 - **Icons:** [iconoir-react](https://iconoir.com/)
 - **PWA:** hand-rolled service worker (`public/sw.js`) + web manifest
+- **Agent context:** `CLAUDE.md` + `context/` — start there before working on this repo
 
 ---
 
@@ -116,10 +118,11 @@ src/
 │       ├── gameSlice.ts
 │       └── themeSlice.ts
 ├── styles/
-│   ├── animations.ts                 # Framer Motion variants (motionVariants, motionTransition)
-│   ├── global.css                    # Tailwind entrypoint + base styles
-│   ├── theme.css                     # dark mode token overrides
-│   └── variables.css                 # design tokens (colors, radii, transitions)
+│   ├── animations.ts                 # legacy framer-motion variants (mostly inert — see context/decisions/03)
+│   ├── global.css                    # Tailwind + @heroui/styles entrypoint + base reset
+│   ├── variables.css                 # own tokens (--app-color-*), light + [data-theme="dark"]
+│   ├── theme.css                     # @theme inline: own tokens → Tailwind utilities + radius scale
+│   └── heroui-theme.css              # bridge: rewrite HeroUI base tokens with the brand palette
 ├── types/
 │   ├── country.ts                    # PracticeScope, GameConfiguration, GameResult
 │   └── progress.ts                   # UserLearningData, RegionBestTimes, LastPracticeByCountry
@@ -138,7 +141,10 @@ src/
 │   └── spaced-repetition.ts          # SM2 algorithm
 └── env.d.ts
 
-docs/                                  # deeper dives: state management, design system, components
+CLAUDE.md                              # agent onboarding — read first
+context/                               # living project context (decisions, inventories, current phase, git state)
+docs/                                  # deeper dives: state management, design system, components, PWA assets
+e2e/                                   # Playwright flow tests (bun run test:e2e)
 supabase/                              # SQL migrations to run manually in the Supabase SQL editor
 ```
 
@@ -162,7 +168,15 @@ What a session practices is modeled by `PracticeScope` (`src/types/country.ts`):
 
 ### Design system
 
-Styling is done with **Tailwind CSS** utility classes, backed by shared design tokens (colors, radii, transitions) defined in `src/styles/variables.css` — no hardcoded hex/px values. Dark mode reuses the same set of tokens under a theme selector (`theme.css`). Animations are handled with **Framer Motion**, with reusable variants and transitions centralized in `src/styles/animations.ts` rather than defined ad hoc per component. See [docs/design-system.md](./docs/design-system.md) and [docs/components.md](./docs/components.md) for more.
+UI is built on **HeroUI v3** with **Tailwind CSS v4** utility classes. The app's own
+design tokens (`src/styles/variables.css`, exposed as utilities via `@theme inline` in
+`theme.css`) are bridged to HeroUI's token names in `src/styles/heroui-theme.css`, so
+both systems share one palette driven by `[data-theme]` on `<html>`. No hardcoded
+hex/px for color, radius or shadow. Animations use `tw-animate-css` (`animate-in …`)
+and CSS transitions — **not** framer-motion, which doesn't execute in this
+React 19 + HeroUI + Astro-islands setup. See [docs/design-system.md](./docs/design-system.md),
+[docs/components.md](./docs/components.md), and `context/` (especially
+`context/decisions/`) for the full picture.
 
 ---
 
