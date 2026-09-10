@@ -8,7 +8,11 @@ interface ConfirmationModalProps {
 	onConfirm: () => void;
 }
 
-export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationModalProps) {
+export function ConfirmationModal({
+	isOpen,
+	onCancel,
+	onConfirm,
+}: ConfirmationModalProps) {
 	const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
 	useEffect(() => {
@@ -21,6 +25,7 @@ export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationM
 		<Modal
 			isOpen={isOpen}
 			onClose={onCancel}
+			role="alertdialog"
 			ariaLabelledby="exit-modal-title"
 			ariaDescribedby="exit-modal-description"
 			className="flex flex-col gap-3.5"
@@ -32,12 +37,20 @@ export function ConfirmationModal({ isOpen, onCancel, onConfirm }: ConfirmationM
 				!
 			</div>
 
-			<h2>¿Abandonar la práctica?</h2>
+			<h2 id="exit-modal-title">¿Abandonar la práctica?</h2>
 
-			<p>El progreso de esta partida se perderá y no se guardará ninguna calificación.</p>
+			<p id="exit-modal-description">
+				El progreso de esta partida se perderá y no se guardará ninguna
+				calificación.
+			</p>
 
 			<div className="mt-3 grid grid-cols-1 gap-3.5 min-[44rem]:grid-cols-2">
-				<Button color="neutral" ref={cancelButtonRef} type="button" onClick={onCancel}>
+				<Button
+					color="neutral"
+					ref={cancelButtonRef}
+					type="button"
+					onClick={onCancel}
+				>
 					Continuar practicando
 				</Button>
 
