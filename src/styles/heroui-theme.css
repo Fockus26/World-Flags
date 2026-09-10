@@ -43,6 +43,12 @@
 		--field-background: #ffffff;
 		--field-foreground: #1c1b2e;
 		--backdrop: rgb(28 20 46 / 55%);
+
+		/* Texto de los botones "contained": los fondos de marca en claro son
+		   medios/saturados -> texto blanco; en oscuro son pasteles -> texto
+		   casi negro (ver bloque dark). Un único valor sirve para los 6
+		   colores porque la paleta entera vira igual entre temas. */
+		--btn-contained-fg: #ffffff;
 	}
 
 	.dark,
@@ -74,5 +80,7 @@
 		--field-background: #262238;
 		--field-foreground: #f1eefc;
 		--backdrop: rgb(8 6 16 / 70%);
+
+		--btn-contained-fg: #14121f;
 	}
 }

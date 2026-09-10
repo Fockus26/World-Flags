@@ -30,14 +30,14 @@
 		height: 100%;
 		margin: 0;
 		overflow: hidden;
-		color: var(--color-surface-soft);
+		color: var(--foreground);
 		background:
 			radial-gradient(
 				circle at top left,
 				color-mix(in srgb, var(--color-primary) 12%, transparent),
 				transparent 34rem
 			),
-			var(--color-surface);
+			var(--background);
 	}
 
 	button {

@@ -80,7 +80,7 @@ function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
 				"--button-bg": c.base,
 				"--button-bg-hover": c.hover,
 				"--button-bg-pressed": c.hover,
-				"--button-fg": c.soft,
+				"--button-fg": "var(--btn-contained-fg)",
 			});
 			break;
 		case "soft":

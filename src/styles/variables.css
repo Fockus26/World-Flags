@@ -10,11 +10,12 @@
 	--app-color-secondary-soft: #f6e9fb;
 	--app-color-secondary-border: #e6c6f2;
 
-	/* Surfaces */
-	--app-color-surface: #f7f7fb;
-	--app-color-surface-hover: #eeedf6;
+	/* Surfaces — la tarjeta va en blanco puro para separarse del fondo de
+	   página (`--background`, gris lavanda) tras la migración a HeroUI. */
+	--app-color-surface: #ffffff;
+	--app-color-surface-hover: #f1eff9;
 	--app-color-surface-soft: #1c1b2e;
-	--app-color-surface-border: #e4e2f2;
+	--app-color-surface-border: #e2dff1;
 
 	/* Typography */
 	--app-color-text-placeholder: #6b6880;
