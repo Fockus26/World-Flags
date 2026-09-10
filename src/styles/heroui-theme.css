@@ -10,8 +10,20 @@
 
 @layer theme {
 	:root,
+	[data-theme="light"],
+	.dark,
+	[data-theme="dark"] {
+		/* HeroUI deja los campos sin borde por defecto (solo sombra). En este
+		   diseño las tarjetas son claras/planas, así que se les da un borde
+		   visible y un poco más de alto para que se lean como campos. */
+		--field-border-width: 1px;
+		--field-radius: calc(var(--radius) * 0.85);
+	}
+
+	:root,
 	[data-theme="light"] {
 		--radius: 0.75rem;
+		--field-border: #d7d4ec;
 		--font-sans:
 			"Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
 			sans-serif;
@@ -79,6 +91,7 @@
 
 		--field-background: #262238;
 		--field-foreground: #f1eefc;
+		--field-border: #3f3a5c;
 		--backdrop: rgb(8 6 16 / 70%);
 
 		--btn-contained-fg: #14121f;
