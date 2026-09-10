@@ -84,9 +84,9 @@ export function RegionSelector({
 					min-h-0
 					grid-cols-2
 					gap-3
+					overflow-x-hidden
 					overflow-y-auto
 					overscroll-contain
-					pr-1
 					min-[44rem]:grid-cols-3
 				"
 			>
