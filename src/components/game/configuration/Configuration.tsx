@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { IconButton } from "@/components/ui/IconButton";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
 import { useGame } from "@/hooks/useGame";
 import { motionVariants } from "@/styles/animations";
@@ -20,6 +21,7 @@ import {
 	getDueCountries,
 } from "@/utils/learning-storage";
 import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
+import { AchievementsModal } from "./AchievementsModal";
 import { CountryPickerModal } from "./CountryPickerModal";
 import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
 import { LeaderboardModal } from "./LeaderboardModal";
@@ -40,8 +42,10 @@ export function Configuration() {
 		useState(false);
 	const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
 	const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+	const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
 	const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 	const { status, user } = useAuth();
+	const { unseenCount, markAllSeen } = useAchievements();
 
 	const accountLabel =
 		status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
@@ -131,6 +135,48 @@ export function Configuration() {
 						totalCountries={196}
 						onOpenModal={() => setIsConfigurationModalOpen(true)}
 					/>
+
+					<Tooltip
+						label={
+							unseenCount > 0
+								? `Logros (${unseenCount} sin ver)`
+								: "Logros"
+						}
+						position="left"
+						side="bottom"
+					>
+						<span className="relative inline-flex">
+							<IconButton
+								type="button"
+								color="neutral"
+								variant="text"
+								// El contador va en el nombre accesible, no solo en el
+								// badge: si no, "tienes logros nuevos" sería un estado
+								// comunicado únicamente por color y forma.
+								aria-label={
+									unseenCount > 0
+										? `Ver logros, ${unseenCount} sin ver`
+										: "Ver logros"
+								}
+								onClick={() => {
+									setIsAchievementsOpen(true);
+									// Abrirlos es haberlos visto: apaga el contador.
+									markAllSeen();
+								}}
+							>
+								🏅
+							</IconButton>
+
+							{unseenCount > 0 && (
+								<span
+									aria-hidden="true"
+									className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-black text-primary-soft"
+								>
+									{unseenCount}
+								</span>
+							)}
+						</span>
+					</Tooltip>
 
 					<Tooltip label="Ranking" position="left" side="bottom">
 						<IconButton
@@ -281,6 +327,11 @@ export function Configuration() {
 			<LeaderboardModal
 				isOpen={isLeaderboardOpen}
 				onClose={() => setIsLeaderboardOpen(false)}
+			/>
+
+			<AchievementsModal
+				isOpen={isAchievementsOpen}
+				onClose={() => setIsAchievementsOpen(false)}
 			/>
 		</>
 	);

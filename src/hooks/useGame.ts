@@ -16,10 +16,12 @@ import {
 } from "@/types/country";
 import type {
 	ReviewGrade,
+	SessionRecord,
 	UserLearningData,
 	UserProfile,
 } from "@/types/progress";
 import {
+	createSessionRecord,
 	getDueCountries,
 	getUnpracticedCodesToday,
 	hasPracticedCountryToday,
@@ -27,13 +29,16 @@ import {
 	registerCountryPracticed,
 	registerRegionBestTime,
 	registerRegionGame,
+	registerSessionOutcome,
 	saveLastConfiguration,
 	saveReviewResult,
 	saveUserProfile,
+	touchActiveDay,
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
 import {
 	getScopeCountryCodes,
+	getScopeLabel,
 	getScopeRegionKey,
 } from "@/utils/practice-scope";
 import { prepareCountries } from "@/utils/prepare-countries";
@@ -51,6 +56,27 @@ import { calculateScore } from "@/utils/score";
  */
 function getCurrentLearningData(): UserLearningData {
 	return store.getState().game.learningData;
+}
+
+function toSessionRecord(result: GameResult): SessionRecord {
+	return createSessionRecord({
+		finishedAt: result.finishedAt,
+		mode: result.mode,
+		scopeKey: getScopeRegionKey(result.scope),
+		scopeLabel: getScopeLabel(result.scope),
+		totalCountries: result.totalCountries,
+		correctAnswers: result.correctAnswers,
+		skippedAnswers: result.skippedAnswers,
+		score: result.mode === "practice" ? result.score : null,
+		elapsedMs: result.elapsedMs,
+	});
+}
+
+/** Lo que la práctica diaria aporta al historial: no tiene scope ni modo de juego. */
+export interface DailyPracticeSummary {
+	totalCountries: number;
+	correctAnswers: number;
+	elapsedMs: number;
 }
 
 export function useGame() {
@@ -152,9 +178,17 @@ export function useGame() {
 		// un solo continente, varios combinados, o países sueltos de cada uno.
 		// El mejor tiempo del rush, en cambio, también aplica a "Todo el mundo"
 		// (getScopeRegionKey) pero no se desglosa por continente.
-		if (result.mode === "practice") {
-			let updatedData = getCurrentLearningData();
+		// El registro de la sesión va PRIMERO, antes de cualquier salida
+		// temprana: un rush con scope mixto no tiene continente al que atribuir
+		// la marca, pero la sesión igual ocurrió y cuenta para las estadísticas.
+		// Todo se encadena sobre el mismo objeto y se despacha una sola vez
+		// (ver el comentario de `getCurrentLearningData` arriba).
+		let updatedData = registerSessionOutcome(
+			getCurrentLearningData(),
+			toSessionRecord(result),
+		);
 
+		if (result.mode === "practice") {
 			for (const [region, stats] of Object.entries(result.regionBreakdown) as [
 				Region,
 				{ correct: number; total: number },
@@ -162,19 +196,18 @@ export function useGame() {
 				const score = calculateScore(stats.correct, stats.total);
 				updatedData = registerRegionGame(updatedData, region, score);
 			}
+		} else {
+			const region = getScopeRegionKey(result.scope);
 
-			dispatch(setLearningData(updatedData));
-			return;
+			if (region) {
+				updatedData = registerRegionBestTime(
+					updatedData,
+					region,
+					result.elapsedMs,
+				);
+			}
 		}
 
-		const region = getScopeRegionKey(result.scope);
-		if (!region) return;
-
-		const updatedData = registerRegionBestTime(
-			getCurrentLearningData(),
-			region,
-			result.elapsedMs,
-		);
 		dispatch(setLearningData(updatedData));
 	};
 
@@ -205,11 +238,16 @@ export function useGame() {
 		}
 	};
 
+	/**
+	 * El día se marca como activo aquí y en `gradeCountryReview`, no al terminar
+	 * la sesión: quien responde veinte banderas y abandona practicó ese día
+	 * igual, y así la racha funciona en los tres modos (incluida la práctica
+	 * diaria, que no pasa por `finishGame`) sin escribir nada de más
+	 * — `touchActiveDay` no toca los datos si hoy ya estaba marcado.
+	 */
 	const attemptCountry = (countryCode: string, isCorrect: boolean) => {
-		const updatedData = registerCountryAttempt(
-			getCurrentLearningData(),
-			countryCode,
-			isCorrect,
+		const updatedData = touchActiveDay(
+			registerCountryAttempt(getCurrentLearningData(), countryCode, isCorrect),
 		);
 
 		dispatch(setLearningData(updatedData));
@@ -235,7 +273,7 @@ export function useGame() {
 			updatedData = registerCountryPracticed(updatedData, countryCode);
 		}
 
-		dispatch(setLearningData(updatedData));
+		dispatch(setLearningData(touchActiveDay(updatedData)));
 	};
 
 	const startDailyPractice = () => {
@@ -244,6 +282,28 @@ export function useGame() {
 		dispatch(setDailyPracticeQueue(dueCodes));
 	};
 
+	/** La práctica diaria sí completada: entra al historial y cierra la cola. */
+	const finishDailyPractice = (summary: DailyPracticeSummary) => {
+		const updatedData = registerSessionOutcome(
+			getCurrentLearningData(),
+			createSessionRecord({
+				finishedAt: new Date().toISOString(),
+				mode: "daily",
+				scopeKey: null,
+				scopeLabel: "Práctica diaria",
+				totalCountries: summary.totalCountries,
+				correctAnswers: summary.correctAnswers,
+				skippedAnswers: 0,
+				score: null,
+				elapsedMs: summary.elapsedMs,
+			}),
+		);
+
+		dispatch(setLearningData(updatedData));
+		dispatch(setDailyPracticeQueue(null));
+	};
+
+	/** Abandono: no cuenta como sesión completada (el día activo ya se marcó al calificar). */
 	const exitDailyPractice = () => {
 		dispatch(setDailyPracticeQueue(null));
 	};
@@ -275,6 +335,7 @@ export function useGame() {
 		attemptCountry,
 		gradeCountryReview,
 		startDailyPractice,
+		finishDailyPractice,
 		exitDailyPractice,
 		saveProfile,
 		updateSettings,

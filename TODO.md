@@ -18,8 +18,14 @@
   `supabase/leaderboard.sql` una vez en el proyecto de Supabase para que
   funcione. Pendiente si se quiere: leaderboard por continente (el schema
   ya lo soporta vía la columna `scope`, solo falta la UI para elegirlo).
-- Logros: ej. "aprender un continente", "primeras 100 banderas",
-  "todo el mundo".
+- [x] Logros: 25 logros en 6 categorías (descubrimiento, continentes, velocidad,
+  precisión, constancia, meta), incluidos los tres pedidos aquí ("aprender un
+  continente", "primeras 100 banderas", "todo el mundo"). Modal propio con
+  icono 🏅 y badge de no-vistos, tarjetas de desbloqueo en `Results`.
+  Los derivables son **retroactivos**: se desbloquean con el progreso que ya
+  tenías. Requiere correr `supabase/achievements.sql` una vez.
+  Ver `context/decisions/05-logros.md`.
+  Pendiente: aprobar el copy y los umbrales (fila #7 de `CONTENT_CHECKLIST.md`).
 
 ## 3. Nuevos modos de juego
 - **Todos los países de un tirón**: elegir alcance (continente o mundo),

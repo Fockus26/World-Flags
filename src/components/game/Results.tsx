@@ -105,6 +105,10 @@ export function Results({ result, onRestart, onExit }: ResultsProps) {
 				</p>
 			)}
 
+			{/* Los avisos de logro ya no van aquí: salen como snackbar
+			    (`AchievementToasts`, montado en `FlagGame`) en el momento en que
+			    se desbloquean, incluso a mitad de partida. */}
+
 			<div className="mt-6 grid w-full max-w-md grid-cols-2 gap-3 sm:mt-8">
 				<Button color="neutral" type="button" onClick={onExit}>
 					Volver al inicio

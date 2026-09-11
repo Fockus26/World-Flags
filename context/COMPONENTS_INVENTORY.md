@@ -28,12 +28,16 @@ Ver `SECTION_INVENTORY.md`. Resumen de dónde vive qué:
 - `components/game/FlagGame.tsx` — router de vistas por estado de Redux
 - `components/game/configuration/` — pantalla de config: `Configuration`, `RegionSelector`,
   `RegionOption`, `UserSummary`, `ThemeSwitcher`, `CountryPickerModal`, `LeaderboardModal`,
-  y `configurationModal/` (`ConfigurationModal` con HeroUI `Tabs`, `AccountTab`, `GameTab`,
-  `AuthSection`, `Avatar`, `EmailConfirmationPending`)
+  `AchievementsModal`, y `configurationModal/` (`ConfigurationModal` con HeroUI `Tabs`,
+  `AccountTab`, `GameTab`, `AuthSection`, `Avatar`, `EmailConfirmationPending`)
+- `components/game/AchievementToasts.tsx` — snackbars de logro apiladas abajo a
+  la derecha, montadas una sola vez en `FlagGame` (fuera del router de vistas,
+  así se ven en cualquier pantalla)
 - `components/game/session/` — sesión: `Session` (rush), `DailyPractice`, `AnswerForm`,
   `FlagDisplay`, `Header` (cronómetro), `Timer`, `ConfirmationModal`
 - `components/game/Results.tsx` — resultados (práctica vs. competitivo por `result.mode`)
-- `components/app/` — `Providers`, `AuthEffects`, `GameEffects`, `ThemeEffects`
+- `components/app/` — `Providers`, `AuthEffects`, `GameEffects`, `ThemeEffects`,
+  `AchievementsEffects` (sella los logros recién cumplidos; ver `decisions/05-logros.md`)
 
 ## Estilos globales (`src/styles/`)
 

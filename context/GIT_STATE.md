@@ -27,7 +27,11 @@ El dueño (`Fockus26`) decide cuándo subir: `git push`.
 
 ## Ramas de trabajo
 
-Ninguna abierta. `feat/heroui-migration` ya se mergeó y se borró.
+| Rama | Base | Unidad | Estado |
+|---|---|---|---|
+| `feat/achievements` | `main` | Sistema de logros | abierta — esperando revisión del dueño |
+
+`feat/heroui-migration` ya se mergeó y se borró.
 
 ## Bloques cerrados
 

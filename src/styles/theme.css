@@ -27,6 +27,11 @@
 	=========================== */
 
 	--color-success: var(--app-color-success);
+	/* Faltaba en el puente (a diferencia de primary/secondary/warning/danger):
+	   `text-success` sobre `bg-success-soft` da 2.71:1 en claro y falla AA para
+	   texto — igual que pasó con `--color-danger-hover`, hace falta el tono
+	   "-hover" (más oscuro) para acentos de texto/icono en verde. */
+	--color-success-hover: var(--app-color-success-hover);
 	--color-success-soft: var(--app-color-success-soft);
 	--color-success-border: var(--app-color-success-border);
 

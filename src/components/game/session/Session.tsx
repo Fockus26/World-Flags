@@ -64,6 +64,7 @@ export function Session() {
 	// decidido automáticamente.
 	const [isSkipPending, setIsSkipPending] = useState(false);
 	const firstAttemptResultsRef = useRef<Record<string, boolean>>({});
+	const skippedAnswersRef = useRef(0);
 	const startTimeRef = useRef<number | null>(null);
 	// El cronómetro se pausa mientras se muestra el resultado de una bandera
 	// (antes de pasar a la siguiente) y mientras está abierto el modal de
@@ -96,6 +97,10 @@ export function Session() {
 				mode: "practice",
 				score: calculateScore(correctAnswers, countries.length),
 				correctAnswers,
+				skippedAnswers: skippedAnswersRef.current,
+				finishedAt: new Date().toISOString(),
+				elapsedMs:
+					startTimeRef.current !== null ? Date.now() - startTimeRef.current : 0,
 				totalCountries: countries.length,
 				scope: activeGame?.configuration.scope ?? { type: "world" },
 				regionBreakdown,
@@ -116,14 +121,20 @@ export function Session() {
 		}
 	}
 
+	// El reloj arranca en TODOS los modos: `stats.totalTimePlayedMs` mide el
+	// tiempo de práctica, no solo el de rush. Lo que sigue siendo exclusivo del
+	// competitivo es mostrarlo, pausarlo y penalizarlo.
+	useEffect(() => {
+		if (startTimeRef.current === null) {
+			startTimeRef.current = Date.now();
+		}
+	}, []);
+
 	// Cronómetro del modo competitivo: corre desde que empieza la sesión hasta
 	// que termina; las penalizaciones adelantan el "inicio" para que el
 	// tiempo mostrado suba de golpe en vez de llevar un contador aparte.
 	useEffect(() => {
 		if (!isCompetitiveMode) return;
-		if (startTimeRef.current === null) {
-			startTimeRef.current = Date.now();
-		}
 		const intervalId = window.setInterval(() => {
 			if (startTimeRef.current !== null && !isClockPausedRef.current) {
 				setElapsedMs(Date.now() - startTimeRef.current);
@@ -190,6 +201,15 @@ export function Session() {
 				mode: "competitive",
 				scope: configuration.scope,
 				totalCountries: countries.length,
+				// Se lee del ref, NO del estado `correctAnswers`: esta función
+				// corre dentro del `setTimeout` de `pauseThenAdvance`, sobre la
+				// closure del render anterior, así que el `setCorrectAnswers` de
+				// la última bandera todavía no se vería y contaría uno de menos.
+				correctAnswers: Object.values(firstAttemptResultsRef.current).filter(
+					Boolean,
+				).length,
+				skippedAnswers: skippedAnswersRef.current,
+				finishedAt: new Date().toISOString(),
 				elapsedMs: finalElapsedMs,
 			});
 			return;
@@ -224,6 +244,9 @@ export function Session() {
 
 		if (configuration.mode === "competitive") {
 			attemptCountry(currentCountry.code, isCorrect);
+			// En competitivo cada bandera aparece una sola vez (avanza por
+			// índice), así que el guard de `recordFirstAttempt` nunca salta.
+			recordFirstAttempt(currentCountry.code, isCorrect);
 			if (!isCorrect && startTimeRef.current !== null) {
 				startTimeRef.current -= RUSH_WRONG_PENALTY_MS;
 			}
@@ -269,8 +292,13 @@ export function Session() {
 	function handleSkip() {
 		if (!currentCountry || answerStatus !== "idle") return;
 
+		// Hasta ahora un skip era indistinguible de un fallo (ambos caían como
+		// `false`); se cuenta aparte para los logros de "sin saltarse ninguna".
+		skippedAnswersRef.current += 1;
+
 		if (configuration.mode === "competitive") {
 			attemptCountry(currentCountry.code, false);
+			recordFirstAttempt(currentCountry.code, false);
 			if (startTimeRef.current !== null) {
 				startTimeRef.current -= RUSH_SKIP_PENALTY_MS;
 			}

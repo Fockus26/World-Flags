@@ -1,4 +1,5 @@
 import { useGame } from "@/hooks/useGame";
+import { AchievementToasts } from "./AchievementToasts";
 import { Configuration } from "./configuration/Configuration";
 import { Results } from "./Results";
 import { DailyPractice } from "./session/DailyPractice";
@@ -11,6 +12,7 @@ function FlagGameContent() {
 		dailyPracticeQueue,
 		exitGame,
 		exitDailyPractice,
+		finishDailyPractice,
 		restartGame,
 	} = useGame();
 
@@ -22,7 +24,8 @@ function FlagGameContent() {
 		return (
 			<DailyPractice
 				countryCodes={dailyPracticeQueue}
-				onFinish={exitDailyPractice}
+				onComplete={finishDailyPractice}
+				onAbandon={exitDailyPractice}
 			/>
 		);
 	}
@@ -43,6 +46,9 @@ export default function FlagGame() {
 			className="relative grid h-dvh w-full place-items-center overflow-hidden p-[0.4rem] sm:p-[clamp(0.5rem,2vh,1.5rem)]"
 		>
 			<FlagGameContent />
+			{/* Fuera de `FlagGameContent`: tiene que verse en cualquier vista
+			    (sesión, práctica diaria, resultados...), no solo en una. */}
+			<AchievementToasts />
 		</main>
 	);
 }

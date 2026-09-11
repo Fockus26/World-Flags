@@ -91,6 +91,43 @@
 	strong {
 		font-weight: 800;
 	}
+
+	/*
+	 * Scrollbar propia, con los tokens del tema en vez del gris del sistema
+	 * operativo. Global (`*`) a propósito: cualquier contenedor con scroll
+	 * interno la hereda sin tener que acordarse de aplicarla uno por uno — el
+	 * cuerpo del `Modal`, el picker de países, la lista de logros, la sesión en
+	 * pantallas bajas.
+	 *
+	 * `scrollbar-color`/`-width` cubren Firefox; `::-webkit-scrollbar-*` cubre
+	 * Chromium/Safari. Los colores son `--color-surface-border` en reposo y
+	 * `--color-primary-border` al pasar el mouse — tokens que ya existen, se
+	 * repintan solos con el tema y con `[data-theme]`, no valores nuevos.
+	 */
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: var(--color-surface-border) transparent;
+	}
+
+	*::-webkit-scrollbar {
+		width: 0.6rem;
+		height: 0.6rem;
+	}
+
+	*::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	*::-webkit-scrollbar-thumb {
+		background-color: var(--color-surface-border);
+		background-clip: padding-box;
+		border: 0.15rem solid transparent;
+		border-radius: 999px;
+	}
+
+	*::-webkit-scrollbar-thumb:hover {
+		background-color: var(--color-primary-border);
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

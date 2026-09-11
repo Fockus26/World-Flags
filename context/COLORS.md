@@ -30,9 +30,9 @@
 | foreground / surface-soft (texto) | `#1c1b2e` | texto principal (ojo: el token se llama `-soft` pero ES el texto) |
 | text-placeholder / muted | `#6b6880` | texto secundario (5.36:1 sobre blanco, AA ok) |
 | border (`--app-color-surface-border` / `--border`) | `#e2dff1` / `#e4e2f2` | bordes de tarjeta |
-| field-background (`--field-background`) | `#f1eff8` | relleno de inputs/selects (gris, para separarse del blanco) |
-| field-border | `#9c96c4` | borde de input (≥3:1 sobre blanco) |
-| success | `#1fa971` · soft `#e3f8ee` | correcto, "Bien"/"Fácil" |
+| field-background (`--field-background`) | `#e2dff1` | relleno de inputs/selects — mismo tono que `border` (surface-border), reutilizado a propósito. `1.31:1` contra el blanco del modal, sutil pero perceptible |
+| field-border | `#9c96c4` | borde de input. **Pre-existente sin arreglar aquí:** da `2.77:1` contra blanco, por debajo del `≥3:1` que su propio comentario en el CSS reclama |
+| success | `#1fa971` · soft `#e3f8ee` · hover `#178a5c` | correcto, "Bien"/"Fácil". **Como texto da 2.71:1 y falla AA** — igual que `primary`, usar `success-hover` para texto/icono con acento y reservar `success` para fondo/borde |
 | warning | `#d97a13` · soft `#fdf0dc` | "Difícil" |
 | danger | `#e0435f` · soft `#fde8ec` | incorrecto, "Otra vez", "Cerrar"/"Abandonar" |
 | neutral | `#57536b` · soft `#eeedf6` | botones neutros, "Cancelar" |
@@ -52,8 +52,8 @@
 | foreground (texto) | `#f1eefc` |
 | muted | `#a29cc0` |
 | border | `#34304a` |
-| field-background | `#2b2740` · field-border `#6f6a94` |
-| success | `#4fd399` · warning `#f2a53d` · danger `#f2748c` (soft = versiones oscuras) |
+| field-background | `#2b2740` · field-border `#6f6a94` — **más claro** que `surface`/`overlay` (`#1b1930`) a propósito: en oscuro, elevar un control se lee aclarándolo, no oscureciéndolo. No se tocó al ajustar el de claro |
+| success | `#4fd399` · hover `#7fe0b5` · warning `#f2a53d` · danger `#f2748c` (soft = versiones oscuras) |
 | neutral | `#c8c4dc` |
 | backdrop | `rgb(8 6 16 / 70%)` |
 
@@ -68,3 +68,8 @@
   para el texto (fallaba 2.2–2.7:1). El nombre/contador van en `text-surface-soft` fijo.
 - El texto danger como `text` variant (`#e0435f` sobre blanco = 4.09:1) queda al
   filo; si vuelve a aparecer un fallo, subir a `--color-danger-hover` (`#c22e49`).
+- Los logros desbloqueados (`AchievementsModal`, `AchievementToasts`) van en
+  verde por fondo/borde/icono — nunca por texto: `success` sobre `success-soft`
+  da 2.71:1 en claro. El nombre se queda en `text-surface-soft`, el icono en
+  `text-success-hover` (icono informativo, solo necesita 3:1). Ver
+  `decisions/06-ajustes-logros.md`.

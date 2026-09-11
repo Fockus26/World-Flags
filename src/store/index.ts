@@ -1,4 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
+import achievementToastsReducer from "./slices/achievementToastSlice";
 import authReducer from "./slices/authSlice";
 import gameReducer from "./slices/gameSlice";
 import themeReducer from "./slices/themeSlice";
@@ -8,6 +9,9 @@ export const store = configureStore({
 		auth: authReducer,
 		game: gameReducer,
 		theme: themeReducer,
+		// Efímero a propósito: avisos de logro en pantalla, no progreso
+		// persistido. Ver el comentario en `slices/achievementToastSlice.ts`.
+		achievementToasts: achievementToastsReducer,
 	},
 });
 

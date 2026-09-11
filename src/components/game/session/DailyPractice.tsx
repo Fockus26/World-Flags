@@ -1,16 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { FlagDisplay } from "@/components/game/session/FlagDisplay";
 import { Header } from "@/components/game/session/Header";
 import { GradeButtons } from "@/components/ui/GradeButtons";
 import { countries } from "@/data/countries";
+import type { DailyPracticeSummary } from "@/hooks/useGame";
 import { useGame } from "@/hooks/useGame";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import type { ReviewGrade } from "@/types/progress";
 
 interface DailyPracticeProps {
 	countryCodes: string[];
-	onFinish: () => void;
+	/** Cola terminada de verdad: cuenta como sesión. */
+	onComplete: (summary: DailyPracticeSummary) => void;
+	/** Salida a mitad: NO cuenta como sesión. Antes ambas cosas eran el mismo callback. */
+	onAbandon: () => void;
 }
 
 const GRADE_BY_KEY: Record<string, ReviewGrade> = {
@@ -20,17 +24,36 @@ const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 	"4": "easy",
 };
 
-export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
+export function DailyPractice({
+	countryCodes,
+	onComplete,
+	onAbandon,
+}: DailyPracticeProps) {
 	const { learningData, gradeCountryReview } = useGame();
 	const [isRevealed, setIsRevealed] = useState(false);
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+	const correctAnswersRef = useRef(0);
+	const startTimeRef = useRef(Date.now());
 
 	const { currentCode, totalCount, completedCount, grade } = usePracticeQueue({
 		initialCodes: countryCodes,
 		countryHistory: learningData.countryHistory,
-		onGrade: (code, gradeValue, isFirstAttempt) =>
-			gradeCountryReview(code, gradeValue, isFirstAttempt),
-		onFinish,
+		onGrade: (code, gradeValue, isFirstAttempt) => {
+			// Solo la primera vez que aparece cada bandera, y "otra vez" es el
+			// único lapso real: `calculateNextReview` reinicia las repeticiones
+			// justamente ahí y no en "difícil".
+			if (isFirstAttempt && gradeValue !== "again") {
+				correctAnswersRef.current += 1;
+			}
+
+			gradeCountryReview(code, gradeValue, isFirstAttempt);
+		},
+		onFinish: () =>
+			onComplete({
+				totalCountries: countryCodes.length,
+				correctAnswers: correctAnswersRef.current,
+				elapsedMs: Date.now() - startTimeRef.current,
+			}),
 	});
 
 	const currentCountry = countries.find(
@@ -111,7 +134,7 @@ export function DailyPractice({ countryCodes, onFinish }: DailyPracticeProps) {
 			<ConfirmationModal
 				isOpen={isExitModalOpen}
 				onCancel={() => setIsExitModalOpen(false)}
-				onConfirm={onFinish}
+				onConfirm={onAbandon}
 			/>
 		</>
 	);
