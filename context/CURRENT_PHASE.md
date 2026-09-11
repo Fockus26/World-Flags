@@ -4,15 +4,15 @@
 
 ## Estado actual
 
-**Sistema de logros** — implementado en `feat/achievements`, con una ronda de
-ajustes de feedback ya aplicada (verde para desbloqueado, snackbars en vez de
-`Results`, scrollbar temática, select de avatar). **Esperando revisión del
-dueño**. No commiteado todavía.
+**Sistema de logros** (con una ronda de ajustes de feedback: verde para
+desbloqueado, snackbars en vez de `Results`, scrollbar temática, select de
+avatar) — **aprobado, commiteado y mergeado a `main`** (commit `da042ab`, merge
+`414d137`, `--no-ff`). Rama `feat/achievements` no borrada.
 
 Anterior: **Migración a HeroUI v3 + fix de persistencia + pasada de diseño/a11y**,
 cerrada y mergeada a `main` (merge `a4c2e65`, `--no-ff`).
 
-`main` está **15 commits por delante de `origin/main` sin push** — el dueño decide
+`main` está **17 commits por delante de `origin/main` sin push** — el dueño decide
 cuándo se sube.
 
 ### Acción manual pendiente del dueño (bloquea el despliegue)
