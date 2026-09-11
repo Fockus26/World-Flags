@@ -1,39 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#7c6cf6"/>
       <stop offset="1" stop-color="#a463ea"/>
     </linearGradient>
   </defs>
 
-  <!-- full-bleed background (safe for maskable icons) -->
-  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- Full-bleed background -->
+  <rect width="512" height="512" fill="url(#g)"/>
 
-  <!-- subtle card outline hint (flashcard theme) -->
-  <rect x="66" y="66" width="380" height="380" rx="72"
-        fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="10"/>
+  <!-- Rear flashcard -->
+  <rect x="118" y="126" width="320" height="288" rx="40"
+        fill="#e8e3ff" transform="rotate(7 278 270)"/>
 
-  <!-- flagpole -->
-  <rect x="172" y="140" width="16" height="248" rx="8" fill="#ffffff"/>
-  <circle cx="180" cy="130" r="11" fill="#ffffff"/>
+  <!-- Main flashcard -->
+  <rect x="74" y="104" width="320" height="288" rx="40" fill="#ffffff"/>
 
-  <!-- waving flag -->
-  <path d="M 188 150
-           C 230 132, 250 168, 292 150
-           C 316 140, 332 146, 346 154
-           L 346 226
-           C 332 218, 316 212, 292 222
-           C 250 240, 230 204, 188 222
-           Z"
-        fill="#ffffff"/>
+  <!-- Flag pole -->
+  <rect x="128" y="142" width="14" height="212" rx="7" fill="#6d5ef0"/>
+  <circle cx="135" cy="134" r="10" fill="#6d5ef0"/>
 
-  <!-- two subtle stripes on the flag suggesting a flag pattern -->
-  <path d="M 188 150
-           C 230 132, 250 168, 292 150
-           C 316 140, 332 146, 346 154
-           L 346 178
-           C 332 170, 316 164, 292 174
-           C 250 192, 230 156, 188 174
-           Z"
-        fill="#6d5ef0" fill-opacity="0.55"/>
+  <!-- Flag -->
+  <path d="M142 160
+           C184 142 206 182 250 162
+           C278 150 298 158 316 168
+           L316 254
+           C298 244 278 236 250 248
+           C206 268 184 228 142 246 Z"
+        fill="#6d5ef0"/>
+
+  <!-- Secondary flag stripe -->
+  <path d="M142 160
+           C184 142 206 182 250 162
+           C278 150 298 158 316 168
+           L316 197
+           C298 187 278 179 250 191
+           C206 211 184 171 142 189 Z"
+        fill="#a463ea"/>
 </svg>
