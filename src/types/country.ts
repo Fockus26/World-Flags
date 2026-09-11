@@ -67,12 +67,25 @@ export interface GameConfiguration {
 interface GameResultBase {
 	scope: PracticeScope;
 	totalCountries: number;
+	/** Aciertos al primer intento. En competitivo cada bandera aparece una sola vez. */
+	correctAnswers: number;
+	skippedAnswers: number;
+	/**
+	 * Momento en que terminó la sesión (ISO). `Results` lo usa para saber qué
+	 * logros se desbloquearon en ESTA sesión y no en una anterior.
+	 */
+	finishedAt: string;
+	/**
+	 * Duración de la sesión. En competitivo es el tiempo de carrera (ya incluye
+	 * las penalizaciones por fallo y skip); en práctica es tiempo de reloj, y
+	 * solo alimenta el total acumulado — no se muestra ni se compara.
+	 */
+	elapsedMs: number;
 }
 
 export interface PracticeGameResult extends GameResultBase {
 	mode: "practice";
 	score: number;
-	correctAnswers: number;
 	/**
 	 * Desglose por continente de los países de la sesión (independiente de
 	 * cómo se armó el scope: continentes completos y/o países sueltos), para
@@ -85,7 +98,6 @@ export interface PracticeGameResult extends GameResultBase {
 /** Competitivo = "rush": se cronometra la sesión completa, no cada bandera. */
 export interface CompetitiveGameResult extends GameResultBase {
 	mode: "competitive";
-	elapsedMs: number;
 }
 
 export type GameResult = PracticeGameResult | CompetitiveGameResult;

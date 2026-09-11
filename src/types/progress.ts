@@ -48,6 +48,60 @@ export type RegionBestTimes = Partial<Record<PracticeRegion, number>>;
 /** Última fecha (YYYY-MM-DD, hora local) en que se practicó cada país. */
 export type LastPracticeByCountry = Partial<Record<string, string>>;
 
+/** Sello de un logro desbloqueado. `seenAt` es null mientras no se haya mostrado. */
+export interface AchievementUnlock {
+	unlockedAt: string;
+	seenAt: string | null;
+}
+
+/**
+ * La clave es el id del logro, tipado como `string` a propósito y NO como
+ * `AchievementId`: un cliente viejo (el service worker cachea agresivo) puede
+ * leer una fila que ya trae logros de una versión más nueva. Si el
+ * normalizador filtrara por los ids que este cliente conoce, los borraría en
+ * el siguiente push — y con merge por unión, borrar es irreversible. Se
+ * estrecha a `AchievementId` solo al buscar en el catálogo; los desconocidos
+ * se ignoran en la UI y se conservan intactos en el almacenamiento.
+ */
+export type UnlockedAchievements = Record<string, AchievementUnlock>;
+
+export type SessionMode = "practice" | "competitive" | "daily";
+
+/**
+ * Una sesión terminada. Es independiente de `GameResult` (que no cubre la
+ * práctica diaria, sin scope ni modo de juego) y guarda la etiqueta del
+ * alcance ya resuelta en vez del `PracticeScope` crudo: un scope con 60
+ * códigos sueltos pesa más del doble por registro y no aporta nada que la
+ * etiqueta y `scopeKey` no cubran.
+ */
+export interface SessionRecord {
+	id: string;
+	finishedAt: string;
+	mode: SessionMode;
+	/** Continente exacto o "world"; null en la práctica diaria y en scopes mixtos. */
+	scopeKey: PracticeRegion | null;
+	scopeLabel: string;
+	totalCountries: number;
+	correctAnswers: number;
+	skippedAnswers: number;
+	/** Solo en modo práctica (1-10). */
+	score: number | null;
+	elapsedMs: number | null;
+}
+
+export interface UserStats {
+	totalSessions: number;
+	totalAnswers: number;
+	totalCorrect: number;
+	totalSkips: number;
+	perfectSessions: number;
+	totalTimePlayedMs: number;
+	/** Días con actividad (YYYY-MM-DD local), ordenados y sin repetir. */
+	activeDays: string[];
+	/** Sobrevive al truncado de `activeDays`, para logros de veteranía. */
+	firstActiveDay: string | null;
+}
+
 export interface UserLearningData {
 	profile: UserProfile;
 	countryHistory: CountriesLearningHistory;
@@ -55,4 +109,7 @@ export interface UserLearningData {
 	regionBestTimes: RegionBestTimes;
 	lastConfiguration: GameConfiguration | null;
 	lastPracticeByCountry: LastPracticeByCountry;
+	achievements: UnlockedAchievements;
+	stats: UserStats;
+	sessionHistory: SessionRecord[];
 }

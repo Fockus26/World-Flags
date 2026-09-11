@@ -53,9 +53,13 @@
 		--danger: #e0435f;
 		--danger-foreground: #fff2f4;
 
-		/* Relleno con un gris muy suave (no blanco) para que inputs y selects
-		   se separen del fondo blanco de las tarjetas y modales. */
-		--field-background: #f1eff8;
+		/* Relleno para que inputs y selects se separen del blanco de tarjetas y
+		   modales. Reutiliza el mismo tono que `--app-color-surface-border`
+		   (bordes de tarjeta) en vez de un gris inventado: antes (#f1eff8) daba
+		   solo 1.14:1 contra el blanco del modal, casi imperceptible; este da
+		   1.31:1. Sigue siendo sutil a propósito — no es la separación fuerte
+		   de una tarjeta, solo la de un campo dentro de una. */
+		--field-background: #e2dff1;
 		--field-foreground: #1c1b2e;
 		--backdrop: rgb(28 20 46 / 55%);
 
@@ -92,8 +96,10 @@
 		--danger: #f2748c;
 		--danger-foreground: #2c0b12;
 
-		/* Un pelín más claro que la superficie del modal (#1b1930) para
-		   separar el campo del fondo. */
+		/* Aquí se queda MÁS CLARO que la superficie del modal (#1b1930), al
+		   revés que en claro: en un tema oscuro, "elevar" un control se lee
+		   aclarándolo, no oscureciéndolo más — oscurecerlo lo hundiría contra
+		   un fondo que ya es casi negro y perdería el poco borde que tiene. */
 		--field-background: #2b2740;
 		--field-foreground: #f1eefc;
 		/* ≥3:1 sobre el fondo del campo. */

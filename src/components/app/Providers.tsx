@@ -2,6 +2,7 @@ import { MotionConfig } from "framer-motion";
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { store } from "@/store";
+import { AchievementsEffects } from "./AchievementsEffects";
 import { AuthEffects } from "./AuthEffects";
 import { GameEffects } from "./GameEffects";
 import { ThemeEffects } from "./ThemeEffects";
@@ -16,6 +17,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 				<ThemeEffects />
 				<AuthEffects />
 				<GameEffects />
+				<AchievementsEffects />
 				{children}
 			</MotionConfig>
 		</Provider>

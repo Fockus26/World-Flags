@@ -2,7 +2,11 @@ import { supabase } from "@/lib/supabase";
 
 import type { UserLearningData } from "@/types/progress";
 
-import { hasLearningProgress, mergePracticeState } from "./learning-storage";
+import {
+	hasLearningProgress,
+	mergeLearningData,
+	normalizeLearningData,
+} from "./learning-storage";
 
 export async function fetchRemoteLearningData(
 	userId: string,
@@ -10,7 +14,7 @@ export async function fetchRemoteLearningData(
 	const { data, error } = await supabase
 		.from("user_learning_data")
 		.select(
-			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country",
+			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, achievements, stats, session_history",
 		)
 		.eq("user_id", userId)
 		.maybeSingle();
@@ -25,14 +29,24 @@ export async function fetchRemoteLearningData(
 		return null;
 	}
 
-	return {
+	/**
+	 * Pasa por `normalizeLearningData` (el mismo normalizador que usa
+	 * localStorage) en vez de mapear a pelo: una fila creada antes de que
+	 * existieran estas columnas llega con campos sin definir, y cualquier
+	 * lectura posterior de `stats` reventaría. Además así la siembra
+	 * retroactiva de días activos también aplica a los datos de la nube.
+	 */
+	return normalizeLearningData({
 		profile: data.profile,
 		countryHistory: data.country_history,
 		regionGameScores: data.region_game_scores,
 		lastConfiguration: data.last_configuration,
 		regionBestTimes: data.region_best_times ?? {},
 		lastPracticeByCountry: data.last_practice_by_country ?? {},
-	};
+		achievements: data.achievements ?? {},
+		stats: data.stats ?? undefined,
+		sessionHistory: data.session_history ?? [],
+	});
 }
 
 export async function pushLearningData(
@@ -47,6 +61,9 @@ export async function pushLearningData(
 		region_best_times: data.regionBestTimes,
 		last_configuration: data.lastConfiguration,
 		last_practice_by_country: data.lastPracticeByCountry,
+		achievements: data.achievements,
+		stats: data.stats,
+		session_history: data.sessionHistory,
 		updated_at: new Date().toISOString(),
 	});
 
@@ -90,22 +107,21 @@ export async function syncOnLogin(
 	}
 
 	/**
-	 * La cuenta ya tiene progreso: gana lo remoto, PERO el candado diario y las
-	 * mejores marcas se fusionan con lo local para no perder una jornada en
-	 * curso en este dispositivo (ni una marca batida sin conexión).
+	 * La cuenta ya tiene progreso: gana lo remoto campo a campo, salvo lo que
+	 * `mergeLearningData` sabe unir sin perder nada (candado diario, mejores
+	 * marcas, logros, estadísticas e historial).
 	 */
-	const merged: UserLearningData = {
-		...remote,
-		...mergePracticeState(remote, localData),
-	};
+	const merged = mergeLearningData(remote, localData);
 
-	// Si el merge aportó algo que no estaba en remoto, se sube de vuelta.
-	if (
-		JSON.stringify(merged.lastPracticeByCountry) !==
-			JSON.stringify(remote.lastPracticeByCountry) ||
-		JSON.stringify(merged.regionBestTimes) !==
-			JSON.stringify(remote.regionBestTimes)
-	) {
+	/**
+	 * Si el merge aportó algo que no estaba en remoto, se sube de vuelta.
+	 *
+	 * Se compara el objeto ENTERO, no campo por campo: antes había que
+	 * acordarse de añadir cada campo nuevo también a esta condición, y
+	 * olvidarlo fallaba en silencio — el merge se quedaba en este dispositivo
+	 * y se perdía en el siguiente.
+	 */
+	if (JSON.stringify(merged) !== JSON.stringify(remote)) {
 		await pushLearningData(userId, merged);
 	}
 
