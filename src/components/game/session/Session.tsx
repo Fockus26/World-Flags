@@ -71,6 +71,11 @@ export function Session() {
 	// abandonar, para que esas esperas no cuenten como tiempo de carrera.
 	const isClockPausedRef = useRef(false);
 	const exitModalOpenedAtRef = useRef<number | null>(null);
+	// Código de la bandera a la que pertenece el `timeLeft` actual: al avanzar
+	// de bandera, el efecto del cronómetro necesita reiniciar el conteo en el
+	// mismo pase en el que detecta el cambio, antes de evaluar si expiró —
+	// si no, lee el `timeLeft` viejo (0) de la bandera anterior y salta dos.
+	const timerCodeRef = useRef<string | null>(null);
 
 	const practiceQueue = usePracticeQueue({
 		initialCodes: countries.map((country) => country.code),
@@ -143,18 +148,29 @@ export function Session() {
 		return () => window.clearInterval(intervalId);
 	}, [isCompetitiveMode]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: currentCode dispara el reset intencionalmente, su valor no se lee
-	useEffect(() => {
-		if (!isTimedPractice) return;
-		setTimeLeft(timerDuration);
-	}, [isTimedPractice, timerDuration, practiceQueue.currentCode]);
-
 	// biome-ignore lint/correctness/useExhaustiveDependencies: handleSkip estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
 		if (!isTimedPractice) return;
 		if (answerStatus !== "idle") return;
 		if (isExitModalOpen) return;
-		if (timeLeft <= 0) {
+
+		// Bandera nueva: reinicia el conteo. Se calcula `effectiveTimeLeft` en
+		// vez de depender de que el `setTimeLeft` dispare un re-render — si
+		// `timeLeft` ya valía `timerDuration` (p. ej. la primerísima bandera,
+		// que arranca con ese mismo valor de estado inicial), React no
+		// renderiza de nuevo porque el valor no cambia, y este efecto nunca
+		// volvería a correr para programar el `setTimeout` de abajo: el
+		// cronómetro se quedaría congelado desde el inicio. Usar el valor
+		// calculado también evita el problema original (leer el `timeLeft` de
+		// la bandera anterior y disparar un segundo skip).
+		const isNewCard = timerCodeRef.current !== practiceQueue.currentCode;
+		if (isNewCard) {
+			timerCodeRef.current = practiceQueue.currentCode;
+			setTimeLeft(timerDuration);
+		}
+		const effectiveTimeLeft = isNewCard ? timerDuration : timeLeft;
+
+		if (effectiveTimeLeft <= 0) {
 			handleSkip();
 			return;
 		}
@@ -162,7 +178,14 @@ export function Session() {
 			setTimeLeft((currentValue) => currentValue - 1);
 		}, 1000);
 		return () => window.clearTimeout(timeoutId);
-	}, [isTimedPractice, timeLeft, answerStatus, isExitModalOpen]);
+	}, [
+		isTimedPractice,
+		timerDuration,
+		practiceQueue.currentCode,
+		timeLeft,
+		answerStatus,
+		isExitModalOpen,
+	]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: handleGrade estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
