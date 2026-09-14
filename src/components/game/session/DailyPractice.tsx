@@ -46,7 +46,10 @@ export function DailyPractice({
 				correctAnswersRef.current += 1;
 			}
 
-			gradeCountryReview(code, gradeValue, isFirstAttempt);
+			// Sin `markPracticed`: la práctica diaria es un scope aparte del
+			// de continentes, y no debe contar como "practicado hoy" para el
+			// candado de continentes.
+			gradeCountryReview(code, gradeValue);
 		},
 		onFinish: () =>
 			onComplete({
