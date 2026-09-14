@@ -71,6 +71,11 @@ export function Session() {
 	// abandonar, para que esas esperas no cuenten como tiempo de carrera.
 	const isClockPausedRef = useRef(false);
 	const exitModalOpenedAtRef = useRef<number | null>(null);
+	// Código de la bandera a la que pertenece el `timeLeft` actual: al avanzar
+	// de bandera, el efecto del cronómetro necesita reiniciar el conteo en el
+	// mismo pase en el que detecta el cambio, antes de evaluar si expiró —
+	// si no, lee el `timeLeft` viejo (0) de la bandera anterior y salta dos.
+	const timerCodeRef = useRef<string | null>(null);
 
 	const practiceQueue = usePracticeQueue({
 		initialCodes: countries.map((country) => country.code),
@@ -143,17 +148,21 @@ export function Session() {
 		return () => window.clearInterval(intervalId);
 	}, [isCompetitiveMode]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: currentCode dispara el reset intencionalmente, su valor no se lee
-	useEffect(() => {
-		if (!isTimedPractice) return;
-		setTimeLeft(timerDuration);
-	}, [isTimedPractice, timerDuration, practiceQueue.currentCode]);
-
 	// biome-ignore lint/correctness/useExhaustiveDependencies: handleSkip estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
 		if (!isTimedPractice) return;
 		if (answerStatus !== "idle") return;
 		if (isExitModalOpen) return;
+
+		// Bandera nueva: reinicia el conteo y no evalúa expiración en este
+		// pase. Evita que el efecto lea el `timeLeft` (0) de la bandera
+		// anterior y dispare un segundo skip antes de que el reset tome efecto.
+		if (timerCodeRef.current !== practiceQueue.currentCode) {
+			timerCodeRef.current = practiceQueue.currentCode;
+			setTimeLeft(timerDuration);
+			return;
+		}
+
 		if (timeLeft <= 0) {
 			handleSkip();
 			return;
@@ -162,7 +171,14 @@ export function Session() {
 			setTimeLeft((currentValue) => currentValue - 1);
 		}, 1000);
 		return () => window.clearTimeout(timeoutId);
-	}, [isTimedPractice, timeLeft, answerStatus, isExitModalOpen]);
+	}, [
+		isTimedPractice,
+		timerDuration,
+		practiceQueue.currentCode,
+		timeLeft,
+		answerStatus,
+		isExitModalOpen,
+	]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: handleGrade estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
