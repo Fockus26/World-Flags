@@ -158,11 +158,7 @@ export function Configuration() {
 										? `Ver logros, ${unseenCount} sin ver`
 										: "Ver logros"
 								}
-								onClick={() => {
-									setIsAchievementsOpen(true);
-									// Abrirlos es haberlos visto: apaga el contador.
-									markAllSeen();
-								}}
+								onClick={() => setIsAchievementsOpen(true)}
 							>
 								🏅
 							</IconButton>
@@ -331,7 +327,13 @@ export function Configuration() {
 
 			<AchievementsModal
 				isOpen={isAchievementsOpen}
-				onClose={() => setIsAchievementsOpen(false)}
+				onClose={() => {
+					setIsAchievementsOpen(false);
+					// Se marcan como vistos al cerrar, no al abrir: mientras el
+					// modal está abierto necesita poder distinguir cuáles son
+					// "nuevos" (resaltado + scroll automático) de los ya vistos.
+					markAllSeen();
+				}}
 			/>
 		</>
 	);
