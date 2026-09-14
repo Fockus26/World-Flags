@@ -95,5 +95,9 @@ El track por fases aplicaría a partir de un rediseño mayor o modos de juego nu
 - **Entorno de este equipo (Windows):** Playwright / navegador embebido fallan a
   ratos (`window.innerHeight === 0`, Chromium cuelga). Afecta a QA automatizada,
   no al producto.
-- Banderas y avatares vienen de CDNs externos (`flagcdn.com`, `dicebear`) — riesgo
-  offline en el primer uso.
+- Las 196 banderas están autohospedadas en `public/flags/{code}.svg` (~3.1 MB,
+  descargadas una vez de `flagcdn.com`) y se sirven desde el propio origen, así
+  que `sw.js` ya las cachea igual que el resto de assets same-origin — la
+  primera vez que aparece una bandera pide red y de ahí en más sale de caché,
+  incluso offline. Los avatares siguen viniendo de `dicebear` (CDN externo,
+  mismo riesgo offline que antes).

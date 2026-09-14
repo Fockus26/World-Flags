@@ -21,7 +21,7 @@
 | Bloque | Archivo | Notas |
 |---|---|---|
 | Header (progreso / temporizador / cronómetro / Abandonar) | `Header.tsx` + `Timer.tsx` | cronómetro en vivo en modo rush; "Abandonar" `fullWidth={false}` |
-| Bandera | `FlagDisplay.tsx` | `<img>` desde `flagcdn.com` |
+| Bandera | `FlagDisplay.tsx` | `<img>` autohospedada en `public/flags/{code}.svg`; cachea vía `sw.js` (same-origin) |
 | Formulario de respuesta | `AnswerForm.tsx` | `Input` + "Comprobar"/"Saltar" (`grid grid-cols-[2fr_1fr]`) + `FeedbackMessage` + `GradeButtons` en modo práctica |
 | Modal confirmar abandono | `ConfirmationModal.tsx` | `role="alertdialog"`, foco a "Continuar practicando" |
 | Mecánica rush | `Session.tsx` | penalizaciones de tiempo, pausa/avance, requeue estilo Anki (`usePracticeQueue`) |

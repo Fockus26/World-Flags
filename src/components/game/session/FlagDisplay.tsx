@@ -18,7 +18,7 @@ export function FlagDisplay({ countryCode }: { countryCode: string }) {
 			<motion.img
 				key={countryCode}
 				className="block h-full w-[min(100%,30rem)] max-h-72 object-contain transition-[filter,transform,scale] duration-180 ease-in-out hover:scale-[1.015] active:scale-[1.015]"
-				src={`https://flagcdn.com/${countryCode}.svg`}
+				src={`/flags/${countryCode}.svg`}
 				alt="Bandera que debes identificar"
 				variants={motionVariants.flagEnter}
 				initial={false}
