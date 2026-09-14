@@ -12,6 +12,7 @@ import {
 	DEFAULT_TIMER_DURATION,
 	type GameConfiguration as GameConfigurationType,
 	type GameResult,
+	type PracticeScope,
 	type Region,
 } from "@/types/country";
 import type {
@@ -195,6 +196,30 @@ export function useGame() {
 			][]) {
 				const score = calculateScore(stats.correct, stats.total);
 				updatedData = registerRegionGame(updatedData, region, score);
+			}
+
+			// Un continente que ya se terminó de practicar hoy queda bloqueado
+			// (candado "practicado hoy"), así que no tiene sentido dejarlo
+			// seleccionado en la config: se deselecciona solo. Los países
+			// sueltos elegidos a mano (scope.countryCodes) no se tocan.
+			const lastScope = updatedData.lastConfiguration?.scope;
+			if (lastScope?.type === "custom" && lastScope.regions.length > 0) {
+				const remainingRegions = lastScope.regions.filter((region) => {
+					const regionCodes = countries
+						.filter((country) => country.region === region)
+						.map((country) => country.code);
+					return getUnpracticedCodesToday(updatedData, regionCodes).length > 0;
+				});
+
+				if (remainingRegions.length !== lastScope.regions.length) {
+					const nextScope: PracticeScope = {
+						...lastScope,
+						regions: remainingRegions,
+					};
+					updatedData = updateLastConfiguration(updatedData, {
+						scope: nextScope,
+					});
+				}
 			}
 		} else {
 			const region = getScopeRegionKey(result.scope);
