@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 
+import { store } from "@/store";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-
-import { setLearningData } from "@/store/slices/gameSlice";
-
 import { enqueueAchievementToasts } from "@/store/slices/achievementToastSlice";
+import { setLearningData } from "@/store/slices/gameSlice";
 
 import { getNewlyUnlocked } from "@/utils/achievements";
 
@@ -52,6 +52,7 @@ export function AchievementsEffects() {
 	 */
 	const isNextPassSilentRef = useRef(true);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: learningData dispara el efecto intencionalmente, aunque el cuerpo lea el valor fresco del store (ver comentario abajo)
 	useEffect(() => {
 		// Sin esperar a la hidratación se sellarían logros contra datos a medio
 		// cargar (p. ej. el estado por defecto mientras Supabase responde).
@@ -64,13 +65,21 @@ export function AchievementsEffects() {
 			return;
 		}
 
-		const newlyUnlocked = getNewlyUnlocked(learningData);
+		// Se lee del store, NO de `learningData` (el valor del closure de este
+		// render): entre que este efecto se programó y corrió pudo haber
+		// despachado otro `setLearningData` más reciente (p. ej. varias
+		// calificaciones seguidas), y `setLearningData` reemplaza el slice
+		// entero — sellar sobre un `learningData` viejo perdería ese cambio y
+		// dejaría el anuncio del logro sin disparar. Mismo criterio que
+		// `getCurrentLearningData` en `useGame.ts`.
+		const currentData = store.getState().game.learningData;
+		const newlyUnlocked = getNewlyUnlocked(currentData);
 
 		if (newlyUnlocked.length === 0) {
 			return;
 		}
 
-		dispatch(setLearningData(sealAchievements(learningData, newlyUnlocked)));
+		dispatch(setLearningData(sealAchievements(currentData, newlyUnlocked)));
 
 		if (isNextPassSilentRef.current) {
 			isNextPassSilentRef.current = false;

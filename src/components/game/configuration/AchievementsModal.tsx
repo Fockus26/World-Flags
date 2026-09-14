@@ -1,4 +1,5 @@
 import { CheckCircle, Lock } from "iconoir-react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { type AchievementView, useAchievements } from "@/hooks/useAchievements";
@@ -20,8 +21,20 @@ function formatUnlockedAt(isoDate: string): string {
 	});
 }
 
-function AchievementRow({ achievement }: { achievement: AchievementView }) {
+/** Desbloqueado pero todavía no visto en este modal: se resalta y es a lo que se hace scroll al abrir. */
+function isNewlyUnlocked(achievement: AchievementView): boolean {
+	return achievement.unlockedAt !== null && achievement.seenAt === null;
+}
+
+function AchievementRow({
+	achievement,
+	rowRef,
+}: {
+	achievement: AchievementView;
+	rowRef: (node: HTMLLIElement | null) => void;
+}) {
 	const { progress, unlocked, unlockedAt } = achievement;
+	const isNew = isNewlyUnlocked(achievement);
 
 	const hasBar = progress.target > 1;
 
@@ -45,12 +58,17 @@ function AchievementRow({ achievement }: { achievement: AchievementView }) {
 
 	return (
 		<li
+			ref={rowRef}
 			className={`flex items-start gap-3 rounded-md border px-3 py-2.5 ${
 				unlocked
 					? // El borde reutiliza el mismo `color-mix` que ya usa
 						// `FeedbackMessage` para sus variantes de color — no un verde
 						// nuevo inventado.
-						"border-[color-mix(in_oklab,var(--success)_45%,transparent)] bg-success-soft"
+						`border-[color-mix(in_oklab,var(--success)_45%,transparent)] bg-success-soft${
+							isNew
+								? " ring-2 ring-[color-mix(in_oklab,var(--success)_55%,transparent)] ring-offset-2 ring-offset-surface"
+								: ""
+						}`
 					: "border-surface-border bg-surface"
 			}`}
 		>
@@ -64,10 +82,25 @@ function AchievementRow({ achievement }: { achievement: AchievementView }) {
 				    fallan AA (`context/DESIGN_RULES.md`). Lo desbloqueado se
 				    distingue por el tinte de la tarjeta, el borde, el icono
 				    (`text-success-hover`, que sí cumple 3:1) y el texto de
-				    estado — nunca solo por el color del texto. */}
-				<strong className="text-[0.95rem] text-surface-soft">
-					{achievement.name}
-				</strong>
+				    estado — nunca solo por el color del texto. Lo recién
+				    desbloqueado suma el anillo de arriba MÁS esta etiqueta de
+				    texto: nunca solo el anillo, que sería una señal solo de forma/color. */}
+				<span className="flex flex-wrap items-center gap-1.5">
+					<strong className="text-[0.95rem] text-surface-soft">
+						{achievement.name}
+					</strong>
+
+					{isNew && (
+						// Fondo transparente a propósito: dentro de la tarjeta
+						// desbloqueada (bg-success-soft) reutiliza exactamente el
+						// mismo par texto/fondo que ya está verificado para
+						// `text-success-hover` (el icono de arriba), en vez de un
+						// fondo nuevo sin contraste comprobado.
+						<span className="rounded-full border border-[color-mix(in_oklab,var(--success)_55%,transparent)] bg-transparent px-1.5 py-0.5 text-[0.65rem] font-black text-success-hover">
+							Nuevo
+						</span>
+					)}
+				</span>
 
 				<span className="text-[0.8rem] text-text-placeholder">
 					{achievement.description}
@@ -102,10 +135,41 @@ function AchievementRow({ achievement }: { achievement: AchievementView }) {
 }
 
 export function AchievementsModal({ isOpen, onClose }: AchievementsModalProps) {
-	// Marcar como visto NO se hace aquí con un efecto sobre `isOpen`: quien
-	// abre el modal es quien lo sabe, así que lo hace el `onClick` del botón
-	// (ver `Configuration.tsx`). Así este componente se queda solo con pintar.
+	// Marcar como visto NO se hace aquí sino en el `onClose` que arma
+	// `Configuration.tsx`: mientras el modal está abierto, `catalog` todavía
+	// distingue los logros nuevos (desbloqueados sin ver) de los vistos, que
+	// es lo que hace falta para resaltarlos y hacerles scroll más abajo.
 	const { catalog, unlockedCount, totalCount } = useAchievements();
+
+	const rowNodesRef = useRef(new Map<string, HTMLLIElement>());
+	const catalogRef = useRef(catalog);
+	catalogRef.current = catalog;
+	const hasScrolledRef = useRef(false);
+
+	useEffect(() => {
+		if (!isOpen) {
+			hasScrolledRef.current = false;
+			return;
+		}
+		if (hasScrolledRef.current) return;
+
+		const firstNew = catalogRef.current.find(isNewlyUnlocked);
+		if (!firstNew) return;
+
+		const node = rowNodesRef.current.get(firstNew.id);
+		if (!node) return;
+
+		hasScrolledRef.current = true;
+
+		const prefersReducedMotion = window.matchMedia(
+			"(prefers-reduced-motion: reduce)",
+		).matches;
+
+		node.scrollIntoView({
+			behavior: prefersReducedMotion ? "auto" : "smooth",
+			block: "center",
+		});
+	}, [isOpen]);
 
 	return (
 		<Modal
@@ -150,6 +214,13 @@ export function AchievementsModal({ isOpen, onClose }: AchievementsModalProps) {
 									<AchievementRow
 										key={achievement.id}
 										achievement={achievement}
+										rowRef={(node) => {
+											if (node) {
+												rowNodesRef.current.set(achievement.id, node);
+											} else {
+												rowNodesRef.current.delete(achievement.id);
+											}
+										}}
 									/>
 								))}
 							</ul>
