@@ -154,16 +154,23 @@ export function Session() {
 		if (answerStatus !== "idle") return;
 		if (isExitModalOpen) return;
 
-		// Bandera nueva: reinicia el conteo y no evalúa expiración en este
-		// pase. Evita que el efecto lea el `timeLeft` (0) de la bandera
-		// anterior y dispare un segundo skip antes de que el reset tome efecto.
-		if (timerCodeRef.current !== practiceQueue.currentCode) {
+		// Bandera nueva: reinicia el conteo. Se calcula `effectiveTimeLeft` en
+		// vez de depender de que el `setTimeLeft` dispare un re-render — si
+		// `timeLeft` ya valía `timerDuration` (p. ej. la primerísima bandera,
+		// que arranca con ese mismo valor de estado inicial), React no
+		// renderiza de nuevo porque el valor no cambia, y este efecto nunca
+		// volvería a correr para programar el `setTimeout` de abajo: el
+		// cronómetro se quedaría congelado desde el inicio. Usar el valor
+		// calculado también evita el problema original (leer el `timeLeft` de
+		// la bandera anterior y disparar un segundo skip).
+		const isNewCard = timerCodeRef.current !== practiceQueue.currentCode;
+		if (isNewCard) {
 			timerCodeRef.current = practiceQueue.currentCode;
 			setTimeLeft(timerDuration);
-			return;
 		}
+		const effectiveTimeLeft = isNewCard ? timerDuration : timeLeft;
 
-		if (timeLeft <= 0) {
+		if (effectiveTimeLeft <= 0) {
 			handleSkip();
 			return;
 		}
