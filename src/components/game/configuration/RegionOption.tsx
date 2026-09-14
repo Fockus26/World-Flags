@@ -57,14 +57,13 @@ export function RegionOption({
 		<label
 			style={scoreStyle}
 			className={`
-	relative flex min-h-16 min-w-0 touch-manipulation cursor-pointer items-center rounded-md border border-l-4
+	relative flex min-h-16 min-w-0 touch-manipulation cursor-pointer items-center rounded-md border-2 border-l-4
 	border-(--app-score-color)
 	text-surface-soft
 	hover:bg-(--app-score-background)
 	active:bg-(--app-score-background)
 	has-focus-visible:bg-(--app-score-background)
 	has-checked:bg-(--app-score-background)
-	has-checked:border-2 has-checked:border-l-4
 	has-checked:[&_.region-check]:border-(--app-score-color)
 	has-checked:[&_.region-check]:bg-(--app-score-color)
 	transition duration-200 ease-in-out
