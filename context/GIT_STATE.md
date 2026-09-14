@@ -20,10 +20,8 @@
 
 ## Estado de `main` ahora mismo
 
-`main` está **17 commits por delante de `origin/main` y NO se ha hecho push.**
-Último commit: `414d137` (merge del sistema de logros, `--no-ff`).
-
-El dueño (`Fockus26`) decide cuándo subir: `git push`.
+`main` está **al día con `origin/main`** (`524e9c8`) — el dueño aprobó el push
+explícitamente para esta tanda de fixes, salvo excepción a la regla de abajo.
 
 ## Ramas de trabajo
 
@@ -38,3 +36,12 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 |---|---|---|---|
 | `feat/achievements` | `main` | `da042ab` (feature) → `414d137` (merge) | pendiente de decisión del dueño |
 | `feat/heroui-migration` | `main` | `a4c2e65` | pendiente de decisión del dueño |
+| `fix/region-option-altura-seleccion` | `main` | `edc34b3` → `e928543` (merge) | ✅ hecho |
+| `fix/practica-diaria-no-marca-continente` | `main` | `18e7a66` → `dfe6290` (merge) | ✅ hecho |
+| `fix/deselecciona-continentes-practicados` | `main` | `1bfc0b1` → `4f65c58` (merge) | ✅ hecho |
+| `feat/logros-highlight-scroll-fix-deteccion` | `main` | `e2f0157` → `fe348c1` (merge) | ✅ hecho |
+| `feat/banderas-autohospedadas` | `main` | `2ca54bc` → `79715df` (merge) | ✅ hecho |
+| `fix/timer-rush-doble-skip` | `main` | `0a76041` → `524e9c8` (merge) | ✅ hecho |
+
+Las 6 ramas de arriba ya se borraron localmente (mergeadas). `fix/snackbars-logros-limite-apilado`
+no tenía commits propios (el hallazgo era síntoma del bug de logros) y también se borró.

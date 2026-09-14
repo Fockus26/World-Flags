@@ -4,16 +4,37 @@
 
 ## Estado actual
 
-**Sistema de logros** (con una ronda de ajustes de feedback: verde para
+**Tanda de 6 fixes de feedback post-logros** (timer, continentes, práctica diaria,
+logros, banderas) — **aprobada, mergeada a `main` y ya con push a `origin/main`**
+(commit `524e9c8`). Detalle de cada unidad en `GIT_STATE.md` › Bloques cerrados.
+Todas las ramas de trabajo de esta tanda ya se borraron (mergeadas).
+
+Verificado en vivo con `bun run dev` (autorizado puntualmente por el dueño):
+- Timer de práctica cronometrada: cuenta normal desde la primera bandera y
+  cada expiración avanza una sola vez (antes se congelaba o saltaba dos) —
+  confirmado con logs de timestamp en consola, ~15 ciclos sin fallos.
+- `RegionOption`: 0px de diferencia de altura al seleccionar (antes 2px).
+- Práctica diaria: `lastPracticeByCountry` queda vacío tras calificar ahí,
+  el continente no se marca "practicado hoy" por eso.
+- Al terminar una sesión de práctica que completa un continente, éste se
+  deselecciona solo en la config (probado con Norteamérica, 3 países).
+- Logros: badge "Nuevo" + anillo se ven en el modal; `seenAt` se marca recién
+  al cerrar el modal, no al abrir.
+- `FlagDisplay` sirve `/flags/{code}.svg` (origen propio), no `flagcdn.com`.
+- `bun run test:e2e`: 13/14 verdes. El que falla (T14, tema oscuro) es un
+  timeout esperando el tab "Juego" del modal de perfil — no lo tocó ninguna
+  unidad de esta tanda; probable relación con la animación de alto del modal
+  ya registrada como pendiente más abajo. Revisado a mano: el toggle de tema
+  funciona bien clickeado con normalidad: el fallo del test parece un
+  problema de selector/timing del propio test, no del producto.
+
+Anterior: **Sistema de logros** (con una ronda de ajustes de feedback: verde para
 desbloqueado, snackbars en vez de `Results`, scrollbar temática, select de
-avatar) — **aprobado, commiteado y mergeado a `main`** (commit `da042ab`, merge
+avatar) — aprobado, commiteado y mergeado a `main` (commit `da042ab`, merge
 `414d137`, `--no-ff`). Rama `feat/achievements` no borrada.
 
-Anterior: **Migración a HeroUI v3 + fix de persistencia + pasada de diseño/a11y**,
-cerrada y mergeada a `main` (merge `a4c2e65`, `--no-ff`).
-
-`main` está **17 commits por delante de `origin/main` sin push** — el dueño decide
-cuándo se sube.
+Anterior a eso: **Migración a HeroUI v3 + fix de persistencia + pasada de
+diseño/a11y**, cerrada y mergeada a `main` (merge `a4c2e65`, `--no-ff`).
 
 ### Acción manual pendiente del dueño (bloquea el despliegue)
 
