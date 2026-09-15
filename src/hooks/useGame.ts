@@ -27,6 +27,7 @@ import {
 	getUnpracticedCodesToday,
 	hasPracticedCountryToday,
 	registerCountryAttempt,
+	registerCountryAttempts,
 	registerCountryPracticed,
 	registerRegionBestTime,
 	registerRegionGame,
@@ -280,6 +281,29 @@ export function useGame() {
 	};
 
 	/**
+	 * Igual que `attemptCountry`, pero para varios países a la vez con un
+	 * solo despacho y un solo guardado en `localStorage` (ver
+	 * `registerCountryAttempts` en `learning-storage.ts`). Pensada para
+	 * flujos que revelan/fallan muchos países de golpe por un solo evento
+	 * del usuario, en vez de código que llame a `attemptCountry` en un bucle.
+	 */
+	const attemptCountries = (
+		codes: readonly string[],
+		isCorrect: boolean,
+	) => {
+		if (codes.length === 0) return;
+
+		const updatedData = touchActiveDay(
+			registerCountryAttempts(
+				getCurrentLearningData(),
+				codes.map((countryCode) => ({ countryCode, isCorrect })),
+			),
+		);
+
+		dispatch(setLearningData(updatedData));
+	};
+
+	/**
 	 * `markPracticed` se resuelve en el mismo despacho (no en uno aparte):
 	 * calificar la primera vez que aparece una bandera en la sesión también
 	 * la marca como practicada hoy.
@@ -359,6 +383,7 @@ export function useGame() {
 		exitGame,
 		restartGame,
 		attemptCountry,
+		attemptCountries,
 		gradeCountryReview,
 		startDailyPractice,
 		finishDailyPractice,
