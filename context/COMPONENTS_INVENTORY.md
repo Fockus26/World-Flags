@@ -21,6 +21,21 @@
 
 `GradeButtons` y `Fieldset` no son HeroUI a propósito.
 
+## Componentes del modo Países (`src/components/game/configuration/` y `src/components/game/session/countries/`, rama experimental `feat/modo-paises`)
+
+| Componente | Qué es | Notas |
+|---|---|---|
+| `GameTypeToggle` | Selector Países/Banderas (`Fieldset`+`OptionTile`) | Extraído de `Configuration` para reutilizarlo también en `LeaderboardModal` — mismo componente, `name` distinto por instancia |
+| `CountriesRush` | Rush competitivo de países | Input libre sin botón "Comprobar" (D031/D032), termina completando o con "Rendirme" (D033) |
+| `CountriesPractice` | Práctica con SRS de países | Tarjeta cloze + botón "Pista" (D034), reutiliza `AnswerForm`/`GradeButtons` de Banderas |
+| `CountryBoard` | Tablero agrupado por continente, con su propio scroll | `<section tabIndex={0}>` (D038: accesible por teclado, ver `decisions/07-modo-paises.md`) |
+| `BoardSlot` | Un país del tablero | Estados `hidden`/`revealed`/`target`/`missed`/`context`; ancho = nombre real (`invisible`, D038) |
+| `CountryClozeCard` | Tablero-cloze compartido | Usado por `CountriesPractice` y por `DailyPractice` (país en `gameType: "countries"`) |
+
+Hooks propios: `useFlyToSlot` (animación de "vuelo" con Web Animations API, D037) y
+`useCardCountdown` (temporizador por tarjeta, extraído del efecto de `Session.tsx`
+sin tocarlo).
+
 ## Componentes de juego (una pantalla, no reutilizables entre pantallas)
 
 Ver `SECTION_INVENTORY.md`. Resumen de dónde vive qué:
@@ -33,8 +48,12 @@ Ver `SECTION_INVENTORY.md`. Resumen de dónde vive qué:
 - `components/game/AchievementToasts.tsx` — snackbars de logro apiladas abajo a
   la derecha, montadas una sola vez en `FlagGame` (fuera del router de vistas,
   así se ven en cualquier pantalla)
-- `components/game/session/` — sesión: `Session` (rush), `DailyPractice`, `AnswerForm`,
-  `FlagDisplay`, `Header` (cronómetro), `Timer`, `ConfirmationModal`
+- `components/game/session/` — sesión: `Session` (rush de Banderas), `DailyPractice`,
+  `AnswerForm` (props `label`/`placeholder`/`correctSuffix`/`inputRef` opcionales,
+  añadidas para el modo Países sin tocar el contrato de `Session.tsx`), `FlagDisplay`,
+  `Header` (cronómetro), `Timer`, `ConfirmationModal` (props `title`/`description`/
+  `confirmLabel`/`cancelLabel` opcionales, con el texto de "abandonar" de siempre
+  como default), y `countries/` (ver la tabla del modo Países más abajo)
 - `components/game/Results.tsx` — resultados (práctica vs. competitivo por `result.mode`)
 - `components/app/` — `Providers`, `AuthEffects`, `GameEffects`, `ThemeEffects`,
   `AchievementsEffects` (sella los logros recién cumplidos; ver `decisions/05-logros.md`)

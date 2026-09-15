@@ -1,10 +1,10 @@
 # 07 — Modo de juego "Países"
 
 > Rama experimental `feat/modo-paises`. Cubre D028–D038 (ver
-> `context/plans/modo-paises.md` para el plan completo con las 7 fases).
-> Este archivo se completa fase a fase; los IDs se reservan todos desde el
-> principio, pero el detalle de cada uno se llena cuando se implementa esa
-> parte (D031–D035, D037, D038 llegan en las Fases 3–6).
+> `context/plans/modo-paises.md` para el plan completo con las 7 fases, todas
+> cerradas). Verificado en el navegador real (`bun run dev`, con permiso
+> explícito del dueño) además de con `bunx astro check`/`bun run build`/
+> `bunx biome check`/aserciones puras — ver el detalle de cada decisión.
 
 ## Por qué
 
@@ -117,4 +117,161 @@ debe desestructurar `session.gameType` sin el `?? "flags"`. Mismo espíritu
 que D021 (ids de logro como `string`, no como el tipo estrecho): un dato que
 puede faltar en registros viejos no se puede tratar como si siempre estuviera.
 
-Los 4 logros nuevos de Países llegan en la Fase 7 (ver plan).
+Los 4 logros nuevos de Países (Fase 7): `mapa_mental_europa` (continentes,
+sobre `countriesGame`), `primer_tablero` (completar cualquier rush de
+países), `mundo_de_memoria` (completar el rush de "Todo el mundo" en
+Países) y `primero_los_paises` (un continente aprendido en los dos juegos a
+la vez — meta). Todos verificados con aserciones puras y, `primer_tablero` y
+`mapa_mental_europa`, también viéndolos desbloquearse en vivo en el
+navegador durante la Fase 7.
+
+## D031 — Rush de países: auto-aceptación al escribir, con espera para prefijos ambiguos
+
+`findMatch` (`src/utils/country-board.ts`) compara el texto normalizado
+contra el alcance completo de la sesión en cada `onChange`. Si coincide
+exactamente con un país no encontrado, se acepta al instante — sin botón
+"Comprobar": es una carrera de tecleo, no una prueba de acierto/fallo, así
+que no hay "penalización" que aplicar a medio escribir.
+
+Si el texto coincide con un país **y además es prefijo** de otro país sin
+descubrir, se espera 700 ms (o Enter, que acepta ya) antes de darlo por
+bueno. Colisiones reales en `src/data/countries.ts`: `Guinea` ⊂
+`Guinea-Bisáu`/`Guinea Ecuatorial`, `Sudán` ⊂ `Sudán del Sur`, `Níger` ⊂
+`Nigeria` (sin espacio de por medio). **Hallazgo de la Fase 3:** la
+ambigüedad Níger/Nigeria solo existe comparando sin tildes — con tildes
+("hard") ya difieren en la segunda letra (í vs i). No es un problema porque
+D032 fuerza la comparación sin tildes en el rush.
+
+Verificado en el navegador (Fase 4): escribir "Guinea" lo acepta tras la
+espera; completar hasta "Guinea Ecuatorial" lo acepta antes de que la
+espera expire; un país ya encontrado muestra "Ya tienes {nombre}" sin
+duplicar ni reiniciar el input.
+
+## D032 — Rush de países: comparación siempre sin diacríticos
+
+`findMatch` se llama siempre con `difficulty: "easy"` en el rush,
+independientemente de la dificultad configurada (que en competitivo de
+Banderas se fuerza a `"hard"`). Es una carrera de tecleo: exigir tildes
+penaliza el teclado, no el conocimiento, y es igual para todos — el ranking
+sigue siendo justo. La práctica de países sí respeta la dificultad elegida
+(`isCorrectAnswer` normal en `CountriesPractice`).
+
+## D033 — Rush de países: completar o rendirse; el mejor tiempo solo cuenta al 100 %
+
+`CompetitiveGameResult` ganó `completed: boolean` (Banderas siempre manda
+`true`, no tiene botón "Rendirme"). Al rendirse (`CountriesRush.tsx`, con
+`ConfirmationModal` reutilizado vía sus props opcionales de D034-adjacent):
+se revelan los países que faltaban como `"missed"` (rojo + icono, D038), se
+registra la sesión igual (cuenta para `stats`), y **`registerRegionBestTime`
+solo se llama si `completed`** — un rush abandonado a medio camino no debe
+mejorar ni crear una marca. `Results.tsx` muestra "Encontraste X de Y" en
+vez de un tiempo cuando no se completó.
+
+Ranking en `leaderboard_entries` con scope `"countries:world"` — la PK
+`(user_id, scope)` ya lo soportaba sin migración. `LeaderboardModal` gana un
+selector Países/Banderas (mismo `GameTypeToggle` que la Fase 2) que decide
+el scope consultado.
+
+**Hallazgo de rendimiento (Fase 4, resuelto en una rama aparte):** al
+rendirse en un rush de "Todo el mundo" hay que registrar hasta ~150 países
+no encontrados de golpe. Llamar a `attemptCountry` uno por uno habría
+repetido el guardado completo en `localStorage` (`JSON.stringify` +
+`setItem` de la fila entera) ~150 veces para un solo evento del usuario. Se
+resolvió en `perf/batch-country-attempts` (mergeada a `main` antes de
+continuar): `registerCountryAttempts`/`saveReviewResults` en
+`learning-storage.ts` aplican el cálculo de varios países y persisten una
+sola vez; `attemptCountries` (plural) en `useGame.ts` expone esto con
+despacho único. Benchmark con un perfil realista (~33 KB, 150 países):
+~27 ms/150 guardados antes → ~4 ms/1 guardado después.
+
+## D034 — Práctica de países: tarjeta cloze con pistas letra a letra
+
+Cada tarjeta SRS es un país. `CountryClozeCard.tsx` (compartido con la Fase
+6) muestra el tablero **del continente entero** del país objetivo — no solo
+el alcance de la sesión — con todos los nombres visibles salvo el objetivo,
+que aparece resaltado (`target`). El formulario es el mismo `AnswerForm` de
+Banderas, con props opcionales nuevas (`label`, `placeholder`,
+`correctSuffix`, `inputRef`) que no cambian nada para `Session.tsx`.
+
+Botón "Pista": revela una letra más del hueco hasta `longitud - 1`,
+anunciado por una región `aria-live`. Un acierto con pistas **cuenta igual**
+para la puntuación (D034 original) — las pistas ayudan a recordar, la
+calificación honesta (Otra vez/Difícil/Bien/Fácil) sigue siendo decisión del
+usuario, y el aviso de acierto dice cuántas se usaron.
+
+**Ajuste sobre el plan:** `CountryClozeCard` recibe el `BoardSlotState`
+completo del hueco (`target`/`revealed`/`missed`), no el `isRevealed:
+boolean` que proponía el plan original — la práctica con SRS necesita
+distinguir un fallo (rojo, con el nombre) de un hueco sin más; la práctica
+diaria (D035) nunca falla, así que simplemente nunca le pasa `"missed"`.
+
+Guard contra tecleo repetido 1-4 (ref que se libera al cambiar de tarjeta):
+`Session.tsx` tiene este hallazgo reportado sin arreglar (hallazgo
+pre-existente de la unidad de logros); acá se previene desde el principio
+en vez de heredar el bug.
+
+Alternativas descartadas (del plan original): mostrar la palabra
+directamente y hacer copiarla (sin recuerdo activo, el SRS no mide nada); un
+mapa/silueta del país (mejor pedagógicamente, pero necesita un SVG con
+licencia y geometría por país — fuera de alcance de una rama experimental,
+fila en `CONTENT_CHECKLIST.md`).
+
+## D035 — Práctica diaria por juego
+
+`dailyPracticeQueue` pasa de `string[] | null` a `{ gameType, codes } |
+null` (`gameSlice.ts`). El botón "Práctica diaria (N)" cuenta los vencidos
+del juego seleccionado (`toGameView` sobre `getDueCountries`), y
+`finishDailyPractice` guarda `gameType` en el `SessionRecord` leyendo el de
+la cola en curso — no el de la configuración actual, que pudo cambiar
+mientras la cola seguía abierta.
+
+Para Países, `DailyPractice.tsx` reemplaza `FlagDisplay` por
+`CountryClozeCard` (D034) en estado `"target"`/`"revealed"`; el nombre
+revelado ya se ve en el tablero, así que no se repite como texto aparte.
+Resto del flujo (revelar con Espacio/tocar, calificar con 1-4 o los
+botones) idéntico a Banderas.
+
+Verificado de punta a punta en el navegador (Fase 6): países vencidos
+inyectados a mano en `localStorage`, la cola mostró la tarjeta cloze
+correcta para cada uno, reveló y calificó bien, y cerró la sesión.
+
+## D037 — Animación de "vuelo" con Web Animations API
+
+`useFlyToSlot.ts` anima el texto aceptado desde el input hasta su hueco con
+la técnica FLIP (el clon se posiciona ya en el destino y se anima un
+`transform` que lo trae desde el origen a `none`) — no framer-motion, que no
+ejecuta en este stack (D006). Duración 450 ms, `cubic-bezier(0.2, 0.8, 0.2,
+1)`: constantes con nombre en el archivo, no hay token de
+`DESIGN_TOKENS.md` para una animación JS de esta duración (los que existen
+son transiciones CSS de 150-200 ms).
+
+Con `prefers-reduced-motion: reduce` no hay clon: `onLanded` se llama de
+inmediato y el hueco pasa a su estado final sin animación. Antes de medir
+posiciones, `scrollIntoView({ block: "nearest", behavior: "auto" })`
+instantáneo — si el tablero se desplazara con animación mientras se toman
+las medidas, el clon aterrizaría en el sitio equivocado.
+
+## D038 — Ancho del hueco sin valores mágicos, accesible por teclado
+
+`BoardSlot.tsx` renderiza el nombre real dentro con `invisible` (D038
+original) cuando no debe mostrarse — nunca un `width` fijo — así el ancho es
+siempre el de la palabra y no hay salto de layout al descubrirlo. Estados
+(`hidden`/`revealed`/`target`/`missed`/`context`) siempre con color **más**
+forma/icono/texto para lectores de pantalla, nunca solo color (`missed`
+lleva el icono `Xmark` además del rojo).
+
+**Hallazgo de accesibilidad (Fase 5-6, verificado y corregido con
+axe-core en el navegador):** `CountryBoard.tsx` tiene su propio scroll
+(`overflow-y-auto`, puede ser más alto que lo visible en continentes
+grandes o "Todo el mundo") pero no era alcanzable por teclado —
+`scrollable-region-focusable`, violación **seria** de axe-core. Se
+corrigió con un `<section tabIndex={0} aria-label="...">` (no un `<div
+role="group">`: biome pedía un elemento semántico, y `role="group"` es
+para controles de formulario, no para una sección de contenido). Quedó un
+`biome-ignore` documentado para `noNoninteractiveTabindex`: es el patrón
+recomendado por WAI-ARIA para una región con scroll propio, y la regla
+genérica de biome no distingue este caso legítimo. Confirmado en el
+navegador: la violación desaparece tras el fix, y no aparecen violaciones
+nuevas en ninguna de las pantallas de Países (selector, tablero de rush,
+tarjeta cloze, modal de "Rendirme", ranking, modal de logros) en claro ni
+en oscuro.
