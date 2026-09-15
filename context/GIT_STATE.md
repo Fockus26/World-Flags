@@ -25,7 +25,12 @@ explícitamente para esta tanda de fixes, salvo excepción a la regla de abajo.
 
 ## Ramas de trabajo
 
-Ninguna abierta. `feat/achievements` ya se mergeó (no se borró — el dueño
+`feat/transiciones-ui` — base `main` — abierta. Unidad: animaciones de
+transición (modal de configuración: tabs, vista de sesión, modo de juego,
+condicionales; más la opción de transición de "página" que se decida con
+el dueño).
+
+`feat/achievements` ya se mergeó (no se borró — el dueño
 decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 
 `feat/heroui-migration` ya se mergeó y se borró.

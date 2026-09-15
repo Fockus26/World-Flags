@@ -13,6 +13,11 @@ import { DEFAULT_DATA } from "@/utils/learning-storage";
 export type HydrationStatus = "idle" | "loading" | "ready";
 
 export interface ActiveGame {
+	/** Identifica esta partida en particular (no la configuración): fuerza a
+	 *  `Session` a remontar en `restartGame`, donde `mode`/`scope` pueden
+	 *  quedar iguales a la partida anterior pero el progreso interno
+	 *  (índice, racha, cronómetro) tiene que arrancar de cero. */
+	id: string;
 	configuration: GameConfigurationType;
 	countries: Country[];
 }

@@ -100,6 +100,15 @@ No aplica el track de fases del kit — el proyecto ya estaba en producción. Ve
 - Animación del alto del modal al cambiar de tab/modo — **no hecha** (CSS
   `interpolate-size` no anima el cambio por contenido en este motor; framer `layout`
   no es fiable). Alternativa: medir con `ResizeObserver` como el `Modal` viejo.
+- Transiciones de animación (unidad en curso en `feat/transiciones-ui`, pendiente de
+  revisión del dueño): tabs del modal de configuración (fundido simple, sin slide —
+  el slide direccional causaba una superposición visual entre paneles y se quitó),
+  giro 3D de página entre Configuración/Sesión/Práctica diaria/Resultados
+  (`PageFlip.tsx`, D008), y `AutoHeight.tsx` (D009) para animar el alto cuando
+  aparece/desaparece contenido dentro de una vista ya montada (repetir contraseña en
+  registro, ajustes de práctica al cambiar de modo, fila de duración del temporizador).
+  El alto del *modal completo* al cambiar de tab (Usuario/Juego) sigue sin animarse —
+  ver la fila de abajo, no es parte de esta unidad.
 - **framer-motion**: decidir si se recupera (bajar a `framer-motion@11`, `<LazyMotion>`,
   probar en navegador real) o se quita del `package.json`. Ver `decisions/03-animaciones.md`.
 
