@@ -20,15 +20,10 @@
 
 ## Estado de `main` ahora mismo
 
-`main` está **al día con `origin/main`** (`524e9c8`) — el dueño aprobó el push
-explícitamente para esta tanda de fixes, salvo excepción a la regla de abajo.
+`main` está **al día con `origin/main`** (`136c81c`) — el dueño aprobó el push
+explícitamente para esta unidad de animaciones también.
 
 ## Ramas de trabajo
-
-`feat/transiciones-ui` — base `main` — abierta. Unidad: animaciones de
-transición (modal de configuración: tabs, vista de sesión, modo de juego,
-condicionales; más la opción de transición de "página" que se decida con
-el dueño).
 
 `feat/achievements` ya se mergeó (no se borró — el dueño
 decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
@@ -47,6 +42,9 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 | `feat/logros-highlight-scroll-fix-deteccion` | `main` | `e2f0157` → `fe348c1` (merge) | ✅ hecho |
 | `feat/banderas-autohospedadas` | `main` | `2ca54bc` → `79715df` (merge) | ✅ hecho |
 | `fix/timer-rush-doble-skip` | `main` | `0a76041` → `524e9c8` (merge) | ✅ hecho |
+| `feat/transiciones-ui` | `main` | `f20f63c` → `136c81c` (merge) | ✅ hecho |
 
-Las 6 ramas de arriba ya se borraron localmente (mergeadas). `fix/snackbars-logros-limite-apilado`
-no tenía commits propios (el hallazgo era síntoma del bug de logros) y también se borró.
+Las 6 ramas de arriba (hasta `fix/timer-rush-doble-skip`) ya se borraron localmente
+(mergeadas). `fix/snackbars-logros-limite-apilado` no tenía commits propios (el
+hallazgo era síntoma del bug de logros) y también se borró. `feat/transiciones-ui`
+no se borró (el dueño decide cuándo).
