@@ -3,7 +3,6 @@ import { AnswerForm } from "@/components/game/session/AnswerForm";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { Header } from "@/components/game/session/Header";
 import { Button } from "@/components/ui/Button";
-import { countries as allCountries } from "@/data/countries";
 import { useCardCountdown } from "@/hooks/useCardCountdown";
 import { useFlyToSlot } from "@/hooks/useFlyToSlot";
 import { useGame } from "@/hooks/useGame";
@@ -15,13 +14,12 @@ import {
 	type Region,
 } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
-import { buildBoard } from "@/utils/country-board";
 import { toGameView } from "@/utils/learning-storage";
 import { isCorrectAnswer } from "@/utils/normalize-answer";
 import { getScopeLabel } from "@/utils/practice-scope";
 import { calculateScore } from "@/utils/score";
 import type { BoardSlotState } from "./BoardSlot";
-import { CountryBoard } from "./CountryBoard";
+import { CountryClozeCard } from "./CountryClozeCard";
 
 const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 	"1": "again",
@@ -111,14 +109,6 @@ export function CountriesPractice() {
 	const currentCountry = countries.find(
 		(country) => country.code === practiceQueue.currentCode,
 	);
-
-	// El tablero de la tarjeta es el continente ENTERO del país objetivo (no
-	// solo el alcance de la sesión): el resto de países sirve de contexto
-	// visual, sépase o no de esta sesión.
-	const regionCountries = currentCountry
-		? allCountries.filter((country) => country.region === currentCountry.region)
-		: [];
-	const board = buildBoard(regionCountries);
 
 	function recordFirstAttempt(code: string, isCorrect: boolean) {
 		if (code in firstAttemptResultsRef.current) return;
@@ -299,11 +289,10 @@ export function CountriesPractice() {
 					onExit={handleOpenExitModal}
 				/>
 
-				<CountryBoard
+				<CountryClozeCard
 					className="mt-[0.65rem] min-[30rem]:mt-[clamp(0.75rem,2vh,1.5rem)]"
-					groups={board}
-					stateByCode={{ [currentCountry.code]: targetState }}
-					defaultState="context"
+					countryCode={currentCountry.code}
+					targetState={targetState}
 					flyingCodes={
 						isTargetFlying ? new Set([currentCountry.code]) : undefined
 					}

@@ -10,6 +10,7 @@ import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import type { GameType } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
 import { toGameView } from "@/utils/learning-storage";
+import { CountryClozeCard } from "./countries/CountryClozeCard";
 
 interface DailyPracticeProps {
 	gameType: GameType;
@@ -38,6 +39,7 @@ export function DailyPractice({
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 	const correctAnswersRef = useRef(0);
 	const startTimeRef = useRef(Date.now());
+	const slotRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
 	const { currentCode, totalCount, completedCount, grade } = usePracticeQueue({
 		initialCodes: countryCodes,
@@ -110,7 +112,15 @@ export function DailyPractice({
 				/>
 
 				<div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-[0.65rem] min-[30rem]:gap-[clamp(0.75rem,2vh,1.5rem)]">
-					<FlagDisplay countryCode={currentCountry.code} />
+					{gameType === "countries" ? (
+						<CountryClozeCard
+							countryCode={currentCountry.code}
+							targetState={isRevealed ? "revealed" : "target"}
+							slotRefs={slotRefs}
+						/>
+					) : (
+						<FlagDisplay countryCode={currentCountry.code} />
+					)}
 
 					<div className="flex flex-col items-center gap-3">
 						{!isRevealed ? (
@@ -128,9 +138,13 @@ export function DailyPractice({
 							</button>
 						) : (
 							<div className="flex w-full flex-col items-center gap-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
-								<p className="m-0 text-center font-extrabold text-[1.4rem] text-surface-soft">
-									{currentCountry.name}
-								</p>
+								{/* En Países el nombre ya se ve en el tablero (verde, en su
+								    hueco) — repetirlo acá sería redundante. */}
+								{gameType === "flags" && (
+									<p className="m-0 text-center font-extrabold text-[1.4rem] text-surface-soft">
+										{currentCountry.name}
+									</p>
+								)}
 								<GradeButtons onGrade={handleGrade} />
 							</div>
 						)}

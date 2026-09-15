@@ -69,14 +69,14 @@ export function CountryBoard({
 	}
 
 	return (
-		<div
+		// <section> con aria-label (no un <div role="group">, que biome pide
+		// cambiar por un elemento semántico): así ya tiene el equivalente de
+		// role="region" implícito, la forma correcta para "una sección
+		// perceptible de la página" — no es un grupo de controles de formulario.
+		<section
 			className={`min-h-0 flex-1 overflow-y-auto ${className ?? ""}`}
-			// axe-core (scrollable-region-focusable): una región con scroll
-			// propio necesita ser alcanzable por teclado, no solo con el
-			// mouse/gesto táctil — sin esto, quien navega solo con teclado no
-			// puede desplazar el tablero cuando es más alto que lo visible.
+			// biome-ignore lint/a11y/noNoninteractiveTabindex: patrón recomendado por WAI-ARIA para que una región con su propio scroll sea alcanzable por teclado. Sin esto, axe-core marca "scrollable-region-focusable" (serio) — verificado en el navegador.
 			tabIndex={0}
-			role="group"
 			aria-label={`Tablero de ${groups.map((group) => group.label).join(" + ")}`}
 		>
 			<div className="flex flex-col gap-4">
@@ -114,6 +114,6 @@ export function CountryBoard({
 					);
 				})}
 			</div>
-		</div>
+		</section>
 	);
 }
