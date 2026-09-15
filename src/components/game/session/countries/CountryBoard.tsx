@@ -69,7 +69,16 @@ export function CountryBoard({
 	}
 
 	return (
-		<div className={`min-h-0 flex-1 overflow-y-auto ${className ?? ""}`}>
+		<div
+			className={`min-h-0 flex-1 overflow-y-auto ${className ?? ""}`}
+			// axe-core (scrollable-region-focusable): una región con scroll
+			// propio necesita ser alcanzable por teclado, no solo con el
+			// mouse/gesto táctil — sin esto, quien navega solo con teclado no
+			// puede desplazar el tablero cuando es más alto que lo visible.
+			tabIndex={0}
+			role="group"
+			aria-label={`Tablero de ${groups.map((group) => group.label).join(" + ")}`}
+		>
 			<div className="flex flex-col gap-4">
 				{groups.map((group) => {
 					const resolvedCount = group.countries.filter((country) =>
