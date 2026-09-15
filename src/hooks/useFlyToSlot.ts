@@ -9,6 +9,39 @@ import { useCallback, useEffect, useRef } from "react";
  */
 const FLIGHT_DURATION_MS = 450;
 const FLIGHT_EASING = "cubic-bezier(0.2, 0.8, 0.2, 1)";
+/** Cota máxima de espera al scroll suave, por si `scrollend` no llega a disparar (navegador viejo, o no hizo falta moverse). */
+const SCROLL_SETTLE_TIMEOUT_MS = 500;
+
+/** El ancestro con scroll propio más cercano — el tablero tiene el suyo (`overflow-y-auto` en `CountryBoard.tsx`), no la página. */
+function getScrollParent(node: HTMLElement): HTMLElement {
+	let el = node.parentElement;
+	while (el) {
+		const style = window.getComputedStyle(el);
+		if (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight) {
+			return el;
+		}
+		el = el.parentElement;
+	}
+	return (document.scrollingElement as HTMLElement | null) ?? document.documentElement;
+}
+
+/** Espera a que un scroll en curso termine (evento `scrollend`, con un plazo tope de seguridad). */
+function waitForScrollSettle(scrollContainer: Element): Promise<void> {
+	return new Promise((resolve) => {
+		let settled = false;
+
+		function finish() {
+			if (settled) return;
+			settled = true;
+			scrollContainer.removeEventListener("scrollend", finish);
+			window.clearTimeout(timeoutId);
+			resolve();
+		}
+
+		scrollContainer.addEventListener("scrollend", finish);
+		const timeoutId = window.setTimeout(finish, SCROLL_SETTLE_TIMEOUT_MS);
+	});
+}
 
 interface FlyOptions {
 	/** Texto a mostrar en el clon — normalmente el nombre del país, tal cual se ve en su hueco. */
@@ -52,7 +85,7 @@ export function useFlyToSlot(slotRefs: RefObject<Map<string, HTMLLIElement>>) {
 	}, []);
 
 	const fly = useCallback(
-		({ text, fromEl, toCode, onLanded }: FlyOptions) => {
+		async ({ text, fromEl, toCode, onLanded }: FlyOptions) => {
 			const slot = slotRefs.current.get(toCode);
 
 			if (!slot) {
@@ -60,15 +93,37 @@ export function useFlyToSlot(slotRefs: RefObject<Map<string, HTMLLIElement>>) {
 				return;
 			}
 
-			// Scroll instantáneo ANTES de medir cualquier posición: si el
-			// tablero se desplazara con animación mientras se toman las
-			// medidas, la posición final leída no sería la real y el clon
-			// aterrizaría en el sitio equivocado.
-			slot.scrollIntoView({ block: "nearest", behavior: "auto" });
-
 			const prefersReducedMotion = window.matchMedia(
 				"(prefers-reduced-motion: reduce)",
 			).matches;
+
+			// Si el hueco ya está a la vista, no hace falta desplazar nada —
+			// el vuelo arranca de inmediato, sin espera de más.
+			const scrollContainer = getScrollParent(slot);
+			const containerRect = scrollContainer.getBoundingClientRect();
+			const slotRectBeforeScroll = slot.getBoundingClientRect();
+			const needsScroll =
+				slotRectBeforeScroll.top < containerRect.top ||
+				slotRectBeforeScroll.bottom > containerRect.bottom;
+
+			if (needsScroll) {
+				slot.scrollIntoView({
+					block: "nearest",
+					// Con reduced motion, instantáneo (no hay animación de
+					// vuelo tampoco, así que no tiene sentido esperar).
+					behavior: prefersReducedMotion ? "auto" : "smooth",
+				});
+
+				// Se espera a que el scroll TERMINE antes de medir cualquier
+				// posición: si se midiera a mitad de un desplazamiento suave,
+				// la posición leída no sería la final y el clon aterrizaría
+				// en el sitio equivocado (ver el hallazgo de "un poco arriba
+				// y a la izquierda" — mismo tipo de causa que el fix del
+				// `<span>` interno más abajo, medir en el momento incorrecto).
+				if (!prefersReducedMotion) {
+					await waitForScrollSettle(scrollContainer);
+				}
+			}
 
 			if (prefersReducedMotion) {
 				onLanded();
@@ -76,7 +131,15 @@ export function useFlyToSlot(slotRefs: RefObject<Map<string, HTMLLIElement>>) {
 			}
 
 			const fromRect = fromEl.getBoundingClientRect();
-			const toRect = slot.getBoundingClientRect();
+			// El destino NO es el `<li>` completo: tiene padding y centra su
+			// contenido verticalmente (`items-center`), así que su propio
+			// `getBoundingClientRect()` no coincide con dónde cae el texto —
+			// el clon aterrizaba visiblemente arriba y a la izquierda del
+			// lugar real, y al quitarlo se veía un salto/parpadeo hacia la
+			// posición correcta. Se mide el `<span>` de contenido (el primer
+			// hijo, invisible mientras vuela — ver `BoardSlot.tsx`), que ya
+			// tiene el ancho/alto exactos del texto en su sitio final.
+			const toRect = (slot.firstElementChild ?? slot).getBoundingClientRect();
 			const slotStyle = window.getComputedStyle(slot);
 			const fromStyle = window.getComputedStyle(fromEl);
 
