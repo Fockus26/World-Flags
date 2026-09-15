@@ -271,7 +271,7 @@ export function CountriesRush() {
 		setFeedback(null);
 		clearTimeout(ambiguousTimeoutRef.current);
 
-		const result = findMatch(value, countries, foundCodes, "easy");
+		const result = findMatch(value, countries, foundCodes, "hard");
 
 		if (result.kind === "none") {
 			return;
@@ -304,7 +304,7 @@ export function CountriesRush() {
 
 		clearTimeout(ambiguousTimeoutRef.current);
 
-		const result = findMatch(inputValue, countries, foundCodes, "easy");
+		const result = findMatch(inputValue, countries, foundCodes, "hard");
 
 		if (result.kind === "none") {
 			setFeedback(`"${trimmed}" no es un país de ${scopeLabel}`);

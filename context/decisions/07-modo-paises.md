@@ -139,22 +139,27 @@ bueno. Colisiones reales en `src/data/countries.ts`: `Guinea` ⊂
 `Guinea-Bisáu`/`Guinea Ecuatorial`, `Sudán` ⊂ `Sudán del Sur`, `Níger` ⊂
 `Nigeria` (sin espacio de por medio). **Hallazgo de la Fase 3:** la
 ambigüedad Níger/Nigeria solo existe comparando sin tildes — con tildes
-("hard") ya difieren en la segunda letra (í vs i). No es un problema porque
-D032 fuerza la comparación sin tildes en el rush.
+("hard") ya difieren en la segunda letra (í vs i). Tras D032 (revisada:
+el rush compara con tildes), este caso concreto de Níger/Nigeria ya no se
+da en la práctica — quedan Guinea y Sudán, que no dependen de acentos.
 
 Verificado en el navegador (Fase 4): escribir "Guinea" lo acepta tras la
 espera; completar hasta "Guinea Ecuatorial" lo acepta antes de que la
 espera expire; un país ya encontrado muestra "Ya tienes {nombre}" sin
 duplicar ni reiniciar el input.
 
-## D032 — Rush de países: comparación siempre sin diacríticos
+## D032 — Rush de países: exige tildes, igual que el resto del competitivo
 
-`findMatch` se llama siempre con `difficulty: "easy"` en el rush,
-independientemente de la dificultad configurada (que en competitivo de
-Banderas se fuerza a `"hard"`). Es una carrera de tecleo: exigir tildes
-penaliza el teclado, no el conocimiento, y es igual para todos — el ranking
-sigue siendo justo. La práctica de países sí respeta la dificultad elegida
-(`isCorrectAnswer` normal en `CountriesPractice`).
+**Revisada tras feedback del dueño** (la Fase 4 la implementó al revés:
+`findMatch` siempre con `difficulty: "easy"`, sin exigir tildes, razonando
+que era "una carrera de tecleo, no una prueba de acento"). Decisión final:
+el rush de Países exige tildes igual que el resto del modo competitivo
+(que en Banderas ya fuerza `"hard"`) — `findMatch` se llama siempre con
+`difficulty: "hard"` en `CountriesRush.tsx`, sin importar la dificultad
+configurada (el competitivo no deja elegirla). Consistencia entre los dos
+juegos: si Banderas exige tildes en competitivo, Países también. La
+práctica de países sigue respetando la dificultad elegida (`isCorrectAnswer`
+normal en `CountriesPractice`, sin tocar).
 
 ## D033 — Rush de países: completar o rendirse; el mejor tiempo solo cuenta al 100 %
 
