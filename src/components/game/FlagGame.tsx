@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import { PageFlip } from "@/components/app/PageFlip";
-import { Button } from "@/components/ui/Button";
 import { useGame } from "@/hooks/useGame";
 import { AchievementToasts } from "./AchievementToasts";
 import { Configuration } from "./configuration/Configuration";
 import { Results } from "./Results";
+import { CountriesPractice } from "./session/countries/CountriesPractice";
 import { CountriesRush } from "./session/countries/CountriesRush";
 import { DailyPractice } from "./session/DailyPractice";
 import { Session } from "./session/Session";
@@ -12,35 +12,6 @@ import { Session } from "./session/Session";
 // "results" no gira: entra de abajo hacia arriba (ver FlagGameContent). Solo
 // las vistas que sí participan del giro 3D viven en este tipo.
 type FlipViewKey = "session" | "dailyPractice" | "configuration";
-
-/**
- * Placeholder temporal mientras la PRÁCTICA de Países no tiene todavía su
- * propia sesión (`CountriesPractice` llega en la Fase 5 de
- * `context/plans/modo-paises.md`; el competitivo ya usa `CountriesRush`
- * desde la Fase 4). Se reemplaza ahí, no antes.
- */
-function CountriesGamePlaceholder({ onExit }: { onExit: () => void }) {
-	return (
-		<section className="flex h-[min(100%,45rem)] md:h-[min(100%,50rem)] max-h-full w-[min(100%,58rem)] flex-col items-center justify-center gap-4 overflow-hidden rounded-lg border border-surface-border bg-surface p-[0.85rem] text-center animate-in fade-in-0 duration-300 min-[44rem]:rounded-2xl min-[44rem]:p-[clamp(1rem,2.5vh,2rem)]">
-			{/* ⚠️ Copy provisional, pantalla temporal — no entra en
-			    `CONTENT_CHECKLIST.md` porque desaparece en la Fase 4/5. */}
-			<h1 className="m-0 text-xl font-bold text-surface-soft">
-				Modo Países — en construcción
-			</h1>
-			<p className="m-0 max-w-sm text-text-placeholder">
-				Todavía estamos construyendo este modo de juego. Vuelve pronto.
-			</p>
-			<Button
-				color="neutral"
-				type="button"
-				fullWidth={false}
-				onClick={onExit}
-			>
-				Volver a la configuración
-			</Button>
-		</section>
-	);
-}
 
 function FlagGameContent() {
 	const {
@@ -84,9 +55,7 @@ function FlagGameContent() {
 					if (activeGame.configuration.mode === "competitive") {
 						return <CountriesRush key={activeGame.id} />;
 					}
-					return (
-						<CountriesGamePlaceholder key={activeGame.id} onExit={exitGame} />
-					);
+					return <CountriesPractice key={activeGame.id} />;
 				}
 				return <Session key={activeGame?.id} />;
 			case "dailyPractice":
