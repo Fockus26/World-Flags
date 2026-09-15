@@ -116,7 +116,6 @@ export function LeaderboardModal({
 
 			<GameTypeToggle
 				legend="Ranking de"
-				name="leaderboard-game-type"
 				value={gameType}
 				onChange={setGameType}
 				className="mb-3"

@@ -233,7 +233,6 @@ export function Configuration() {
 				    pendiente de aprobación del dueño. */}
 				<GameTypeToggle
 					legend="Qué practicar"
-					name="settings-game-type"
 					value={gameType}
 					onChange={(type) => {
 						updateSettings({ gameType: type });
