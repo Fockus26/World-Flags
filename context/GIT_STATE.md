@@ -20,10 +20,17 @@
 
 ## Estado de `main` ahora mismo
 
-`main` está **al día con `origin/main`** (`136c81c`) — el dueño aprobó el push
-explícitamente para esta unidad de animaciones también.
+`main` tiene un commit local de más sobre `origin/main`: el merge de
+`perf/batch-country-attempts` (`a3655bb`). **Pendiente de push** — el dueño decide
+cuándo.
 
 ## Ramas de trabajo
+
+`feat/modo-paises` — **experimental, abierta desde `main` (`136c81c`, antes del
+merge de `perf/batch-country-attempts`), sin merge previsto al cerrar** salvo que
+el dueño lo pida expresamente. Implementa el plan de `context/plans/modo-paises.md`
+en 7 fases, cada una con su propio commit y su propia pausa de aprobación. Se le
+fusionó `main` encima para heredar el fix de rendimiento de abajo.
 
 `feat/achievements` ya se mergeó (no se borró — el dueño
 decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
@@ -34,6 +41,7 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 
 | Rama | Mergeada a | Commit | Push a origin |
 |---|---|---|---|
+| `perf/batch-country-attempts` | `main` | `04160f0` (feature) → `a3655bb` (merge) | pendiente de decisión del dueño |
 | `feat/achievements` | `main` | `da042ab` (feature) → `414d137` (merge) | pendiente de decisión del dueño |
 | `feat/heroui-migration` | `main` | `a4c2e65` | pendiente de decisión del dueño |
 | `fix/region-option-altura-seleccion` | `main` | `edc34b3` → `e928543` (merge) | ✅ hecho |
