@@ -1,5 +1,5 @@
 import { countries } from "@/data/countries";
-import type { Region } from "@/types/country";
+import { REGIONS, type Region } from "@/types/country";
 import type { UserLearningData } from "@/types/progress";
 import { getCurrentStreak, isCountryLearned } from "@/utils/learning-storage";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
@@ -101,6 +101,34 @@ function countLearnedInRegions(
 	).length;
 }
 
+/** Igual que `countLearnedInRegions`, pero sobre el progreso de Países (D036), no el de Banderas. */
+function countLearnedInCountriesGameRegions(
+	data: UserLearningData,
+	regions: readonly Region[],
+): number {
+	const regionSet = new Set(regions);
+
+	return countries.filter(
+		(country) =>
+			regionSet.has(country.region) &&
+			isCountryLearned(
+				data.countriesGame.countryHistory[country.code]?.review ?? null,
+			),
+	).length;
+}
+
+/** Para "primero_los_paises": algún continente completo tanto en Países como en Banderas. */
+function hasRegionLearnedInBothGames(data: UserLearningData): boolean {
+	return REGIONS.some((region) => {
+		const target = REGION_COUNTRY_COUNTS[region];
+
+		return (
+			countLearnedInRegions(data, [region]) >= target &&
+			countLearnedInCountriesGameRegions(data, [region]) >= target
+		);
+	});
+}
+
 function regionsTotal(regions: readonly Region[]): number {
 	return regions.reduce(
 		(total, region) => total + REGION_COUNTRY_COUNTS[region],
@@ -147,6 +175,29 @@ function regionAchievement(
 		category: "continentes",
 		evaluate: (data) => ({
 			current: countLearnedInRegions(data, regions),
+			target,
+		}),
+	};
+}
+
+/** Igual que `regionAchievement`, pero sobre el progreso de Países (D036), no el de Banderas. */
+function countriesRegionAchievement(
+	id: string,
+	name: string,
+	emoji: string,
+	regions: readonly Region[],
+	regionLabel: string,
+): AchievementDefinition {
+	const target = regionsTotal(regions);
+
+	return {
+		id,
+		name,
+		description: `Aprende los ${target} países de ${regionLabel} en el modo Países`,
+		emoji,
+		category: "continentes",
+		evaluate: (data) => ({
+			current: countLearnedInCountriesGameRegions(data, regions),
 			target,
 		}),
 	};
@@ -403,6 +454,51 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 			current: data.stats.totalTimePlayedMs,
 			target: 10 * HOUR_MS,
 		}),
+	},
+
+	// ── Modo Países (D036) — leen `countriesGame`, no `countryHistory` de
+	//    primer nivel (que sigue siendo de Banderas). Retroactivos donde se
+	//    puede, igual que el resto del catálogo. ──
+	countriesRegionAchievement(
+		"mapa_mental_europa",
+		"Mapa mental de Europa",
+		"🗺️",
+		["europe"],
+		"Europa",
+	),
+	{
+		id: "primer_tablero",
+		name: "Primer tablero",
+		description: "Completa un rush de países (cualquier alcance)",
+		emoji: "🧩",
+		category: "velocidad",
+		evaluate: (data) =>
+			flag(
+				data.sessionHistory.some(
+					(session) =>
+						session.mode === "competitive" &&
+						session.gameType === "countries" &&
+						session.totalCountries > 0 &&
+						session.correctAnswers === session.totalCountries,
+				),
+			),
+	},
+	{
+		id: "mundo_de_memoria",
+		name: "El mundo de memoria",
+		description: 'Completa el rush de países de "Todo el mundo"',
+		emoji: "🌐",
+		category: "velocidad",
+		evaluate: (data) =>
+			flag(data.countriesGame.regionBestTimes.world !== undefined),
+	},
+	{
+		id: "primero_los_paises",
+		name: "Primero los países",
+		description: "Aprende un continente completo en Países y en Banderas",
+		emoji: "🔗",
+		category: "meta",
+		evaluate: (data) => flag(hasRegionLearnedInBothGames(data)),
 	},
 
 	// ── Meta — lee el propio conjunto de desbloqueados, de ahí el punto fijo ──
