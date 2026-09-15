@@ -21,7 +21,8 @@ const AMBIGUOUS_ACCEPT_DELAY_MS = 700;
  * escribe (sin botón "Comprobar") y "vuela" a su hueco en el tablero.
  */
 export function CountriesRush() {
-	const { activeGame, exitGame, finishGame, attemptCountry } = useGame();
+	const { activeGame, exitGame, finishGame, attemptCountry, attemptCountries } =
+		useGame();
 
 	const countries = useMemo(
 		() => activeGame?.countries ?? [],
@@ -164,16 +165,17 @@ export function CountriesRush() {
 		// Cada país no encontrado cuenta como fallo para el SRS, igual que un
 		// skip en la práctica de banderas — no se aprendió esta vez.
 		//
-		// Nota de rendimiento: en un rush de "Todo el mundo" esto puede ser
-		// hasta ~150 llamadas seguidas, y cada una persiste en localStorage
-		// por su cuenta (mismo patrón que el bucle de `registerRegionGame` en
-		// `finishGame`, ahí acotado a ≤8 continentes). Funciona, pero no está
-		// optimizado — si se nota lento en el navegador real, la solución es
-		// una función de lote en `learning-storage.ts` que persista una sola
-		// vez al final.
-		for (const country of missedCountries) {
-			attemptCountry(country.code, false, "countries");
-		}
+		// `attemptCountries` (plural, `perf/batch-country-attempts`) en vez de
+		// llamar a `attemptCountry` en un bucle: en un rush de "Todo el mundo"
+		// esto puede ser hasta ~150 países de golpe, y `attemptCountry` uno
+		// por uno persistiría en localStorage 150 veces seguidas para un solo
+		// evento del usuario (rendirse). `attemptCountries` hace el mismo
+		// cálculo pero guarda una sola vez.
+		attemptCountries(
+			missedCountries.map((country) => country.code),
+			false,
+			"countries",
+		);
 
 		// El reloj se queda pausado a propósito: la carrera terminó aquí, y
 		// el tiempo mostrado en "Ver resultados" no debe seguir corriendo.

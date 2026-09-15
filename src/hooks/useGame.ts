@@ -318,24 +318,28 @@ export function useGame() {
 	/**
 	 * Igual que `attemptCountry`, pero para varios países a la vez con un
 	 * solo despacho y un solo guardado en `localStorage` (ver
-	 * `registerCountryAttempts` en `learning-storage.ts`). Pensada para
-	 * flujos que revelan/fallan muchos países de golpe por un solo evento
-	 * del usuario, en vez de código que llame a `attemptCountry` en un bucle.
+	 * `registerCountryAttempts` en `learning-storage.ts`, de
+	 * `perf/batch-country-attempts`). Pensada para flujos que revelan/fallan
+	 * muchos países de golpe por un solo evento del usuario — p. ej. el rush
+	 * de países al rendirse — en vez de llamar a `attemptCountry` en un bucle.
 	 */
 	const attemptCountries = (
 		codes: readonly string[],
 		isCorrect: boolean,
+		gameType: GameType,
 	) => {
 		if (codes.length === 0) return;
 
-		const updatedData = touchActiveDay(
+		const current = getCurrentLearningData();
+
+		const view = touchActiveDay(
 			registerCountryAttempts(
-				getCurrentLearningData(),
+				toGameView(current, gameType),
 				codes.map((countryCode) => ({ countryCode, isCorrect })),
 			),
 		);
 
-		dispatch(setLearningData(updatedData));
+		dispatch(setLearningData(fromGameView(current, view, gameType)));
 	};
 
 	/**
