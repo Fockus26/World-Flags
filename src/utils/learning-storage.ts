@@ -462,6 +462,20 @@ export function registerCountryAttempt(
 	);
 }
 
+/** Igual que `registerCountryAttempt`, pero para varios países con un solo guardado. Ver `saveReviewResults`. */
+export function registerCountryAttempts(
+	currentData: UserLearningData,
+	attempts: readonly { countryCode: string; isCorrect: boolean }[],
+): UserLearningData {
+	return saveReviewResults(
+		currentData,
+		attempts.map(({ countryCode, isCorrect }) => ({
+			countryCode,
+			grade: isCorrect ? ("good" as const) : ("again" as const),
+		})),
+	);
+}
+
 export function registerRegionGame(
 	currentData: UserLearningData,
 	region: Region,
@@ -1058,7 +1072,8 @@ export function formatElapsedTime(elapsedMs: number): string {
 	return `${minutes}:${String(seconds).padStart(2, "0")}.${hundredthsLabel}`;
 }
 
-export function saveReviewResult(
+/** Cálculo puro de `saveReviewResult`, sin persistir — para poder aplicar varios seguidos sin guardar entre medio (ver `saveReviewResults`). */
+function applyReviewResult(
 	currentData: UserLearningData,
 	countryCode: string,
 	grade: ReviewGrade,
@@ -1066,13 +1081,48 @@ export function saveReviewResult(
 	const previousReview =
 		currentData.countryHistory[countryCode]?.review ?? null;
 
-	const updatedData: UserLearningData = {
+	return {
 		...currentData,
 		countryHistory: {
 			...currentData.countryHistory,
 			[countryCode]: { review: calculateNextReview(previousReview, grade) },
 		},
 	};
+}
+
+export function saveReviewResult(
+	currentData: UserLearningData,
+	countryCode: string,
+	grade: ReviewGrade,
+): UserLearningData {
+	const updatedData = applyReviewResult(currentData, countryCode, grade);
+
+	saveLearningData(updatedData);
+	return updatedData;
+}
+
+/**
+ * Igual que `saveReviewResult`, pero para VARIOS países en una sola llamada
+ * con un solo guardado en `localStorage` (un `JSON.stringify` + `setItem` de
+ * la fila entera, no uno por país). Pensada para revelar/calificar muchos
+ * países de golpe — por ejemplo, marcar como fallados todos los que faltaban
+ * al rendirse en una sesión que cubre "Todo el mundo" (hasta ~196), donde
+ * llamar a `saveReviewResult` uno por uno repetiría ese guardado ~196 veces
+ * seguidas para un solo evento del usuario.
+ */
+export function saveReviewResults(
+	currentData: UserLearningData,
+	entries: readonly { countryCode: string; grade: ReviewGrade }[],
+): UserLearningData {
+	if (entries.length === 0) {
+		return currentData;
+	}
+
+	let updatedData = currentData;
+
+	for (const { countryCode, grade } of entries) {
+		updatedData = applyReviewResult(updatedData, countryCode, grade);
+	}
 
 	saveLearningData(updatedData);
 	return updatedData;
