@@ -25,6 +25,12 @@ const SLOT_TRANSFORMS = ["rotateY(0deg)", "rotateY(180deg)"] as const;
  * es el único disparador, sin depender de que "adaptar estado durante el
  * render" sea seguro con el compilador de React activo en este proyecto.
  *
+ * La ranura oculta arranca en `null` (no duplicando `viewKey`): su valor
+ * inicial nunca se usa como contenido a animar — el primer giro la
+ * sobreescribe con el `viewKey` real antes de mostrarla — así que montar
+ * ahí una copia de la vista inicial solo duplicaba el árbol DOM/efectos sin
+ * ganar nada.
+ *
  * **Bug real que costó dos vueltas encontrar:** la guarda de "¿hace falta
  * girar?" comparaba `viewKey` contra CUALQUIERA de las dos ranuras
  * (`slotKeysRef.current[0] || slotKeysRef.current[1]`), no solo contra la
@@ -45,7 +51,7 @@ export function PageFlip<TKey extends string>({
 	renderView,
 }: PageFlipProps<TKey>) {
 	const rotationStepRef = useRef(0);
-	const slotKeysRef = useRef<[TKey, TKey]>([viewKey, viewKey]);
+	const slotKeysRef = useRef<[TKey | null, TKey | null]>([viewKey, null]);
 	const [, forceRender] = useState(0);
 
 	useEffect(() => {
@@ -77,7 +83,8 @@ export function PageFlip<TKey extends string>({
 						inert={slot !== activeSlot}
 						aria-hidden={slot !== activeSlot || undefined}
 					>
-						{renderView(slotKeysRef.current[slot])}
+						{slotKeysRef.current[slot] !== null &&
+							renderView(slotKeysRef.current[slot])}
 					</div>
 				))}
 			</div>
