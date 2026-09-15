@@ -2,7 +2,9 @@ import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
+import { Fieldset } from "@/components/ui/Fieldset";
 import { IconButton } from "@/components/ui/IconButton";
+import { OptionTile } from "@/components/ui/OptionTile";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +16,8 @@ import {
 	DEFAULT_GAME_TYPE,
 	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
+	GAME_TYPE_LABELS,
+	GAME_TYPES,
 } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
 import {
@@ -59,23 +63,23 @@ export function Configuration() {
 	const difficulty =
 		learningData.lastConfiguration?.difficulty ?? DEFAULT_DIFFICULTY;
 	const mode = learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE;
-	// El selector Países/Banderas llega en la Fase 2 de
-	// `context/plans/modo-paises.md`; por ahora esto solo mantiene el tipo
-	// compilando sin cambiar nada visible (ver esa fase para el porqué del
-	// fallback a `DEFAULT_GAME_TYPE`).
+	// Sin config guardada (usuario nuevo): arranca en Países (D030). Con
+	// config vieja sin `gameType`, `migrateConfiguration` ya la migró a
+	// "flags" — este fallback solo cubre el caso de "nunca hubo config".
 	const gameType = learningData.lastConfiguration?.gameType ?? DEFAULT_GAME_TYPE;
 	const scope = learningData.lastConfiguration?.scope ?? DEFAULT_SCOPE;
 	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
 
-	const learnedCountries = countLearnedCountries(learningData.countryHistory);
+	// El progreso mostrado (aprendidos, puntajes, mejores tiempos) es el del
+	// juego seleccionado, no siempre el de Banderas — de ahí `toGameView`.
+	const gameView = toGameView(learningData, gameType);
+	const learnedCountries = countLearnedCountries(gameView.countryHistory);
 	const learningProgress = calculateLearningProgress(
-		learningData.countryHistory,
+		gameView.countryHistory,
 		196,
 	);
 
-	const dueCount = getDueCountries(
-		toGameView(learningData, gameType).countryHistory,
-	).length;
+	const dueCount = getDueCountries(gameView.countryHistory).length;
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -228,6 +232,27 @@ export function Configuration() {
 					</Tooltip>
 				</div>
 
+				{/* ⚠️ Copy provisional (leyenda y título, `CONTENT_CHECKLIST.md` #9):
+				    pendiente de aprobación del dueño. */}
+				<Fieldset legend="Qué practicar" className="shrink-0">
+					<div className="grid grid-cols-2 gap-1.5">
+						{GAME_TYPES.map((type) => (
+							<OptionTile
+								key={type}
+								name="settings-game-type"
+								value={type}
+								checked={gameType === type}
+								onChange={() => {
+									updateSettings({ gameType: type });
+									setBlockedMessage(null);
+								}}
+							>
+								{GAME_TYPE_LABELS[type]}
+							</OptionTile>
+						))}
+					</div>
+				</Fieldset>
+
 				<header className="shrink-0">
 					<h1
 						className="
@@ -239,7 +264,9 @@ export function Configuration() {
 							min-[44rem]:text-3xl
 						"
 					>
-						Aprende las banderas del mundo
+						{gameType === "countries"
+							? "Aprende los países del mundo"
+							: "Aprende las banderas del mundo"}
 					</h1>
 				</header>
 
@@ -259,8 +286,8 @@ export function Configuration() {
 							updateSettings({ scope: nextScope });
 							setBlockedMessage(null);
 						}}
-						regionGameScores={learningData.regionGameScores}
-						regionBestTimes={learningData.regionBestTimes}
+						regionGameScores={gameView.regionGameScores}
+						regionBestTimes={gameView.regionBestTimes}
 						mode={mode}
 						getRegionPracticeProgress={(region) =>
 							getRegionPracticeProgress(region, gameType)
