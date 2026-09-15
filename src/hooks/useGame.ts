@@ -162,6 +162,7 @@ export function useGame() {
 
 		dispatch(
 			setActiveGame({
+				id: crypto.randomUUID(),
 				configuration: effectiveConfiguration,
 				countries: prepareCountries(countries, effectiveConfiguration),
 			}),

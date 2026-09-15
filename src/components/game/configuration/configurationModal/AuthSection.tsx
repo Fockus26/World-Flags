@@ -1,4 +1,5 @@
 import { type SubmitEvent, useState } from "react";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Input } from "@/components/ui/Input";
@@ -79,7 +80,7 @@ export function AuthSection() {
 
 	if (view === "authenticated") {
 		return (
-			<div className="flex flex-col gap-3 animate-in fade-in-0 duration-200">
+			<div className="flex flex-col gap-3 animate-in fade-in-0 zoom-in-95 duration-300">
 				<p className="m-0 text-[0.875rem]">
 					Sesión iniciada como <strong>{user?.email}</strong>
 				</p>
@@ -93,7 +94,7 @@ export function AuthSection() {
 
 	if (view === "pending" && pendingConfirmation) {
 		return (
-			<div className="animate-in fade-in-0 slide-in-from-right-1 duration-200">
+			<div className="animate-in fade-in-0 slide-in-from-right-2 duration-250">
 				<EmailConfirmationPending
 					email={pendingConfirmation.email}
 					password={pendingConfirmation.password}
@@ -148,19 +149,17 @@ export function AuthSection() {
 					minLength={6}
 					required
 				/>
-				{mode === "signup" && (
-					<div className="animate-in fade-in-0 slide-in-from-top-1 duration-200">
-						<Input
-							id="auth-confirm-password"
-							type="password"
-							label="Repetir contraseña"
-							value={confirmPassword}
-							onChange={(e) => setConfirmPassword(e.target.value)}
-							minLength={6}
-							required
-						/>
-					</div>
-				)}
+				<AutoHeight show={mode === "signup"}>
+					<Input
+						id="auth-confirm-password"
+						type="password"
+						label="Repetir contraseña"
+						value={confirmPassword}
+						onChange={(e) => setConfirmPassword(e.target.value)}
+						minLength={6}
+						required={mode === "signup"}
+					/>
+				</AutoHeight>
 				{error && (
 					<FeedbackMessage
 						variant="danger"

@@ -1,4 +1,5 @@
 import { ThemeSwitcher } from "@/components/game/configuration/ThemeSwitcher";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 import { Fieldset } from "@/components/ui/Fieldset";
 import { OptionTile } from "@/components/ui/OptionTile";
 import { Tooltip } from "@/components/ui/Tooltip";
@@ -78,104 +79,102 @@ export function GameTab({
 				</div>
 			</Fieldset>
 
-			{mode === "practice" && (
-				<Fieldset legend="Orden">
-					<div className="grid grid-cols-2 gap-1.5">
-						<OptionTile
-							name="settings-order"
-							value="alphabetical"
-							checked={order === "alphabetical"}
-							onChange={() => onOrderChange("alphabetical")}
-						>
-							Alfabético
-						</OptionTile>
-						<OptionTile
-							name="settings-order"
-							value="random"
-							checked={order === "random"}
-							onChange={() => onOrderChange("random")}
-						>
-							Aleatorio
-						</OptionTile>
-					</div>
-				</Fieldset>
-			)}
-
-			{mode === "practice" && (
-				<Fieldset legend="Temporizador">
-					<div className="grid grid-cols-2 gap-1.5">
-						<OptionTile
-							name="settings-timer-enabled"
-							value="off"
-							checked={!timerEnabled}
-							onChange={() => onTimerEnabledChange(false)}
-						>
-							Desactivado
-						</OptionTile>
-						<OptionTile
-							name="settings-timer-enabled"
-							value="on"
-							checked={timerEnabled}
-							onChange={() => onTimerEnabledChange(true)}
-						>
-							Activado
-						</OptionTile>
-					</div>
-
-					{timerEnabled && (
-						<div className="mt-1.5 flex gap-2">
-							{TIMER_DURATIONS.map((duration) => (
-								<OptionTile
-									key={duration}
-									name="settings-timer"
-									value={String(duration)}
-									checked={timerDuration === duration}
-									onChange={() => onTimerDurationChange(duration)}
-								>
-									{duration}s
-								</OptionTile>
-							))}
+			<AutoHeight show={mode === "practice"}>
+				<div className="flex flex-col gap-5">
+					<Fieldset legend="Orden">
+						<div className="grid grid-cols-2 gap-1.5">
+							<OptionTile
+								name="settings-order"
+								value="alphabetical"
+								checked={order === "alphabetical"}
+								onChange={() => onOrderChange("alphabetical")}
+							>
+								Alfabético
+							</OptionTile>
+							<OptionTile
+								name="settings-order"
+								value="random"
+								checked={order === "random"}
+								onChange={() => onOrderChange("random")}
+							>
+								Aleatorio
+							</OptionTile>
 						</div>
-					)}
-				</Fieldset>
-			)}
+					</Fieldset>
 
-			{mode === "practice" && (
-				<Fieldset
-					legend={
-						<span className="inline-flex items-center gap-2">
-							Dificultad
-							<HelpHint label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')." />
-						</span>
-					}
-				>
-					<div className="grid grid-cols-2 gap-1.5">
-						<OptionTile
-							name="settings-difficulty"
-							value="easy"
-							checked={difficulty === "easy"}
-							onChange={() => onDifficultyChange("easy")}
-						>
-							Fácil
-						</OptionTile>
-						<OptionTile
-							name="settings-difficulty"
-							value="hard"
-							checked={difficulty === "hard"}
-							onChange={() => onDifficultyChange("hard")}
-						>
-							Difícil
-						</OptionTile>
-					</div>
-				</Fieldset>
-			)}
+					<Fieldset legend="Temporizador">
+						<div className="grid grid-cols-2 gap-1.5">
+							<OptionTile
+								name="settings-timer-enabled"
+								value="off"
+								checked={!timerEnabled}
+								onChange={() => onTimerEnabledChange(false)}
+							>
+								Desactivado
+							</OptionTile>
+							<OptionTile
+								name="settings-timer-enabled"
+								value="on"
+								checked={timerEnabled}
+								onChange={() => onTimerEnabledChange(true)}
+							>
+								Activado
+							</OptionTile>
+						</div>
 
-			{mode === "competitive" && (
+						<AutoHeight show={timerEnabled} className="mt-1.5">
+							<div className="flex gap-2">
+								{TIMER_DURATIONS.map((duration) => (
+									<OptionTile
+										key={duration}
+										name="settings-timer"
+										value={String(duration)}
+										checked={timerDuration === duration}
+										onChange={() => onTimerDurationChange(duration)}
+									>
+										{duration}s
+									</OptionTile>
+								))}
+							</div>
+						</AutoHeight>
+					</Fieldset>
+
+					<Fieldset
+						legend={
+							<span className="inline-flex items-center gap-2">
+								Dificultad
+								<HelpHint label="Fácil: acepta respuestas sin acentos (ej. 'mexico'). Difícil: exige los acentos exactos (ej. 'méxico')." />
+							</span>
+						}
+					>
+						<div className="grid grid-cols-2 gap-1.5">
+							<OptionTile
+								name="settings-difficulty"
+								value="easy"
+								checked={difficulty === "easy"}
+								onChange={() => onDifficultyChange("easy")}
+							>
+								Fácil
+							</OptionTile>
+							<OptionTile
+								name="settings-difficulty"
+								value="hard"
+								checked={difficulty === "hard"}
+								onChange={() => onDifficultyChange("hard")}
+							>
+								Difícil
+							</OptionTile>
+						</div>
+					</Fieldset>
+				</div>
+			</AutoHeight>
+
+			<AutoHeight show={mode === "competitive"}>
 				<p className="m-0 text-[0.8rem] text-text-placeholder">
 					En modo competitivo el orden es aleatorio y la dificultad es difícil
 					siempre, para que el ranking compare partidas equivalentes.
 				</p>
-			)}
+			</AutoHeight>
 
 			<Fieldset legend="Tema">
 				<ThemeSwitcher />

@@ -63,7 +63,7 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 			{view === "profile" ? (
 				<div
 					key="profile"
-					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-left-1 duration-200"
+					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-left-2 duration-250"
 				>
 					<Input
 						id="profile-name"
@@ -94,7 +94,7 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 			) : (
 				<div
 					key="session"
-					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-1 duration-200"
+					className="flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-2 duration-250"
 				>
 					<AuthSection />
 				</div>
