@@ -81,7 +81,10 @@ export function Session() {
 		initialCodes: countries.map((country) => country.code),
 		countryHistory: learningData.countryHistory,
 		onGrade: (code, grade, isFirstAttempt) =>
-			gradeCountryReview(code, grade, isFirstAttempt),
+			// `Session` es solo Banderas: el modo Países tiene sus propios
+			// componentes de sesión (`session/countries/`, Fase 4/5 de
+			// `context/plans/modo-paises.md`).
+			gradeCountryReview(code, grade, "flags", isFirstAttempt),
 		onFinish: () => {
 			const regionBreakdown: Partial<
 				Record<Region, { correct: number; total: number }>
@@ -100,6 +103,7 @@ export function Session() {
 
 			finishGame({
 				mode: "practice",
+				gameType: "flags",
 				score: calculateScore(correctAnswers, countries.length),
 				correctAnswers,
 				skippedAnswers: skippedAnswersRef.current,
@@ -222,6 +226,11 @@ export function Session() {
 
 			finishGame({
 				mode: "competitive",
+				gameType: "flags",
+				// El rush de Banderas siempre recorre el alcance completo (no
+				// tiene botón "Rendirme"): a diferencia del de Países, `completed`
+				// nunca es `false` aquí.
+				completed: true,
 				scope: configuration.scope,
 				totalCountries: countries.length,
 				// Se lee del ref, NO del estado `correctAnswers`: esta función
@@ -266,7 +275,7 @@ export function Session() {
 		);
 
 		if (configuration.mode === "competitive") {
-			attemptCountry(currentCountry.code, isCorrect);
+			attemptCountry(currentCountry.code, isCorrect, "flags");
 			// En competitivo cada bandera aparece una sola vez (avanza por
 			// índice), así que el guard de `recordFirstAttempt` nunca salta.
 			recordFirstAttempt(currentCountry.code, isCorrect);
@@ -320,7 +329,7 @@ export function Session() {
 		skippedAnswersRef.current += 1;
 
 		if (configuration.mode === "competitive") {
-			attemptCountry(currentCountry.code, false);
+			attemptCountry(currentCountry.code, false, "flags");
 			recordFirstAttempt(currentCountry.code, false);
 			if (startTimeRef.current !== null) {
 				startTimeRef.current -= RUSH_SKIP_PENALTY_MS;

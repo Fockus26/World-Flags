@@ -4,7 +4,31 @@
 
 ## Estado actual
 
-**Tanda de 6 fixes de feedback post-logros** (timer, continentes, práctica diaria,
+**En curso: modo de juego "Países" (rama experimental `feat/modo-paises`).**
+Implementa `context/plans/modo-paises.md` — un segundo tipo de juego (aprender qué
+país pertenece a cada continente, con tablero de países y animación de "vuelo")
+que reutiliza el flujo existente (alcance, práctica/competitivo, práctica diaria,
+SRS, logros, ranking). 7 fases, cada una con commit y pausa de aprobación propios.
+Es experimental: **no se mergea a `main`** salvo que el dueño lo pida.
+
+**Fase 1 (modelo de datos) cerrada, en revisión.** `gameType`, `countriesGame`
+(progreso separado de Países) y su sync con Supabase, sin ningún cambio visible
+todavía. `bunx astro check` 0 errores · `bun run build` verde · `bunx biome check
+./src` sin hallazgos nuevos (los 60 que reporta son preexistentes, de formato
+CRLF — verificado con `git stash` antes de estos cambios, mismo conteo). 11
+aserciones puras sobre `toGameView`/`fromGameView`, migración e idempotencia del
+merge, todas en verde (script temporal, no vive en el repo).
+
+### Acción manual pendiente del dueño (bloquea el despliegue)
+
+**Correr `supabase/countries-game.sql`** en el SQL Editor de Supabase **antes**
+de desplegar el cliente de esta rama. Mismo riesgo que ya describe
+`achievements.sql`: si el cliente pide la columna `countries_game` y todavía no
+existe, el `select` de `fetchRemoteLearningData` falla, `syncOnLogin` lanza, y el
+usuario autenticado cae al fallback de `localStorage` en vez de ver su progreso
+de la nube. No aplica mientras la rama no se despliegue.
+
+Anterior: **Tanda de 6 fixes de feedback post-logros** (timer, continentes, práctica diaria,
 logros, banderas) — **aprobada, mergeada a `main` y ya con push a `origin/main`**
 (commit `524e9c8`). Detalle de cada unidad en `GIT_STATE.md` › Bloques cerrados.
 Todas las ramas de trabajo de esta tanda ya se borraron (mergeadas).

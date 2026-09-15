@@ -41,6 +41,24 @@ export const GAME_MODE_LABELS: Record<GameMode, string> = {
 };
 
 /**
+ * Qué se está aprendiendo: qué país pertenece a cada continente ("countries")
+ * o qué bandera pertenece a cada país ("flags", el juego original). Este
+ * orden es también el orden en que se muestran en el selector de la
+ * configuración (D030): Países primero, porque aprender los países ayuda
+ * luego a ubicar sus banderas.
+ */
+export const GAME_TYPES = ["countries", "flags"] as const;
+export type GameType = (typeof GAME_TYPES)[number];
+/** Un usuario nuevo arranca en Países (D030); uno con configuración vieja sin
+ *  `gameType` se migra a "flags" en `migrateConfiguration`, no a este default. */
+export const DEFAULT_GAME_TYPE: GameType = "countries";
+
+export const GAME_TYPE_LABELS: Record<GameType, string> = {
+	countries: "Países",
+	flags: "Banderas",
+};
+
+/**
  * Qué se va a practicar en una sesión:
  * - "world": los 196 países.
  * - "custom": cero o más continentes completos (`regions`) más cero o más
@@ -62,10 +80,12 @@ export interface GameConfiguration {
 	timerEnabled: boolean;
 	difficulty: Difficulty;
 	mode: GameMode;
+	gameType: GameType;
 }
 
 interface GameResultBase {
 	scope: PracticeScope;
+	gameType: GameType;
 	totalCountries: number;
 	/** Aciertos al primer intento. En competitivo cada bandera aparece una sola vez. */
 	correctAnswers: number;
@@ -98,6 +118,12 @@ export interface PracticeGameResult extends GameResultBase {
 /** Competitivo = "rush": se cronometra la sesión completa, no cada bandera. */
 export interface CompetitiveGameResult extends GameResultBase {
 	mode: "competitive";
+	/**
+	 * En Banderas siempre `true` (cada partida recorre el alcance completo).
+	 * En el rush de Países puede terminar por rendición antes de encontrar
+	 * todos los países: el mejor tiempo solo se registra cuando es `true`.
+	 */
+	completed: boolean;
 }
 
 export type GameResult = PracticeGameResult | CompetitiveGameResult;

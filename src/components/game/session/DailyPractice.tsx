@@ -7,9 +7,12 @@ import { countries } from "@/data/countries";
 import type { DailyPracticeSummary } from "@/hooks/useGame";
 import { useGame } from "@/hooks/useGame";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
+import type { GameType } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
+import { toGameView } from "@/utils/learning-storage";
 
 interface DailyPracticeProps {
+	gameType: GameType;
 	countryCodes: string[];
 	/** Cola terminada de verdad: cuenta como sesión. */
 	onComplete: (summary: DailyPracticeSummary) => void;
@@ -25,6 +28,7 @@ const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 };
 
 export function DailyPractice({
+	gameType,
 	countryCodes,
 	onComplete,
 	onAbandon,
@@ -37,7 +41,7 @@ export function DailyPractice({
 
 	const { currentCode, totalCount, completedCount, grade } = usePracticeQueue({
 		initialCodes: countryCodes,
-		countryHistory: learningData.countryHistory,
+		countryHistory: toGameView(learningData, gameType).countryHistory,
 		onGrade: (code, gradeValue, isFirstAttempt) => {
 			// Solo la primera vez que aparece cada bandera, y "otra vez" es el
 			// único lapso real: `calculateNextReview` reinicia las repeticiones
@@ -49,7 +53,7 @@ export function DailyPractice({
 			// Sin `markPracticed`: la práctica diaria es un scope aparte del
 			// de continentes, y no debe contar como "practicado hoy" para el
 			// candado de continentes.
-			gradeCountryReview(code, gradeValue);
+			gradeCountryReview(code, gradeValue, gameType);
 		},
 		onFinish: () =>
 			onComplete({

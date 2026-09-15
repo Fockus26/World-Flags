@@ -53,7 +53,8 @@ function FlagGameContent() {
 			case "dailyPractice":
 				return dailyPracticeQueue ? (
 					<DailyPractice
-						countryCodes={dailyPracticeQueue}
+						gameType={dailyPracticeQueue.gameType}
+						countryCodes={dailyPracticeQueue.codes}
 						onComplete={finishDailyPractice}
 						onAbandon={exitDailyPractice}
 					/>

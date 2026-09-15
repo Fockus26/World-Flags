@@ -12,6 +12,7 @@ import {
 	DEFAULT_TIMER_DURATION,
 	type GameConfiguration as GameConfigurationType,
 	type GameResult,
+	type GameType,
 	type PracticeScope,
 	type Region,
 } from "@/types/country";
@@ -23,6 +24,7 @@ import type {
 } from "@/types/progress";
 import {
 	createSessionRecord,
+	fromGameView,
 	getDueCountries,
 	getUnpracticedCodesToday,
 	hasPracticedCountryToday,
@@ -34,6 +36,7 @@ import {
 	saveLastConfiguration,
 	saveReviewResult,
 	saveUserProfile,
+	toGameView,
 	touchActiveDay,
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
@@ -63,6 +66,7 @@ function toSessionRecord(result: GameResult): SessionRecord {
 	return createSessionRecord({
 		finishedAt: result.finishedAt,
 		mode: result.mode,
+		gameType: result.gameType,
 		scopeKey: getScopeRegionKey(result.scope),
 		scopeLabel: getScopeLabel(result.scope),
 		totalCountries: result.totalCountries,
@@ -93,13 +97,13 @@ export function useGame() {
 		(state) => state.game.dailyPracticeQueue,
 	);
 
-	/** Cuántos países de esa región ya se practicaron hoy, de cuántos en total. */
-	const getRegionPracticeProgress = (region: Region) => {
+	/** Cuántos países de esa región ya se practicaron hoy, de cuántos en total (para el `gameType` pedido). */
+	const getRegionPracticeProgress = (region: Region, gameType: GameType) => {
 		const regionCodes = countries.filter(
 			(country) => country.region === region,
 		);
 		const unpracticed = getUnpracticedCodesToday(
-			learningData,
+			toGameView(learningData, gameType),
 			regionCodes.map((country) => country.code),
 		);
 
@@ -109,8 +113,8 @@ export function useGame() {
 		};
 	};
 
-	const isCountryPracticedToday = (countryCode: string) =>
-		hasPracticedCountryToday(learningData, countryCode);
+	const isCountryPracticedToday = (countryCode: string, gameType: GameType) =>
+		hasPracticedCountryToday(toGameView(learningData, gameType), countryCode);
 
 	const startGame = (
 		requestedConfiguration: GameConfigurationType,
@@ -131,7 +135,7 @@ export function useGame() {
 				configuration.scope,
 			);
 			const effectiveCodes = getUnpracticedCodesToday(
-				getCurrentLearningData(),
+				toGameView(getCurrentLearningData(), configuration.gameType),
 				requestedCodes,
 			);
 
@@ -175,6 +179,8 @@ export function useGame() {
 		dispatch(setLastResult(result));
 		dispatch(setActiveGame(null));
 
+		const { gameType } = result;
+
 		// El puntaje de práctica se actualiza para CADA continente que tuvo
 		// países en la sesión (regionBreakdown), sin importar si el scope era
 		// un solo continente, varios combinados, o países sueltos de cada uno.
@@ -183,6 +189,8 @@ export function useGame() {
 		// El registro de la sesión va PRIMERO, antes de cualquier salida
 		// temprana: un rush con scope mixto no tiene continente al que atribuir
 		// la marca, pero la sesión igual ocurrió y cuenta para las estadísticas.
+		// `sessionHistory`/`stats` son compartidos entre juegos, así que esto
+		// opera sobre el objeto completo, no sobre una vista.
 		// Todo se encadena sobre el mismo objeto y se despacha una sola vez
 		// (ver el comentario de `getCurrentLearningData` arriba).
 		let updatedData = registerSessionOutcome(
@@ -191,25 +199,35 @@ export function useGame() {
 		);
 
 		if (result.mode === "practice") {
+			let view = toGameView(updatedData, gameType);
+
 			for (const [region, stats] of Object.entries(result.regionBreakdown) as [
 				Region,
 				{ correct: number; total: number },
 			][]) {
 				const score = calculateScore(stats.correct, stats.total);
-				updatedData = registerRegionGame(updatedData, region, score);
+				view = registerRegionGame(view, region, score);
 			}
+
+			updatedData = fromGameView(updatedData, view, gameType);
 
 			// Un continente que ya se terminó de practicar hoy queda bloqueado
 			// (candado "practicado hoy"), así que no tiene sentido dejarlo
 			// seleccionado en la config: se deselecciona solo. Los países
 			// sueltos elegidos a mano (scope.countryCodes) no se tocan.
+			// `lastConfiguration` es compartido, pero el candado "practicado
+			// hoy" que decide si queda algo pendiente es del `gameType` de
+			// esta sesión.
 			const lastScope = updatedData.lastConfiguration?.scope;
 			if (lastScope?.type === "custom" && lastScope.regions.length > 0) {
+				const viewForLock = toGameView(updatedData, gameType);
 				const remainingRegions = lastScope.regions.filter((region) => {
 					const regionCodes = countries
 						.filter((country) => country.region === region)
 						.map((country) => country.code);
-					return getUnpracticedCodesToday(updatedData, regionCodes).length > 0;
+					return (
+						getUnpracticedCodesToday(viewForLock, regionCodes).length > 0
+					);
 				});
 
 				if (remainingRegions.length !== lastScope.regions.length) {
@@ -225,12 +243,16 @@ export function useGame() {
 		} else {
 			const region = getScopeRegionKey(result.scope);
 
-			if (region) {
-				updatedData = registerRegionBestTime(
-					updatedData,
+			// El mejor tiempo solo se registra si el rush se completó al 100 %
+			// (D033): un rush de Países abandonado a medio camino no debe
+			// mejorar ni crear una marca.
+			if (region && result.completed) {
+				const view = registerRegionBestTime(
+					toGameView(updatedData, gameType),
 					region,
 					result.elapsedMs,
 				);
+				updatedData = fromGameView(updatedData, view, gameType);
 			}
 		}
 
@@ -255,6 +277,9 @@ export function useGame() {
 			timerEnabled: learningData.lastConfiguration?.timerEnabled ?? false,
 			difficulty: learningData.lastConfiguration?.difficulty ?? "hard",
 			mode: learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE,
+			// Del resultado, no de `lastConfiguration`: es el juego que
+			// produjo esta partida, y es el que hay que repetir.
+			gameType: lastResult.gameType,
 		});
 
 		if (!started) {
@@ -271,50 +296,74 @@ export function useGame() {
 	 * diaria, que no pasa por `finishGame`) sin escribir nada de más
 	 * — `touchActiveDay` no toca los datos si hoy ya estaba marcado.
 	 */
-	const attemptCountry = (countryCode: string, isCorrect: boolean) => {
-		const updatedData = touchActiveDay(
-			registerCountryAttempt(getCurrentLearningData(), countryCode, isCorrect),
+	const attemptCountry = (
+		countryCode: string,
+		isCorrect: boolean,
+		gameType: GameType,
+	) => {
+		const current = getCurrentLearningData();
+
+		const view = touchActiveDay(
+			registerCountryAttempt(
+				toGameView(current, gameType),
+				countryCode,
+				isCorrect,
+			),
 		);
 
-		dispatch(setLearningData(updatedData));
+		dispatch(setLearningData(fromGameView(current, view, gameType)));
 	};
 
 	/**
 	 * `markPracticed` se resuelve en el mismo despacho (no en uno aparte):
-	 * calificar la primera vez que aparece una bandera en la sesión también
-	 * la marca como practicada hoy.
+	 * calificar la primera vez que aparece un país en la sesión también lo
+	 * marca como practicado hoy.
 	 */
 	const gradeCountryReview = (
 		countryCode: string,
 		grade: ReviewGrade,
+		gameType: GameType,
 		markPracticed = false,
 	) => {
-		let updatedData = saveReviewResult(
-			getCurrentLearningData(),
+		const current = getCurrentLearningData();
+
+		let view = saveReviewResult(
+			toGameView(current, gameType),
 			countryCode,
 			grade,
 		);
 
 		if (markPracticed) {
-			updatedData = registerCountryPracticed(updatedData, countryCode);
+			view = registerCountryPracticed(view, countryCode);
 		}
 
-		dispatch(setLearningData(touchActiveDay(updatedData)));
+		dispatch(
+			setLearningData(fromGameView(current, touchActiveDay(view), gameType)),
+		);
 	};
 
-	const startDailyPractice = () => {
-		const dueCodes = getDueCountries(learningData.countryHistory);
+	const startDailyPractice = (gameType: GameType) => {
+		const dueCodes = getDueCountries(
+			toGameView(learningData, gameType).countryHistory,
+		);
 
-		dispatch(setDailyPracticeQueue(dueCodes));
+		dispatch(setDailyPracticeQueue({ gameType, codes: dueCodes }));
 	};
 
 	/** La práctica diaria sí completada: entra al historial y cierra la cola. */
 	const finishDailyPractice = (summary: DailyPracticeSummary) => {
+		// La cola ya se cerró para cuando esto corre en la mayoría de los
+		// casos, pero el `gameType` con el que se abrió es el que corresponde
+		// a este resumen — nunca el de la config actual, que pudo cambiar
+		// mientras tanto en otra pestaña.
+		const gameType: GameType = dailyPracticeQueue?.gameType ?? "flags";
+
 		const updatedData = registerSessionOutcome(
 			getCurrentLearningData(),
 			createSessionRecord({
 				finishedAt: new Date().toISOString(),
 				mode: "daily",
+				gameType,
 				scopeKey: null,
 				scopeLabel: "Práctica diaria",
 				totalCountries: summary.totalCountries,

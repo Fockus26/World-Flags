@@ -11,6 +11,7 @@ import { motionVariants } from "@/styles/animations";
 import {
 	DEFAULT_DIFFICULTY,
 	DEFAULT_GAME_MODE,
+	DEFAULT_GAME_TYPE,
 	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
 } from "@/types/country";
@@ -19,6 +20,7 @@ import {
 	calculateLearningProgress,
 	countLearnedCountries,
 	getDueCountries,
+	toGameView,
 } from "@/utils/learning-storage";
 import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
 import { AchievementsModal } from "./AchievementsModal";
@@ -57,6 +59,11 @@ export function Configuration() {
 	const difficulty =
 		learningData.lastConfiguration?.difficulty ?? DEFAULT_DIFFICULTY;
 	const mode = learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE;
+	// El selector Países/Banderas llega en la Fase 2 de
+	// `context/plans/modo-paises.md`; por ahora esto solo mantiene el tipo
+	// compilando sin cambiar nada visible (ver esa fase para el porqué del
+	// fallback a `DEFAULT_GAME_TYPE`).
+	const gameType = learningData.lastConfiguration?.gameType ?? DEFAULT_GAME_TYPE;
 	const scope = learningData.lastConfiguration?.scope ?? DEFAULT_SCOPE;
 	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
 
@@ -66,7 +73,9 @@ export function Configuration() {
 		196,
 	);
 
-	const dueCount = getDueCountries(learningData.countryHistory).length;
+	const dueCount = getDueCountries(
+		toGameView(learningData, gameType).countryHistory,
+	).length;
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -85,6 +94,7 @@ export function Configuration() {
 			timerEnabled,
 			difficulty,
 			mode,
+			gameType,
 		});
 
 		if (!started) {
@@ -252,7 +262,9 @@ export function Configuration() {
 						regionGameScores={learningData.regionGameScores}
 						regionBestTimes={learningData.regionBestTimes}
 						mode={mode}
-						getRegionPracticeProgress={getRegionPracticeProgress}
+						getRegionPracticeProgress={(region) =>
+							getRegionPracticeProgress(region, gameType)
+						}
 					/>
 
 					{blockedMessage && (
@@ -271,7 +283,7 @@ export function Configuration() {
 						color="secondary"
 						type="button"
 						className="shrink-0"
-						onClick={startDailyPractice}
+						onClick={() => startDailyPractice(gameType)}
 					>
 						Práctica diaria ({dueCount})
 					</Button>
@@ -311,7 +323,9 @@ export function Configuration() {
 				onClose={() => setIsCountryPickerOpen(false)}
 				initialSelectedCodes={customCodes}
 				isCountryDisabled={
-					mode === "practice" ? isCountryPracticedToday : undefined
+					mode === "practice"
+						? (code: string) => isCountryPracticedToday(code, gameType)
+						: undefined
 				}
 				onConfirm={(countryCodes) => {
 					const regions = scope.type === "custom" ? scope.regions : [];

@@ -14,7 +14,7 @@ export async function fetchRemoteLearningData(
 	const { data, error } = await supabase
 		.from("user_learning_data")
 		.select(
-			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, achievements, stats, session_history",
+			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, countries_game, achievements, stats, session_history",
 		)
 		.eq("user_id", userId)
 		.maybeSingle();
@@ -43,6 +43,7 @@ export async function fetchRemoteLearningData(
 		lastConfiguration: data.last_configuration,
 		regionBestTimes: data.region_best_times ?? {},
 		lastPracticeByCountry: data.last_practice_by_country ?? {},
+		countriesGame: data.countries_game ?? {},
 		achievements: data.achievements ?? {},
 		stats: data.stats ?? undefined,
 		sessionHistory: data.session_history ?? [],
@@ -61,6 +62,7 @@ export async function pushLearningData(
 		region_best_times: data.regionBestTimes,
 		last_configuration: data.lastConfiguration,
 		last_practice_by_country: data.lastPracticeByCountry,
+		countries_game: data.countriesGame,
 		achievements: data.achievements,
 		stats: data.stats,
 		session_history: data.sessionHistory,

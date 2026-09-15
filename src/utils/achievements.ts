@@ -270,6 +270,9 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 				data.sessionHistory.some(
 					(session) =>
 						session.mode === "competitive" &&
+						// Ausente = Banderas (D036): este logro es del rush de
+						// banderas, no del rush de países.
+						(session.gameType ?? "flags") === "flags" &&
 						session.totalCountries >= 20 &&
 						session.correctAnswers === session.totalCountries,
 				),
@@ -288,6 +291,9 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 				data.sessionHistory.some(
 					(session) =>
 						session.mode === "competitive" &&
+						// Ausente = Banderas (D036): este logro es del rush de
+						// banderas, no del rush de países.
+						(session.gameType ?? "flags") === "flags" &&
 						session.totalCountries >= 20 &&
 						session.skippedAnswers === 0,
 				),

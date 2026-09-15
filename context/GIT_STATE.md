@@ -25,6 +25,11 @@ explícitamente para esta unidad de animaciones también.
 
 ## Ramas de trabajo
 
+`feat/modo-paises` — **experimental, abierta desde `main` (`136c81c`), sin merge
+previsto al cerrar** salvo que el dueño lo pida expresamente. Implementa el plan de
+`context/plans/modo-paises.md` en 7 fases, cada una con su propio commit y su propia
+pausa de aprobación.
+
 `feat/achievements` ya se mergeó (no se borró — el dueño
 decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 
