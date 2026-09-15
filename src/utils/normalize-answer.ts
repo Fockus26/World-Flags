@@ -8,7 +8,13 @@ export function isCorrectAnswer(
 	return normalize(answer, difficulty) === normalize(correctName, difficulty);
 }
 
-function normalize(value: string, difficulty: Difficulty): string {
+/**
+ * Exportada además de usarla `isCorrectAnswer` internamente: `country-board.ts`
+ * (modo Países) la necesita para comparar un texto contra muchos países a la
+ * vez (`findMatch`) sin normalizar cada candidato dos veces por comparación.
+ * Comportamiento sin cambios.
+ */
+export function normalize(value: string, difficulty: Difficulty): string {
 	const base = value.trim().toLowerCase();
 	return difficulty === "easy" ? stripDiacritics(base) : base;
 }
