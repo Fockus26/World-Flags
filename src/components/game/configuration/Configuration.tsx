@@ -2,9 +2,7 @@ import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
-import { Fieldset } from "@/components/ui/Fieldset";
 import { IconButton } from "@/components/ui/IconButton";
-import { OptionTile } from "@/components/ui/OptionTile";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,8 +14,6 @@ import {
 	DEFAULT_GAME_TYPE,
 	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
-	GAME_TYPE_LABELS,
-	GAME_TYPES,
 } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
 import {
@@ -30,6 +26,7 @@ import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
 import { AchievementsModal } from "./AchievementsModal";
 import { CountryPickerModal } from "./CountryPickerModal";
 import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
+import { GameTypeToggle } from "./GameTypeToggle";
 import { LeaderboardModal } from "./LeaderboardModal";
 import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
@@ -234,24 +231,16 @@ export function Configuration() {
 
 				{/* ⚠️ Copy provisional (leyenda y título, `CONTENT_CHECKLIST.md` #9):
 				    pendiente de aprobación del dueño. */}
-				<Fieldset legend="Qué practicar" className="shrink-0">
-					<div className="grid grid-cols-2 gap-1.5">
-						{GAME_TYPES.map((type) => (
-							<OptionTile
-								key={type}
-								name="settings-game-type"
-								value={type}
-								checked={gameType === type}
-								onChange={() => {
-									updateSettings({ gameType: type });
-									setBlockedMessage(null);
-								}}
-							>
-								{GAME_TYPE_LABELS[type]}
-							</OptionTile>
-						))}
-					</div>
-				</Fieldset>
+				<GameTypeToggle
+					legend="Qué practicar"
+					name="settings-game-type"
+					value={gameType}
+					onChange={(type) => {
+						updateSettings({ gameType: type });
+						setBlockedMessage(null);
+					}}
+					className="shrink-0"
+				/>
 
 				<header className="shrink-0">
 					<h1
@@ -364,6 +353,7 @@ export function Configuration() {
 			<LeaderboardModal
 				isOpen={isLeaderboardOpen}
 				onClose={() => setIsLeaderboardOpen(false)}
+				defaultGameType={gameType}
 			/>
 
 			<AchievementsModal

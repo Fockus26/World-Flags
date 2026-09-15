@@ -5,6 +5,7 @@ import { useGame } from "@/hooks/useGame";
 import { AchievementToasts } from "./AchievementToasts";
 import { Configuration } from "./configuration/Configuration";
 import { Results } from "./Results";
+import { CountriesRush } from "./session/countries/CountriesRush";
 import { DailyPractice } from "./session/DailyPractice";
 import { Session } from "./session/Session";
 
@@ -13,11 +14,10 @@ import { Session } from "./session/Session";
 type FlipViewKey = "session" | "dailyPractice" | "configuration";
 
 /**
- * Placeholder temporal mientras el modo Países no tiene todavía su propia
- * sesión (`CountriesRush`/`CountriesPractice` llegan en las Fases 4 y 5 de
- * `context/plans/modo-paises.md`). Se reemplaza ahí, no antes — el selector
- * de la Fase 2 ya deja elegir Países, así que hace falta algo que mostrar sin
- * romper el flujo de "Comenzar práctica".
+ * Placeholder temporal mientras la PRÁCTICA de Países no tiene todavía su
+ * propia sesión (`CountriesPractice` llega en la Fase 5 de
+ * `context/plans/modo-paises.md`; el competitivo ya usa `CountriesRush`
+ * desde la Fase 4). Se reemplaza ahí, no antes.
  */
 function CountriesGamePlaceholder({ onExit }: { onExit: () => void }) {
 	return (
@@ -81,6 +81,9 @@ function FlagGameContent() {
 				// remontaría y arrancaría la partida nueva con el índice/estado
 				// interno de la que acaba de terminar.
 				if (activeGame?.configuration.gameType === "countries") {
+					if (activeGame.configuration.mode === "competitive") {
+						return <CountriesRush key={activeGame.id} />;
+					}
 					return (
 						<CountriesGamePlaceholder key={activeGame.id} onExit={exitGame} />
 					);

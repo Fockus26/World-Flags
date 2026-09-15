@@ -3,12 +3,16 @@ import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Modal } from "@/components/ui/Modal";
 import { useAuth } from "@/hooks/useAuth";
+import type { GameType } from "@/types/country";
 import { fetchLeaderboard, type LeaderboardEntry } from "@/utils/cloud-storage";
 import { formatElapsedTime } from "@/utils/learning-storage";
+import { GameTypeToggle } from "./GameTypeToggle";
 
 interface LeaderboardModalProps {
 	isOpen: boolean;
 	onClose: () => void;
+	/** El juego activo en la configuración: con qué arranca el selector del ranking. */
+	defaultGameType: GameType;
 }
 
 const TOP_COUNT = 5;
@@ -41,10 +45,22 @@ function LeaderboardRow({
 	);
 }
 
-export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
+export function LeaderboardModal({
+	isOpen,
+	onClose,
+	defaultGameType,
+}: LeaderboardModalProps) {
 	const { user, status } = useAuth();
+	const [gameType, setGameType] = useState<GameType>(defaultGameType);
 	const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
+
+	// Cada vez que se abre el modal, arranca en el juego activo en ese
+	// momento en la configuración — no se queda pegado a lo último que se
+	// vio en una apertura anterior.
+	useEffect(() => {
+		if (isOpen) setGameType(defaultGameType);
+	}, [isOpen, defaultGameType]);
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -53,7 +69,11 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 		setEntries(null);
 		setError(null);
 
-		fetchLeaderboard("world")
+		// Scope aparte para Países (D033): la PK (user_id, scope) de
+		// `leaderboard_entries` ya lo soporta sin migración.
+		const scope = gameType === "countries" ? "countries:world" : "world";
+
+		fetchLeaderboard(scope)
 			.then((result) => {
 				if (!cancelled) setEntries(result);
 			})
@@ -65,7 +85,7 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 		return () => {
 			cancelled = true;
 		};
-	}, [isOpen]);
+	}, [isOpen, gameType]);
 
 	const myIndex =
 		entries?.findIndex((entry) => entry.userId === user?.id) ?? -1;
@@ -94,8 +114,18 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
 				</Button>
 			</header>
 
+			<GameTypeToggle
+				legend="Ranking de"
+				name="leaderboard-game-type"
+				value={gameType}
+				onChange={setGameType}
+				className="mb-3"
+			/>
+
 			<p className="mt-0 mb-3 text-[0.85rem] text-text-placeholder">
-				Mejor tiempo en modo competitivo practicando todos los países.
+				{gameType === "countries"
+					? "Mejor tiempo en modo competitivo practicando todos los países."
+					: "Mejor tiempo en modo competitivo practicando todas las banderas."}
 			</p>
 
 			{error && (

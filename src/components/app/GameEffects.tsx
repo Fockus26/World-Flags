@@ -38,6 +38,8 @@ export function GameEffects() {
 
 	const pushedWorldBestRef = useRef<number | undefined>(undefined);
 
+	const pushedCountriesWorldBestRef = useRef<number | undefined>(undefined);
+
 	/**
 	 * Hydrate guest/authenticated state.
 	 *
@@ -246,6 +248,42 @@ export function GameEffects() {
 		);
 	}, [
 		learningData.regionBestTimes.world,
+		learningData.profile.name,
+		status,
+		user,
+		hydrationStatus,
+	]);
+
+	/** Igual que el efecto de arriba, pero para el rush de Países (D033). Scope aparte ("countries:world"): la PK `(user_id, scope)` de `leaderboard_entries` ya lo soporta sin migración. */
+	useEffect(() => {
+		if (
+			status !== "authenticated" ||
+			!user ||
+			hydrationStatus !== "ready" ||
+			hydratedUserRef.current !== user.id
+		) {
+			return;
+		}
+
+		const countriesWorldBestMs = learningData.countriesGame.regionBestTimes.world;
+
+		if (
+			countriesWorldBestMs === undefined ||
+			pushedCountriesWorldBestRef.current === countriesWorldBestMs
+		) {
+			return;
+		}
+
+		pushedCountriesWorldBestRef.current = countriesWorldBestMs;
+
+		void upsertLeaderboardEntry(
+			user.id,
+			"countries:world",
+			learningData.profile.name,
+			countriesWorldBestMs,
+		);
+	}, [
+		learningData.countriesGame.regionBestTimes.world,
 		learningData.profile.name,
 		status,
 		user,
