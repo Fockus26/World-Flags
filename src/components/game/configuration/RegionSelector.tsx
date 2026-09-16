@@ -104,6 +104,7 @@ export function RegionSelector({
 					}
 					checked={isWorldSelected}
 					onChange={toggleWorld}
+					showPracticedLine={mode === "practice"}
 					className="col-span-2 min-[44rem]:col-span-1"
 				/>
 
@@ -136,6 +137,7 @@ export function RegionSelector({
 								progress.practiced,
 								progress.total,
 							)}
+							showPracticedLine={mode === "practice"}
 						/>
 					);
 				})}

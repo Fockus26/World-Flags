@@ -20,6 +20,11 @@ interface RegionOptionProps {
 	onChange: () => void;
 	/** Texto tipo "Practicado hoy" o "3/45 hoy"; `undefined` para no mostrar nada. */
 	practicedLabel?: string;
+	/** Reserva el alto de la línea de `practicedLabel` aunque esta tarjeta no
+	 *  tenga nada que mostrar todavía (p. ej. un continente sin practicar hoy,
+	 *  o "Todo el mundo"), para que todas las tarjetas del grid midan lo mismo
+	 *  en vez de saltar de alto según cuál se practicó. */
+	showPracticedLine?: boolean;
 	className?: string;
 }
 
@@ -32,6 +37,7 @@ export function RegionOption({
 	checked,
 	onChange,
 	practicedLabel,
+	showPracticedLine,
 	className,
 }: RegionOptionProps) {
 	const tooltipId = useId();
@@ -195,9 +201,12 @@ export function RegionOption({
 					)}
 				</span>
 
-				{practicedLabel && (
-					<span className="text-surface-soft text-[0.68rem] font-bold">
-						{practicedLabel}
+				{showPracticedLine && (
+					<span
+						className="text-surface-soft text-[0.68rem] font-bold"
+						aria-hidden={!practicedLabel || undefined}
+					>
+						{practicedLabel ?? " "}
 					</span>
 				)}
 			</span>
