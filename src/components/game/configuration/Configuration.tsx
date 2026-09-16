@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { type SubmitEvent, useState } from "react";
+import { AutoHeight } from "@/components/ui/AutoHeight";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { IconButton } from "@/components/ui/IconButton";
@@ -29,6 +30,7 @@ import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
 import { GameTypeToggle } from "./GameTypeToggle";
 import { LeaderboardModal } from "./LeaderboardModal";
 import { RegionSelector } from "./RegionSelector";
+import { StreakPanel } from "./StreakPanel";
 import { UserSummary } from "./UserSummary";
 
 export function Configuration() {
@@ -46,6 +48,7 @@ export function Configuration() {
 	const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
 	const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 	const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
+	const [isStreakOpen, setIsStreakOpen] = useState(false);
 	const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 	const { status, user } = useAuth();
 	const { unseenCount, markAllSeen } = useAchievements();
@@ -144,6 +147,9 @@ export function Configuration() {
 						learningProgress={learningProgress}
 						learnedCountries={learnedCountries}
 						totalCountries={196}
+						activeDays={learningData.stats.activeDays}
+						isStreakOpen={isStreakOpen}
+						onToggleStreak={() => setIsStreakOpen((current) => !current)}
 						onOpenModal={() => setIsConfigurationModalOpen(true)}
 					/>
 
@@ -228,6 +234,10 @@ export function Configuration() {
 						</span>
 					</Tooltip>
 				</div>
+
+				<AutoHeight show={isStreakOpen} className="shrink-0">
+					<StreakPanel activeDays={learningData.stats.activeDays} />
+				</AutoHeight>
 
 				{/* ⚠️ Copy provisional (leyenda y título, `CONTENT_CHECKLIST.md` #9):
 				    pendiente de aprobación del dueño. */}
