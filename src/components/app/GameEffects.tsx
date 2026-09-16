@@ -265,7 +265,8 @@ export function GameEffects() {
 			return;
 		}
 
-		const countriesWorldBestMs = learningData.countriesGame.regionBestTimes.world;
+		const countriesWorldBestMs =
+			learningData.countriesGame.regionBestTimes.world;
 
 		if (
 			countriesWorldBestMs === undefined ||

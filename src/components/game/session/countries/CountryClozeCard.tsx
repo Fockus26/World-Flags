@@ -42,7 +42,9 @@ export function CountryClozeCard({
 	slotRefs,
 	className,
 }: CountryClozeCardProps) {
-	const country = allCountries.find((candidate) => candidate.code === countryCode);
+	const country = allCountries.find(
+		(candidate) => candidate.code === countryCode,
+	);
 
 	if (!country) {
 		return null;

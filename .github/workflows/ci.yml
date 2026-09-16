@@ -32,11 +32,8 @@ jobs:
       - name: Typecheck
         run: bunx astro check
 
-      # No bloqueante por ahora: src/ ya trae 2 errores de lint y 14 de formato
-      # previos a este workflow. Quitar continue-on-error cuando se limpien.
       - name: Lint
         run: bunx biome check ./src
-        continue-on-error: true
 
       - name: Build
         run: bun run build
