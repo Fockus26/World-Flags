@@ -44,6 +44,33 @@ const structuredData = {
 			content="width=device-width, initial-scale=1"
 		/>
 
+		<!-- Bloqueante a propósito y lo primero del <head>: fija `data-theme`
+		     ANTES de que el navegador pinte, para no depender de que React
+		     hidrate primero (ver `ThemeEffects.tsx`). Sin esto, un tema
+		     explícito guardado ("dark") que no coincide con el
+		     `prefers-color-scheme` del sistema operativo se ve como un
+		     parpadeo a claro hasta que el efecto de React lo corrige. -->
+		<script is:inline>
+			(function () {
+				try {
+					var stored = localStorage.getItem("theme");
+					var theme =
+						stored === "light" || stored === "dark" ? stored : "system";
+					var resolved =
+						theme === "system"
+							? window.matchMedia("(prefers-color-scheme: dark)").matches
+								? "dark"
+								: "light"
+							: theme;
+					document.documentElement.dataset.theme = resolved;
+				} catch (_error) {
+					// localStorage bloqueado (navegación privada, política del
+					// navegador): se queda sin `data-theme`, que ya cae en el
+					// `@media (prefers-color-scheme: dark)` de `variables.css`.
+				}
+			})();
+		</script>
+
 		<!-- SEO -->
 		<meta name="description" content={description} />
 		<meta name="robots" content="index, follow" />
