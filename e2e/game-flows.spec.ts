@@ -4,7 +4,11 @@ const BASE = 'http://localhost:4321';
 
 async function waitForHydration(page: Page) {
   for (let attempt = 0; attempt < 6; attempt++) {
-    await page.waitForSelector('text=Aprende las banderas del mundo', { timeout: 15000 });
+    // D030 (modo Países, context/decisions/07-modo-paises.md): un invitado
+    // nuevo arranca en Países ("Aprende los países del mundo"), no en
+    // Banderas — este selector solo comprueba que la app ya hidrató, no qué
+    // juego está activo, así que acepta cualquiera de los dos títulos.
+    await page.waitForSelector('text=/Aprende (los países|las banderas) del mundo/', { timeout: 15000 });
     await page.waitForTimeout(1500);
     const trigger = page.getByRole('button', { name: /Abrir perfil y configuraci/ });
     await trigger.click().catch(() => {});
@@ -35,6 +39,12 @@ async function reset(page: Page) {
   });
   await page.reload();
   await waitForHydration(page);
+  // D030 (modo Países): un invitado nuevo arranca en Países, pero estas 14
+  // pruebas se escribieron para Banderas antes de que existiera el modo
+  // Países. Se fuerza el selector a Banderas una sola vez acá, en vez de
+  // tocar cada prueba, para conservar exactamente el comportamiento que ya
+  // verificaban.
+  await page.getByText('Banderas', { exact: true }).first().click().catch(() => {});
 }
 
 async function openConfig(page: Page) {
@@ -87,7 +97,7 @@ test.describe.configure({ mode: 'serial' });
 test('T1 persistence: practice full continent then reload keeps lock', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Práctica');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   await gradeUntilFinish(page, 'Práctica terminada');
@@ -102,7 +112,7 @@ test('T1 persistence: practice full continent then reload keeps lock', async ({ 
   const after = await lsData(page);
   console.log('T1 LPB after reload:', JSON.stringify(after?.lastPracticeByCountry));
   console.log('T1 Practicado hoy count after reload:', await page.locator('text=Practicado hoy').count());
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForTimeout(400);
   console.log('T1 Ya practicaste visible:', await page.locator('text=/Ya practicaste/').count());
@@ -111,7 +121,7 @@ test('T1 persistence: practice full continent then reload keeps lock', async ({ 
 test('T2 double-click Comprobar in competitive', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Competitivo');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   const header = page.locator('header p').nth(1);
@@ -125,7 +135,7 @@ test('T2 double-click Comprobar in competitive', async ({ page }) => {
 test('T3 rapid Enter submit in competitive', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Competitivo');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   const header = page.locator('header p').nth(1);
@@ -140,7 +150,7 @@ test('T3 rapid Enter submit in competitive', async ({ page }) => {
 test('T4 double-click grade button in practice', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Práctica');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   await page.fill('#country-answer', 'zzz');
@@ -157,7 +167,7 @@ test('T4 double-click grade button in practice', async ({ page }) => {
 test('T5 spam keys 1-4 in practice after check', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Práctica');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   await page.fill('#country-answer', 'zzz');
@@ -177,7 +187,7 @@ test('T5 spam keys 1-4 in practice after check', async ({ page }) => {
 test('T6 competitive best time persists on reload', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Competitivo');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   for (let i = 0; i < 3; i++) {
@@ -199,7 +209,7 @@ test('T6 competitive best time persists on reload', async ({ page }) => {
 test('T7 empty scope blocks with message', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Práctica');
-  await page.getByText('Todo el mundo', { exact: true }).click();
+  await page.getByText('Todo el mundo', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForTimeout(300);
   console.log('T7 empty scope msg:', await page.locator('text=/Elige al menos un continente/').count());
@@ -208,7 +218,7 @@ test('T7 empty scope blocks with message', async ({ page }) => {
 test('T8 answer field limits', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Práctica');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   const check = page.getByRole('button', { name: 'Comprobar' });
@@ -225,7 +235,7 @@ test('T8 answer field limits', async ({ page }) => {
 test('T9 reload mid-practice', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Práctica');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   await page.fill('#country-answer', 'zzz');
@@ -236,7 +246,7 @@ test('T9 reload mid-practice', async ({ page }) => {
   console.log('T9 LPB mid-session:', JSON.stringify(mid?.lastPracticeByCountry));
   await page.reload();
   await page.waitForSelector('text=Aprende las banderas del mundo');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForTimeout(500);
   const present = await page.locator('#country-answer').count();
@@ -247,7 +257,7 @@ test('T9 reload mid-practice', async ({ page }) => {
 test('T10 Repetir practica after finish', async ({ page }) => {
   await reset(page);
   await setMode(page, 'Práctica');
-  await page.getByText('Norteamérica', { exact: true }).click();
+  await page.getByText('Norteamérica', { exact: true }).first().click();
   await page.getByRole('button', { name: 'Comenzar práctica' }).click();
   await page.waitForSelector('#country-answer');
   await gradeUntilFinish(page, 'Práctica terminada');
@@ -304,12 +314,12 @@ test('T13 two tabs practice same continent', async ({ browser }) => {
   const p2 = await ctx.newPage();
   await p2.goto(BASE);
   await p2.waitForSelector('text=Aprende las banderas del mundo');
-  await p1.getByText('Norteamérica', { exact: true }).click();
+  await p1.getByText('Norteamérica', { exact: true }).first().click();
   await p1.getByRole('button', { name: 'Comenzar práctica' }).click();
   await p1.waitForSelector('#country-answer');
   await gradeUntilFinish(p1, 'Práctica terminada');
   await p1.waitForSelector('text=Práctica terminada');
-  await p2.getByText('Norteamérica', { exact: true }).click();
+  await p2.getByText('Norteamérica', { exact: true }).first().click();
   await p2.getByRole('button', { name: 'Comenzar práctica' }).click();
   await p2.waitForTimeout(600);
   console.log('T13 p2 session present (stale):', await p2.locator('#country-answer').count());

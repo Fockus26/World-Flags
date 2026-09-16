@@ -20,6 +20,39 @@ function CompetitiveResults({
 }: {
 	result: Extract<GameResult, { mode: "competitive" }>;
 }) {
+	// ⚠️ Copy provisional ("Te rendiste", "encontrados") — CONTENT_CHECKLIST #9.
+	const noun = result.gameType === "countries" ? "países" : "banderas";
+
+	// Rush de Países que terminó por rendición (D033): no hay mejor tiempo
+	// que mostrar (solo se registra al completar el 100%), así que el
+	// resumen es cuántos se encontraron, no cuánto tardó.
+	if (!result.completed) {
+		return (
+			<>
+				<p className="m-0 text-text-placeholder">Rush terminado</p>
+
+				<h1 className="my-[0.35rem] mb-2 text-[1.45rem] leading-[1.08] text-surface-soft sm:text-[clamp(1.65rem,4vh,2.75rem)]">
+					Te rendiste
+				</h1>
+
+				<div className="my-4 flex h-26 w-auto min-w-26 shrink-0 flex-col place-items-center justify-center rounded-full border-[0.45rem] border-primary-border bg-primary-soft px-5 text-primary sm:my-6 sm:h-[clamp(7.5rem,20vw,9rem)] sm:min-w-[clamp(7.5rem,20vw,9rem)]">
+					<strong className="text-[1.35rem] leading-none tabular-nums whitespace-nowrap sm:text-[clamp(1.5rem,4.2vw,2.1rem)]">
+						{result.correctAnswers}/{result.totalCountries}
+					</strong>
+					<span className="mt-1 text-[0.7rem] font-bold">encontrados</span>
+				</div>
+
+				<p className="m-0 max-w-lg leading-[1.6] text-text-placeholder">
+					Encontraste{" "}
+					<strong>
+						{result.correctAnswers} de {result.totalCountries} {noun}
+					</strong>
+					.
+				</p>
+			</>
+		);
+	}
+
 	return (
 		<>
 			<p className="m-0 text-text-placeholder">Rush terminado</p>
@@ -36,7 +69,7 @@ function CompetitiveResults({
 			</div>
 
 			<p className="m-0 max-w-lg leading-[1.6] text-text-placeholder">
-				Recorriste <strong>{result.totalCountries} banderas</strong> en{" "}
+				Recorriste <strong>{result.totalCountries} {noun}</strong> en{" "}
 				<strong>{formatElapsedTime(result.elapsedMs)}</strong>.
 			</p>
 		</>

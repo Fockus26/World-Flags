@@ -29,8 +29,16 @@ cuándo.
 `feat/modo-paises` — **experimental, abierta desde `main` (`136c81c`, antes del
 merge de `perf/batch-country-attempts`), sin merge previsto al cerrar** salvo que
 el dueño lo pida expresamente. Implementa el plan de `context/plans/modo-paises.md`
-en 7 fases, cada una con su propio commit y su propia pausa de aprobación. Se le
-fusionó `main` encima para heredar el fix de rendimiento de abajo.
+completo (7 fases, cada una con su propio commit y su propia pausa de aprobación).
+Se le fusionó `main` encima (`c162363`) para heredar el fix de rendimiento de abajo.
+**Lista de commits de la unidad** (de más viejo a más nuevo):
+`5a125aa` (Fase 1: modelo de datos) → `1632615` (Fase 2: selector) → `dfa8a35`
+(Fase 3: tablero y vuelo) → `511dbd2` (Fase 4: rush) → `c162363` (merge de
+`perf/batch-country-attempts`) → `2ac32ac` (usa el lote en el rendirse del rush)
+→ `f0faebc` (Fase 5: práctica cloze) → `9cd2998` (fix de accesibilidad del
+tablero) → `de5b39c` (Fase 6: práctica diaria) → `9ca3837` (Fase 7: logros) →
+`3bbf6d1` (Fase 7: ajusta e2e a D030, reporta bug de `PageFlip`). HEAD actual
+de la rama: `3bbf6d1`. Pendiente de que el dueño decida si se mergea a `main`.
 
 `feat/achievements` ya se mergeó (no se borró — el dueño
 decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).

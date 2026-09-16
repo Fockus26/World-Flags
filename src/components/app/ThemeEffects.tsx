@@ -1,14 +1,6 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-	setSystemPrefersDark,
-	setTheme,
-	type ThemeMode,
-} from "@/store/slices/themeSlice";
-
-function isThemeMode(value: string | null): value is ThemeMode {
-	return value === "light" || value === "dark" || value === "system";
-}
+import { setSystemPrefersDark } from "@/store/slices/themeSlice";
 
 export function ThemeEffects() {
 	const dispatch = useAppDispatch();
@@ -22,22 +14,16 @@ export function ThemeEffects() {
 	const resolvedTheme =
 		theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
 
-	useEffect(() => {
-		const storedTheme = localStorage.getItem("theme");
-
-		if (isThemeMode(storedTheme)) {
-			dispatch(setTheme(storedTheme));
-		}
-	}, [dispatch]);
-
+	// Sin lectura inicial de `localStorage`/`matchMedia` aquí: el estado ya
+	// arranca correcto desde `themeSlice` (ver el comentario ahí sobre por
+	// qué evitarlo corta el parpadeo). Este efecto solo escucha CAMBIOS en
+	// vivo del `prefers-color-scheme` mientras la app está abierta.
 	useEffect(() => {
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 		const handleChange = (event: MediaQueryListEvent) => {
 			dispatch(setSystemPrefersDark(event.matches));
 		};
-
-		dispatch(setSystemPrefersDark(mediaQuery.matches));
 
 		mediaQuery.addEventListener("change", handleChange);
 

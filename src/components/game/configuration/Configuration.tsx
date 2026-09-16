@@ -11,6 +11,7 @@ import { motionVariants } from "@/styles/animations";
 import {
 	DEFAULT_DIFFICULTY,
 	DEFAULT_GAME_MODE,
+	DEFAULT_GAME_TYPE,
 	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
 } from "@/types/country";
@@ -19,11 +20,13 @@ import {
 	calculateLearningProgress,
 	countLearnedCountries,
 	getDueCountries,
+	toGameView,
 } from "@/utils/learning-storage";
 import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
 import { AchievementsModal } from "./AchievementsModal";
 import { CountryPickerModal } from "./CountryPickerModal";
 import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
+import { GameTypeToggle } from "./GameTypeToggle";
 import { LeaderboardModal } from "./LeaderboardModal";
 import { RegionSelector } from "./RegionSelector";
 import { UserSummary } from "./UserSummary";
@@ -57,16 +60,23 @@ export function Configuration() {
 	const difficulty =
 		learningData.lastConfiguration?.difficulty ?? DEFAULT_DIFFICULTY;
 	const mode = learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE;
+	// Sin config guardada (usuario nuevo): arranca en Países (D030). Con
+	// config vieja sin `gameType`, `migrateConfiguration` ya la migró a
+	// "flags" — este fallback solo cubre el caso de "nunca hubo config".
+	const gameType = learningData.lastConfiguration?.gameType ?? DEFAULT_GAME_TYPE;
 	const scope = learningData.lastConfiguration?.scope ?? DEFAULT_SCOPE;
 	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
 
-	const learnedCountries = countLearnedCountries(learningData.countryHistory);
+	// El progreso mostrado (aprendidos, puntajes, mejores tiempos) es el del
+	// juego seleccionado, no siempre el de Banderas — de ahí `toGameView`.
+	const gameView = toGameView(learningData, gameType);
+	const learnedCountries = countLearnedCountries(gameView.countryHistory);
 	const learningProgress = calculateLearningProgress(
-		learningData.countryHistory,
+		gameView.countryHistory,
 		196,
 	);
 
-	const dueCount = getDueCountries(learningData.countryHistory).length;
+	const dueCount = getDueCountries(gameView.countryHistory).length;
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -85,6 +95,7 @@ export function Configuration() {
 			timerEnabled,
 			difficulty,
 			mode,
+			gameType,
 		});
 
 		if (!started) {
@@ -218,6 +229,18 @@ export function Configuration() {
 					</Tooltip>
 				</div>
 
+				{/* ⚠️ Copy provisional (leyenda y título, `CONTENT_CHECKLIST.md` #9):
+				    pendiente de aprobación del dueño. */}
+				<GameTypeToggle
+					legend="Qué practicar"
+					value={gameType}
+					onChange={(type) => {
+						updateSettings({ gameType: type });
+						setBlockedMessage(null);
+					}}
+					className="shrink-0"
+				/>
+
 				<header className="shrink-0">
 					<h1
 						className="
@@ -229,7 +252,9 @@ export function Configuration() {
 							min-[44rem]:text-3xl
 						"
 					>
-						Aprende las banderas del mundo
+						{gameType === "countries"
+							? "Aprende los países del mundo"
+							: "Aprende las banderas del mundo"}
 					</h1>
 				</header>
 
@@ -249,10 +274,12 @@ export function Configuration() {
 							updateSettings({ scope: nextScope });
 							setBlockedMessage(null);
 						}}
-						regionGameScores={learningData.regionGameScores}
-						regionBestTimes={learningData.regionBestTimes}
+						regionGameScores={gameView.regionGameScores}
+						regionBestTimes={gameView.regionBestTimes}
 						mode={mode}
-						getRegionPracticeProgress={getRegionPracticeProgress}
+						getRegionPracticeProgress={(region) =>
+							getRegionPracticeProgress(region, gameType)
+						}
 					/>
 
 					{blockedMessage && (
@@ -271,7 +298,7 @@ export function Configuration() {
 						color="secondary"
 						type="button"
 						className="shrink-0"
-						onClick={startDailyPractice}
+						onClick={() => startDailyPractice(gameType)}
 					>
 						Práctica diaria ({dueCount})
 					</Button>
@@ -311,7 +338,9 @@ export function Configuration() {
 				onClose={() => setIsCountryPickerOpen(false)}
 				initialSelectedCodes={customCodes}
 				isCountryDisabled={
-					mode === "practice" ? isCountryPracticedToday : undefined
+					mode === "practice"
+						? (code: string) => isCountryPracticedToday(code, gameType)
+						: undefined
 				}
 				onConfirm={(countryCodes) => {
 					const regions = scope.type === "custom" ? scope.regions : [];
@@ -323,10 +352,12 @@ export function Configuration() {
 			<LeaderboardModal
 				isOpen={isLeaderboardOpen}
 				onClose={() => setIsLeaderboardOpen(false)}
+				defaultGameType={gameType}
 			/>
 
 			<AchievementsModal
 				isOpen={isAchievementsOpen}
+				gameType={gameType}
 				onClose={() => {
 					setIsAchievementsOpen(false);
 					// Se marcan como vistos al cerrar, no al abrir: mientras el

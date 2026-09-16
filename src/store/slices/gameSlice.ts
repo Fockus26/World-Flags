@@ -4,6 +4,7 @@ import type {
 	Country,
 	GameConfiguration as GameConfigurationType,
 	GameResult,
+	GameType,
 } from "@/types/country";
 
 import type { UserLearningData } from "@/types/progress";
@@ -22,11 +23,19 @@ export interface ActiveGame {
 	countries: Country[];
 }
 
+/** Cola de práctica diaria: guarda de qué juego son los códigos, para que
+ *  `finishDailyPractice` registre la sesión en el juego correcto aunque la
+ *  configuración visible cambie mientras la cola sigue abierta. */
+export interface DailyPracticeQueue {
+	gameType: GameType;
+	codes: string[];
+}
+
 interface GameState {
 	learningData: UserLearningData;
 	activeGame: ActiveGame | null;
 	lastResult: GameResult | null;
-	dailyPracticeQueue: string[] | null;
+	dailyPracticeQueue: DailyPracticeQueue | null;
 	hydrationStatus: HydrationStatus;
 }
 
@@ -60,7 +69,10 @@ const gameSlice = createSlice({
 			state.lastResult = action.payload;
 		},
 
-		setDailyPracticeQueue: (state, action: PayloadAction<string[] | null>) => {
+		setDailyPracticeQueue: (
+			state,
+			action: PayloadAction<DailyPracticeQueue | null>,
+		) => {
 			state.dailyPracticeQueue = action.payload;
 		},
 

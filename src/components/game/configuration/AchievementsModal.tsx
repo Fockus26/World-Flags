@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { type AchievementView, useAchievements } from "@/hooks/useAchievements";
+import type { GameType } from "@/types/country";
 import {
 	ACHIEVEMENT_CATEGORIES,
 	ACHIEVEMENT_CATEGORY_LABELS,
@@ -11,6 +12,7 @@ import {
 interface AchievementsModalProps {
 	isOpen: boolean;
 	onClose: () => void;
+	gameType: GameType;
 }
 
 function formatUnlockedAt(isoDate: string): string {
@@ -134,12 +136,16 @@ function AchievementRow({
 	);
 }
 
-export function AchievementsModal({ isOpen, onClose }: AchievementsModalProps) {
+export function AchievementsModal({
+	isOpen,
+	onClose,
+	gameType,
+}: AchievementsModalProps) {
 	// Marcar como visto NO se hace aquí sino en el `onClose` que arma
 	// `Configuration.tsx`: mientras el modal está abierto, `catalog` todavía
 	// distingue los logros nuevos (desbloqueados sin ver) de los vistos, que
 	// es lo que hace falta para resaltarlos y hacerles scroll más abajo.
-	const { catalog, unlockedCount, totalCount } = useAchievements();
+	const { catalog, unlockedCount, totalCount } = useAchievements(gameType);
 
 	const rowNodesRef = useRef(new Map<string, HTMLLIElement>());
 	const catalogRef = useRef(catalog);

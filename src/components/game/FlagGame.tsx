@@ -4,6 +4,8 @@ import { useGame } from "@/hooks/useGame";
 import { AchievementToasts } from "./AchievementToasts";
 import { Configuration } from "./configuration/Configuration";
 import { Results } from "./Results";
+import { CountriesPractice } from "./session/countries/CountriesPractice";
+import { CountriesRush } from "./session/countries/CountriesRush";
 import { DailyPractice } from "./session/DailyPractice";
 import { Session } from "./session/Session";
 
@@ -49,11 +51,18 @@ function FlagGameContent() {
 				// misma vista "session" para el giro — sin esto, `Session` no
 				// remontaría y arrancaría la partida nueva con el índice/estado
 				// interno de la que acaba de terminar.
+				if (activeGame?.configuration.gameType === "countries") {
+					if (activeGame.configuration.mode === "competitive") {
+						return <CountriesRush key={activeGame.id} />;
+					}
+					return <CountriesPractice key={activeGame.id} />;
+				}
 				return <Session key={activeGame?.id} />;
 			case "dailyPractice":
 				return dailyPracticeQueue ? (
 					<DailyPractice
-						countryCodes={dailyPracticeQueue}
+						gameType={dailyPracticeQueue.gameType}
+						countryCodes={dailyPracticeQueue.codes}
 						onComplete={finishDailyPractice}
 						onAbandon={exitDailyPractice}
 					/>

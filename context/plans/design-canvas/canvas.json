@@ -1,0 +1,8 @@
+{
+	"artboards": [
+		{ "file": "Main.dc.html", "title": "A · Tarjetas apiladas", "x": 0, "y": 0, "w": 390, "h": 460, "is_interactive": true },
+		{ "file": "Option-B.dc.html", "title": "B · Segmentado con vista previa", "x": 470, "y": 0, "w": 390, "h": 460, "is_interactive": true },
+		{ "file": "Option-C.dc.html", "title": "C · Mosaico de iconos", "x": 940, "y": 0, "w": 390, "h": 460, "is_interactive": true }
+	],
+	"launch": { "view": "canvas" }
+}

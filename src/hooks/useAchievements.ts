@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setLearningData } from "@/store/slices/gameSlice";
+import type { GameType } from "@/types/country";
 import type { AchievementUnlock } from "@/types/progress";
 import {
 	ACHIEVEMENTS,
@@ -26,15 +27,29 @@ export interface AchievementView {
  *
  * NO contiene el efecto que desbloquea: eso vive en `AchievementsEffects` y
  * corre una sola vez, porque este hook lo consumen varios componentes a la vez.
+ *
+ * `gameType` filtra el catálogo a los logros de ese juego más los compartidos
+ * (sin `gameType` en su definición — feedback del dueño: separar Países de
+ * Banderas en el modal). Sin `gameType`, no filtra nada — así el contador de
+ * no-vistos de `Configuration.tsx` sigue siendo global, sobre los dos juegos.
  */
-export function useAchievements() {
+export function useAchievements(gameType?: GameType) {
 	const dispatch = useAppDispatch();
 
 	const learningData = useAppSelector((state) => state.game.learningData);
 
 	const unlockedIds = new Set(Object.keys(learningData.achievements));
 
-	const catalog: AchievementView[] = ACHIEVEMENTS.map((achievement) => {
+	const relevantAchievements =
+		gameType === undefined
+			? ACHIEVEMENTS
+			: ACHIEVEMENTS.filter(
+					(achievement) =>
+						achievement.gameType === undefined ||
+						achievement.gameType === gameType,
+				);
+
+	const catalog: AchievementView[] = relevantAchievements.map((achievement) => {
 		const progress = achievement.evaluate(learningData, unlockedIds);
 
 		// Manda el sello, no la condición: un logro desbloqueado sigue
@@ -77,7 +92,7 @@ export function useAchievements() {
 	return {
 		catalog,
 		unlockedCount,
-		totalCount: ACHIEVEMENTS.length,
+		totalCount: relevantAchievements.length,
 		unseenCount,
 		markAllSeen,
 	};

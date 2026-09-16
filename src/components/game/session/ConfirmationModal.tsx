@@ -6,12 +6,21 @@ interface ConfirmationModalProps {
 	isOpen: boolean;
 	onCancel: () => void;
 	onConfirm: () => void;
+	/** Todos opcionales, con el texto de "abandonar" de siempre por defecto — así Session/DailyPractice no cambian. */
+	title?: string;
+	description?: string;
+	confirmLabel?: string;
+	cancelLabel?: string;
 }
 
 export function ConfirmationModal({
 	isOpen,
 	onCancel,
 	onConfirm,
+	title = "¿Abandonar la práctica?",
+	description = "El progreso de esta partida se perderá y no se guardará ninguna calificación.",
+	confirmLabel = "Sí, abandonar",
+	cancelLabel = "Continuar practicando",
 }: ConfirmationModalProps) {
 	const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -37,12 +46,9 @@ export function ConfirmationModal({
 				!
 			</div>
 
-			<h2 id="exit-modal-title">¿Abandonar la práctica?</h2>
+			<h2 id="exit-modal-title">{title}</h2>
 
-			<p id="exit-modal-description">
-				El progreso de esta partida se perderá y no se guardará ninguna
-				calificación.
-			</p>
+			<p id="exit-modal-description">{description}</p>
 
 			<div className="mt-3 grid grid-cols-1 gap-3.5 min-[44rem]:grid-cols-2">
 				<Button
@@ -51,11 +57,11 @@ export function ConfirmationModal({
 					type="button"
 					onClick={onCancel}
 				>
-					Continuar practicando
+					{cancelLabel}
 				</Button>
 
 				<Button color="danger" type="button" onClick={onConfirm}>
-					Sí, abandonar
+					{confirmLabel}
 				</Button>
 			</div>
 		</Modal>

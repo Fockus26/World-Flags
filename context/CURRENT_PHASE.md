@@ -4,7 +4,70 @@
 
 ## Estado actual
 
-**Tanda de 6 fixes de feedback post-logros** (timer, continentes, práctica diaria,
+**Cerrado (pendiente de decisión del dueño sobre merge): modo de juego "Países"
+(rama experimental `feat/modo-paises`).** Implementa `context/plans/modo-paises.md`
+completo — un segundo tipo de juego (aprender qué país pertenece a cada
+continente, con tablero de países y animación de "vuelo") que reutiliza el flujo
+existente (alcance, práctica/competitivo, práctica diaria, SRS, logros, ranking).
+Las 7 fases del plan están hechas, cada una con su commit y su pausa de
+aprobación. Detalle de cada decisión en `context/decisions/07-modo-paises.md`
+(D028–D038).
+
+**De paso se cerró una unidad aparte, ya mergeada a `main`:**
+`perf/batch-country-attempts` — `registerCountryAttempts`/`saveReviewResults`
+en `learning-storage.ts` registran varios países con un solo guardado en
+`localStorage` en vez de uno por país (hacía falta para "Rendirme" en un rush
+de "Todo el mundo", hasta ~150 de golpe). 100% aditivo, sin cambiar el
+comportamiento existente. Benchmark: ~27ms/150 guardados → ~4ms/1 guardado.
+
+Verificado en el navegador real (`bun run dev`, con permiso explícito del
+dueño), no solo revisión de código: rush completo (auto-aceptación, prefijos
+ambiguos, "Rendirme", ranking), práctica con tarjeta cloze y pistas, práctica
+diaria de países de punta a punta (vencidos inyectados a mano), candado
+"practicado hoy" independiente entre los dos juegos, 320px sin scroll
+horizontal, claro/oscuro, y una pasada de axe-core sobre selector/tablero/
+modales/ranking/logros (encontró y se corrigió un hallazgo real: el tablero
+no era alcanzable por teclado — ver D038). `bunx astro check`/`bun run build`/
+`bunx biome check ./src` en verde en cada fase.
+
+**`bun run test:e2e` corrido contra el server real:** expuso que D030 (usuario
+nuevo arranca en Países) rompía el helper de hidratación de las 14 pruebas
+existentes (asumían "Aprende las banderas del mundo" desde el arranque) — se
+ajustó el helper, no el comportamiento del producto. De paso salió a la luz un
+bug **preexistente**, no de esta unidad (ya en `main` desde `feat/transiciones-ui`):
+`PageFlip.tsx` monta el mismo contenido en sus dos ranuras desde el arranque,
+duplicando nodos de texto en el DOM — se reportó y se dejó una tarea aparte
+para decidir si se arregla, sin tocar `PageFlip.tsx` acá. Con eso, T7/T2/T4
+pasan de forma aislada; T1 y probablemente otras que completan una sesión
+entera se cuelgan de forma intermitente con "element was detached from the
+DOM" — coincide con la inestabilidad de Playwright/Chromium en este Windows ya
+documentada arriba, no con un cambio de esta unidad.
+
+Subagentes `design-qa`/`functional-qa` no se lanzaron: la verificación manual +
+axe-core en el navegador real de esta unidad ya cubre lo que esos subagentes
+habrían visto (y en este equipo Playwright es intermitente, ver nota de
+entorno). Si el dueño quiere igual una pasada con esos subagentes antes de
+decidir el merge, que lo pida.
+
+### Acción manual pendiente del dueño (bloquea el despliegue)
+
+**Correr `supabase/countries-game.sql`** en el SQL Editor de Supabase **antes**
+de desplegar el cliente de esta rama. Mismo riesgo que ya describe
+`achievements.sql`: si el cliente pide la columna `countries_game` y todavía no
+existe, el `select` de `fetchRemoteLearningData` falla, `syncOnLogin` lanza, y el
+usuario autenticado cae al fallback de `localStorage` en vez de ver su progreso
+de la nube. No aplica mientras la rama no se despliegue.
+
+### Fuera de alcance de esta unidad (ver `context/plans/modo-paises.md` › 5)
+
+Alias de nombres de país (EE. UU., Congo, Birmania…), mapa/silueta como
+tarjeta alternativa de práctica, aviso cruzado "aprende primero los países" en
+Banderas, rankings por continente (el esquema ya lo soporta), extraer
+`useCardCountdown` para que `Session.tsx` también lo use, logros de Países por
+continente. La duplicación de nodos de `PageFlip.tsx` (ver arriba) también
+queda fuera — tarea aparte ya señalada.
+
+Anterior: **Tanda de 6 fixes de feedback post-logros** (timer, continentes, práctica diaria,
 logros, banderas) — **aprobada, mergeada a `main` y ya con push a `origin/main`**
 (commit `524e9c8`). Detalle de cada unidad en `GIT_STATE.md` › Bloques cerrados.
 Todas las ramas de trabajo de esta tanda ya se borraron (mergeadas).

@@ -1,4 +1,4 @@
-import type { GameConfiguration, PracticeRegion, Region } from "./country";
+import type { GameConfiguration, GameType, PracticeRegion, Region } from "./country";
 
 export const AVATAR_STYLES = [
 	"adventurer-neutral",
@@ -78,6 +78,13 @@ export interface SessionRecord {
 	id: string;
 	finishedAt: string;
 	mode: SessionMode;
+	/**
+	 * Ausente = Banderas: campo añadido junto con el modo Países, así que
+	 * cualquier registro guardado antes de esta versión no lo trae. Los
+	 * logros que filtran por juego lo leen como `session.gameType ?? "flags"`
+	 * (D036) — nunca lo des-estructures sin ese default.
+	 */
+	gameType?: GameType;
 	/** Continente exacto o "world"; null en la práctica diaria y en scopes mixtos. */
 	scopeKey: PracticeRegion | null;
 	scopeLabel: string;
@@ -102,6 +109,21 @@ export interface UserStats {
 	firstActiveDay: string | null;
 }
 
+/**
+ * El progreso de aprendizaje propio de un juego: qué se sabe (`countryHistory`),
+ * las puntuaciones de práctica por continente, los mejores tiempos de rush y el
+ * candado de "practicado hoy". Cada `GameType` tiene el suyo — ver
+ * `UserLearningData.countriesGame` y `toGameView`/`fromGameView` en
+ * `learning-storage.ts` (D028/D029): Banderas sigue siendo el que vive en el
+ * primer nivel de `UserLearningData`, Países vive aparte.
+ */
+export interface GameProgress {
+	countryHistory: CountriesLearningHistory;
+	regionGameScores: RegionGameScores;
+	regionBestTimes: RegionBestTimes;
+	lastPracticeByCountry: LastPracticeByCountry;
+}
+
 export interface UserLearningData {
 	profile: UserProfile;
 	countryHistory: CountriesLearningHistory;
@@ -109,6 +131,8 @@ export interface UserLearningData {
 	regionBestTimes: RegionBestTimes;
 	lastConfiguration: GameConfiguration | null;
 	lastPracticeByCountry: LastPracticeByCountry;
+	/** Progreso de Países (D028). Los campos de arriba siguen siendo los de Banderas. */
+	countriesGame: GameProgress;
 	achievements: UnlockedAchievements;
 	stats: UserStats;
 	sessionHistory: SessionRecord[];

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { type SubmitEvent, useEffect, useRef } from "react";
+import { type ReactNode, type RefObject, type SubmitEvent, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { GradeButtons } from "@/components/ui/GradeButtons";
@@ -19,6 +19,13 @@ interface AnswerFormProps {
 	onGrade: (grade: ReviewGrade) => void;
 	/** Tras un skip en práctica "otra vez" ya quedó decidido: no hace falta elegir. */
 	hideGradeButtons?: boolean;
+	/** Personalizan la pregunta y el placeholder — por defecto los de Banderas, así `Session` no cambia. */
+	label?: string;
+	placeholder?: string;
+	/** Se añade tras el nombre en el aviso de acierto (p. ej. " con 2 pistas" en la práctica de Países). */
+	correctSuffix?: ReactNode;
+	/** Expone el input real al padre — lo necesita el modo Países como origen de la animación de "vuelo" hacia el tablero. */
+	inputRef?: RefObject<HTMLInputElement | null>;
 }
 
 export function AnswerForm({
@@ -31,15 +38,20 @@ export function AnswerForm({
 	mode,
 	onGrade,
 	hideGradeButtons,
+	label = "¿Qué país representa esta bandera?",
+	placeholder = "Escribe el nombre del país",
+	correctSuffix,
+	inputRef,
 }: AnswerFormProps) {
 	const isAnswerChecked = answerStatus !== "idle";
-	const inputRef = useRef<HTMLInputElement>(null);
+	const internalInputRef = useRef<HTMLInputElement>(null);
+	const resolvedInputRef = inputRef ?? internalInputRef;
 
 	useEffect(() => {
 		if (answerStatus === "idle") {
-			inputRef.current?.focus();
+			resolvedInputRef.current?.focus();
 		}
-	}, [answerStatus]);
+	}, [answerStatus, resolvedInputRef]);
 
 	return (
 		<motion.form
@@ -52,11 +64,11 @@ export function AnswerForm({
 				htmlFor="country-answer"
 				className="font-extrabold text-surface-soft"
 			>
-				¿Qué país representa esta bandera?
+				{label}
 			</label>
 
 			<Input
-				ref={inputRef}
+				ref={resolvedInputRef}
 				id="country-answer"
 				name="answer"
 				type="text"
@@ -65,13 +77,14 @@ export function AnswerForm({
 				disabled={isAnswerChecked}
 				autoComplete="off"
 				spellCheck={false}
-				placeholder="Escribe el nombre del país"
+				placeholder={placeholder}
 			/>
 
 			<AnimatePresence mode="popLayout" initial={false}>
 				{answerStatus === "correct" && (
 					<FeedbackMessage key="correct" variant="success" role="status">
 						Correcto: <strong className="text-inherit">{countryName}</strong>
+						{correctSuffix}
 					</FeedbackMessage>
 				)}
 
