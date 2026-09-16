@@ -34,6 +34,7 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 
 | Rama | Mergeada a | Commit | Push a origin |
 |---|---|---|---|
+| `feat/racha-tab-usuario` | `main` | `bcc107c` (racha) + `60f9939` (alto tarjetas/h1) → `15e65ec` (merge) | pendiente de decisión del dueño |
 | `fix/pulido-modo-paises` | `main` | `6846314` → `f8f9404` (merge) | pendiente de decisión del dueño |
 | `feat/modo-paises` | `main` | `5a125aa`…`e890429` (unidad completa, 7 fases + ronda de feedback) → `8d7c564` (merge) | pendiente de decisión del dueño |
 | `perf/batch-country-attempts` | `main` | `04160f0` (feature) → `a3655bb` (merge) | pendiente de decisión del dueño |
@@ -50,4 +51,13 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 Las 6 ramas de arriba (hasta `fix/timer-rush-doble-skip`) ya se borraron localmente
 (mergeadas). `fix/snackbars-logros-limite-apilado` no tenía commits propios (el
 hallazgo era síntoma del bug de logros) y también se borró. `feat/transiciones-ui`
-no se borró (el dueño decide cuándo).
+no se borró (el dueño decide cuándo). `feat/racha-tab-usuario` tampoco (recién
+mergeada).
+
+**Conflicto resuelto en el merge de `feat/racha-tab-usuario`:** `UserSummary.tsx`
+lo tocaron dos unidades en paralelo — `fix/pulido-modo-paises` le agregó el
+truncado de nombre a 15 caracteres en mobile (`truncateName`) y ocultar el correo
+ahí; `feat/racha-tab-usuario` le agregó el badge de racha como botón hermano. Se
+combinaron los dos (por decisión explícita del dueño): se conservó el bloque de
+nombre/correo de `fix/pulido-modo-paises` tal cual, y el badge de racha se insertó
+después, sin tocar ese bloque.
