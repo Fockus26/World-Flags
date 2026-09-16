@@ -84,7 +84,7 @@ El track por fases aplicaría a partir de un rediseño mayor o modos de juego nu
 ## Modo de trabajo
 
 - Dark mode: **sí** (claro / oscuro / sistema, `[data-theme]` en `<html>`).
-- Rama madre: **no** — las unidades salen de `main`. Ver `GIT_STATE.md`.
+- Ramas: sin rama madre — cada unidad sale de `main` y vuelve por Pull Request (ver `CLAUDE.md`).
 
 ## Particularidades
 
