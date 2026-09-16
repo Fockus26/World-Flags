@@ -20,25 +20,10 @@
 
 ## Estado de `main` ahora mismo
 
-`main` tiene un commit local de más sobre `origin/main`: el merge de
-`perf/batch-country-attempts` (`a3655bb`). **Pendiente de push** — el dueño decide
-cuándo.
+`main` tiene commits locales de más sobre `origin/main`, incluido el merge de
+`feat/modo-paises` de abajo. **Pendiente de push** — el dueño decide cuándo.
 
 ## Ramas de trabajo
-
-`feat/modo-paises` — **experimental, abierta desde `main` (`136c81c`, antes del
-merge de `perf/batch-country-attempts`), sin merge previsto al cerrar** salvo que
-el dueño lo pida expresamente. Implementa el plan de `context/plans/modo-paises.md`
-completo (7 fases, cada una con su propio commit y su propia pausa de aprobación).
-Se le fusionó `main` encima (`c162363`) para heredar el fix de rendimiento de abajo.
-**Lista de commits de la unidad** (de más viejo a más nuevo):
-`5a125aa` (Fase 1: modelo de datos) → `1632615` (Fase 2: selector) → `dfa8a35`
-(Fase 3: tablero y vuelo) → `511dbd2` (Fase 4: rush) → `c162363` (merge de
-`perf/batch-country-attempts`) → `2ac32ac` (usa el lote en el rendirse del rush)
-→ `f0faebc` (Fase 5: práctica cloze) → `9cd2998` (fix de accesibilidad del
-tablero) → `de5b39c` (Fase 6: práctica diaria) → `9ca3837` (Fase 7: logros) →
-`3bbf6d1` (Fase 7: ajusta e2e a D030, reporta bug de `PageFlip`). HEAD actual
-de la rama: `3bbf6d1`. Pendiente de que el dueño decida si se mergea a `main`.
 
 `feat/achievements` ya se mergeó (no se borró — el dueño
 decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
@@ -49,6 +34,7 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 
 | Rama | Mergeada a | Commit | Push a origin |
 |---|---|---|---|
+| `feat/modo-paises` | `main` | `5a125aa`…`e890429` (unidad completa, 7 fases + ronda de feedback) → `8d7c564` (merge) | pendiente de decisión del dueño |
 | `perf/batch-country-attempts` | `main` | `04160f0` (feature) → `a3655bb` (merge) | pendiente de decisión del dueño |
 | `feat/achievements` | `main` | `da042ab` (feature) → `414d137` (merge) | pendiente de decisión del dueño |
 | `feat/heroui-migration` | `main` | `a4c2e65` | pendiente de decisión del dueño |
