@@ -34,6 +34,7 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 
 | Rama | Mergeada a | Commit | Push a origin |
 |---|---|---|---|
+| `fix/pulido-modo-paises` | `main` | `6846314` → `f8f9404` (merge) | pendiente de decisión del dueño |
 | `feat/modo-paises` | `main` | `5a125aa`…`e890429` (unidad completa, 7 fases + ronda de feedback) → `8d7c564` (merge) | pendiente de decisión del dueño |
 | `perf/batch-country-attempts` | `main` | `04160f0` (feature) → `a3655bb` (merge) | pendiente de decisión del dueño |
 | `feat/achievements` | `main` | `da042ab` (feature) → `414d137` (merge) | pendiente de decisión del dueño |
