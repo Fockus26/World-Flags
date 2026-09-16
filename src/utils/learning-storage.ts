@@ -11,6 +11,7 @@ import {
 } from "@/types/country";
 import type {
 	CountriesLearningHistory,
+	DailyReminderPreference,
 	GameProgress,
 	LastPracticeByCountry,
 	RegionBestTimes,
@@ -65,6 +66,12 @@ export const DEFAULT_GAME_PROGRESS: GameProgress = {
 	lastPracticeByCountry: {},
 };
 
+export const DEFAULT_DAILY_REMINDER: DailyReminderPreference = {
+	answered: false,
+	optedIn: false,
+	answeredAt: null,
+};
+
 export const DEFAULT_DATA: UserLearningData = {
 	profile: DEFAULT_PROFILE,
 	countryHistory: {},
@@ -76,6 +83,7 @@ export const DEFAULT_DATA: UserLearningData = {
 	achievements: {},
 	stats: DEFAULT_STATS,
 	sessionHistory: [],
+	dailyReminder: DEFAULT_DAILY_REMINDER,
 };
 
 function migrateCountryHistory(
@@ -223,6 +231,21 @@ function migrateGameProgress(
 	};
 }
 
+/** Columna de Supabase creada con `default '{}'::jsonb`: una fila anterior a esta versión llega como `{}`, no `undefined`. Ambos casos son "todavía sin responder". */
+function migrateDailyReminder(
+	reminder: Partial<DailyReminderPreference> | undefined,
+): DailyReminderPreference {
+	if (!reminder || Object.keys(reminder).length === 0) {
+		return DEFAULT_DAILY_REMINDER;
+	}
+
+	return {
+		answered: reminder.answered ?? false,
+		optedIn: reminder.optedIn ?? false,
+		answeredAt: reminder.answeredAt ?? null,
+	};
+}
+
 /**
  * Normaliza datos crudos (de localStorage o de una fila de Supabase) a un
  * `UserLearningData` completo, rellenando lo que falte y migrando esquemas
@@ -265,6 +288,7 @@ export function normalizeLearningData(
 			0,
 			MAX_SESSION_HISTORY,
 		),
+		dailyReminder: migrateDailyReminder(parsedData.dailyReminder),
 	};
 }
 
@@ -393,6 +417,52 @@ export function fromGameView(
 	saveLearningData(corrected);
 
 	return corrected;
+}
+
+const DEVICE_ID_STORAGE_KEY = "world-flags-device-id";
+
+/**
+ * Identificador de ESTE navegador/instalación, no de la cuenta. A propósito
+ * vive en su propia clave de `localStorage`, fuera de `UserLearningData`: esa
+ * estructura se sincroniza entera por cuenta (ver `mergeLearningData`), y un
+ * id de dispositivo mezclado ahí terminaría copiado de un dispositivo a otro
+ * en el primer login, rompiendo la fila de `push_subscriptions` (que usa este
+ * id como clave por dispositivo).
+ */
+export function getOrCreateDeviceId(): string {
+	if (typeof window === "undefined") {
+		return "";
+	}
+
+	try {
+		const existing = window.localStorage.getItem(DEVICE_ID_STORAGE_KEY);
+		if (existing) return existing;
+
+		const created =
+			typeof crypto !== "undefined" && "randomUUID" in crypto
+				? crypto.randomUUID()
+				: `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+		window.localStorage.setItem(DEVICE_ID_STORAGE_KEY, created);
+		return created;
+	} catch {
+		return "";
+	}
+}
+
+export function saveDailyReminderAnswer(
+	currentData: UserLearningData,
+	optedIn: boolean,
+	answeredAt: string = new Date().toISOString(),
+): UserLearningData {
+	const updatedData: UserLearningData = {
+		...currentData,
+		dailyReminder: { answered: true, optedIn, answeredAt },
+	};
+
+	saveLearningData(updatedData);
+
+	return updatedData;
 }
 
 export function saveUserProfile(
@@ -749,6 +819,27 @@ function mergeGameProgress(
 }
 
 /**
+ * Gana el lado que ya respondió (así un "sí"/"no" contestado en un
+ * dispositivo nunca se vuelve a preguntar en otro). Si los dos respondieron,
+ * gana el más antiguo — es la primera respuesta real del usuario.
+ */
+function mergeDailyReminder(
+	remote: DailyReminderPreference,
+	local: DailyReminderPreference,
+): DailyReminderPreference {
+	if (remote.answered && local.answered) {
+		return (remote.answeredAt ?? "") <= (local.answeredAt ?? "")
+			? remote
+			: local;
+	}
+
+	if (remote.answered) return remote;
+	if (local.answered) return local;
+
+	return remote;
+}
+
+/**
  * Fusiona los datos de Supabase (`remote`) con los de este dispositivo
  * (`local`) sin que uno pise al otro. Devuelve el objeto ENTERO a propósito:
  * antes se fusionaban dos campos sueltos y `syncOnLogin` los comparaba uno a
@@ -801,6 +892,7 @@ export function mergeLearningData(
 		achievements: mergeAchievements(remote.achievements, local.achievements),
 		stats: mergeStats(remote.stats, local.stats, sessionHistory),
 		sessionHistory,
+		dailyReminder: mergeDailyReminder(remote.dailyReminder, local.dailyReminder),
 	};
 }
 

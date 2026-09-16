@@ -1,9 +1,53 @@
 const CACHE_NAME = "banderas-cache-v2";
 const OFFLINE_URL = "/";
 
+// Sin `skipWaiting()` automático a propósito: así el service worker nuevo se
+// queda "esperando" (`registration.waiting`) en vez de tomar el control de
+// golpe, y la app puede ofrecer el botón "Actualizar" (ver
+// `useServiceWorkerUpdate.ts`) en vez de recargar sin avisar. Solo salta a
+// activarse cuando ese botón manda el mensaje de abajo.
 self.addEventListener("install", (event) => {
-	self.skipWaiting();
 	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL)));
+});
+
+self.addEventListener("message", (event) => {
+	if (event.data?.type === "SKIP_WAITING") {
+		self.skipWaiting();
+	}
+});
+
+// Recordatorio diario: la Edge Function `send-daily-reminders` manda un push
+// con `{ title, body }` en el payload JSON.
+self.addEventListener("push", (event) => {
+	let payload = { title: "World Flags", body: "Tienes un recordatorio nuevo." };
+
+	try {
+		if (event.data) payload = { ...payload, ...event.data.json() };
+	} catch {
+		// Payload no-JSON: se queda el genérico de arriba.
+	}
+
+	event.waitUntil(
+		self.registration.showNotification(payload.title, {
+			body: payload.body,
+			icon: "/pwa-192x192.png",
+			badge: "/pwa-192x192.png",
+			tag: "daily-reminder",
+		}),
+	);
+});
+
+self.addEventListener("notificationclick", (event) => {
+	event.notification.close();
+
+	event.waitUntil(
+		self.clients.matchAll({ type: "window" }).then((clientList) => {
+			for (const client of clientList) {
+				if ("focus" in client) return client.focus();
+			}
+			return self.clients.openWindow("/");
+		}),
+	);
 });
 
 self.addEventListener("activate", (event) => {
