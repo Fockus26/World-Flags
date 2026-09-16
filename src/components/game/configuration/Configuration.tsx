@@ -251,14 +251,18 @@ export function Configuration() {
 					className="shrink-0"
 				/>
 
-				<header className="shrink-0">
+				<header className="min-w-0 shrink-0">
 					<h1
 						className="
 							m-0
-							text-2xl
+							overflow-hidden
+							text-ellipsis
+							whitespace-nowrap
+							text-lg
 							font-bold
 							leading-tight
 							text-surface-soft
+							sm:text-xl
 							min-[44rem]:text-3xl
 						"
 					>
