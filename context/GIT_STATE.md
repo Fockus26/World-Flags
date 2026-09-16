@@ -34,6 +34,7 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 
 | Rama | Mergeada a | Commit | Push a origin |
 |---|---|---|---|
+| `feat/notificaciones` | `main` | `ca82d0e` (feature) → `487376a` (merge) | pendiente de decisión del dueño |
 | `feat/racha-tab-usuario` | `main` | `bcc107c` (racha) + `60f9939` (alto tarjetas/h1) → `15e65ec` (merge) | pendiente de decisión del dueño |
 | `fix/pulido-modo-paises` | `main` | `6846314` → `f8f9404` (merge) | pendiente de decisión del dueño |
 | `feat/modo-paises` | `main` | `5a125aa`…`e890429` (unidad completa, 7 fases + ronda de feedback) → `8d7c564` (merge) | pendiente de decisión del dueño |
@@ -51,8 +52,16 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 Las 6 ramas de arriba (hasta `fix/timer-rush-doble-skip`) ya se borraron localmente
 (mergeadas). `fix/snackbars-logros-limite-apilado` no tenía commits propios (el
 hallazgo era síntoma del bug de logros) y también se borró. `feat/transiciones-ui`
-no se borró (el dueño decide cuándo). `feat/racha-tab-usuario` tampoco (recién
-mergeada).
+no se borró (el dueño decide cuándo). `feat/racha-tab-usuario` y `feat/notificaciones`
+tampoco (recién mergeadas).
+
+**Nota sobre el merge de `feat/notificaciones`:** `main` estaba checked out en otro
+worktree (`fix-pulido-modo-paises`) en el momento de cerrar esta unidad, así que el
+merge `--no-ff` se hizo con plumbing (`commit-tree` + `update-ref`) desde el worktree
+`strange-easley-3bcf2f` en vez de `git checkout main && git merge`. El resultado es
+un merge commit normal (`487376a`, dos padres); si esa otra sesión ve `main` como
+"detrás" al hacer `git status`, es porque su working tree no se refrescó — sigue
+apuntando a un commit válido, sin conflicto ni pérdida.
 
 **Conflicto resuelto en el merge de `feat/racha-tab-usuario`:** `UserSummary.tsx`
 lo tocaron dos unidades en paralelo — `fix/pulido-modo-paises` le agregó el
