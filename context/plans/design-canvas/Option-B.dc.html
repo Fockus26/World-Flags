@@ -66,29 +66,6 @@
           </div>
         </sc-for>
       </div>
-
-      <!-- Vista previa del modo elegido: icono grande + texto -->
-      <div style="display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; background: {{previewSoft}}; border: 1px solid {{previewBorder}};">
-        <div style="width: 46px; height: 46px; border-radius: 13px; background: {{previewAccent}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <sc-if value="{{isCountries}}">
-            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="{{previewIconColor}}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"></circle>
-              <path d="M3 12h18"></path>
-              <path d="M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9s1.3-6.4 3.8-9z"></path>
-            </svg>
-          </sc-if>
-          <sc-if value="{{isFlags}}">
-            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="{{previewIconColor}}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 21V4"></path>
-              <path d="M5 4.5c1.6-1 3.2-1 4.8 0s3.2 1 4.8 0 3.2-1 4.4-.3v9c-1.2-.7-2.8-.7-4.4.3-1.6 1-3.2 1-4.8 0s-3.2-1-4.8 0"></path>
-            </svg>
-          </sc-if>
-        </div>
-        <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
-          <span style="font-weight: 800; font-size: 14.5px; color: {{textMain}};">{{previewTitle}}</span>
-          <span style="font-size: 12.5px; line-height: 1.35; color: {{textMuted}};">{{previewDescription}}</span>
-        </div>
-      </div>
     </div>
 
     <div style="height: 1px; background: {{surfaceBorder}};"></div>
@@ -176,18 +153,8 @@ class Component extends DCLogic {
       primary: palette.primary,
       primarySoft: palette.primarySoft,
       modes,
-      isCountries,
-      isFlags: !isCountries,
       pillLeft: isCountries ? "4px" : "50%",
       pillWidth: "calc(50% - 4px)",
-      previewAccent: isCountries ? palette.primary : palette.secondary,
-      previewSoft: isCountries ? palette.primarySoft : palette.secondarySoft,
-      previewBorder: isCountries ? palette.primaryBorder : palette.secondaryBorder,
-      previewIconColor: isDark ? "#14121f" : "#ffffff",
-      previewTitle: isCountries ? "Países" : "Banderas",
-      previewDescription: isCountries
-        ? "Aprende qué país va en cada continente"
-        : "Reconoce la bandera de cada país",
       heading: isCountries ? "Aprende los países del mundo" : "Aprende las banderas del mundo",
     };
   }
