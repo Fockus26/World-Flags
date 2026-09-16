@@ -1,0 +1,17 @@
+# Todo el texto con LF en el repo y en el checkout, también en Windows con
+# core.autocrlf=true: Biome formatea con LF y así coincide local y en CI.
+* text=auto eol=lf
+
+# Binarios: sin normalizar ni diff de texto
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
