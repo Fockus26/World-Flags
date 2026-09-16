@@ -34,6 +34,7 @@ decide cuándo, ver la regla de "nada destructivo" en `CLAUDE.md`).
 
 | Rama | Mergeada a | Commit | Push a origin |
 |---|---|---|---|
+| `fix/foco-input-sesion` | `main` | `77e672b` (feature) → `f1980d5` (merge) | pendiente de decisión del dueño |
 | `feat/notificaciones` | `main` | `ca82d0e` (feature) → `487376a` (merge) | pendiente de decisión del dueño |
 | `feat/racha-tab-usuario` | `main` | `bcc107c` (racha) + `60f9939` (alto tarjetas/h1) → `15e65ec` (merge) | pendiente de decisión del dueño |
 | `fix/pulido-modo-paises` | `main` | `6846314` → `f8f9404` (merge) | pendiente de decisión del dueño |
@@ -53,7 +54,8 @@ Las 6 ramas de arriba (hasta `fix/timer-rush-doble-skip`) ya se borraron localme
 (mergeadas). `fix/snackbars-logros-limite-apilado` no tenía commits propios (el
 hallazgo era síntoma del bug de logros) y también se borró. `feat/transiciones-ui`
 no se borró (el dueño decide cuándo). `feat/racha-tab-usuario` y `feat/notificaciones`
-tampoco (recién mergeadas).
+tampoco (recién mergeadas). `fix/foco-input-sesion` se borró tras el merge (el
+dueño pidió explícitamente limpiar todas las ramas salvo `main` en esta unidad).
 
 **Nota sobre el merge de `feat/notificaciones`:** `main` estaba checked out en otro
 worktree (`fix-pulido-modo-paises`) en el momento de cerrar esta unidad, así que el
@@ -62,6 +64,11 @@ merge `--no-ff` se hizo con plumbing (`commit-tree` + `update-ref`) desde el wor
 un merge commit normal (`487376a`, dos padres); si esa otra sesión ve `main` como
 "detrás" al hacer `git status`, es porque su working tree no se refrescó — sigue
 apuntando a un commit válido, sin conflicto ni pérdida.
+
+**Mismo caso en el merge de `fix/foco-input-sesion`:** `main` seguía checked out en
+`fix-pulido-modo-paises` con cambios propios sin commitear (trabajo de otra sesión,
+no tocado). Mismo plumbing (`commit-tree` + `update-ref`) desde una rama nueva
+(`fix/foco-input-sesion`) creada a partir de `main` en el worktree principal.
 
 **Conflicto resuelto en el merge de `feat/racha-tab-usuario`:** `UserSummary.tsx`
 lo tocaron dos unidades en paralelo — `fix/pulido-modo-paises` le agregó el
