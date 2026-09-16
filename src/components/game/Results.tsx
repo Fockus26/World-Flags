@@ -69,8 +69,11 @@ function CompetitiveResults({
 			</div>
 
 			<p className="m-0 max-w-lg leading-[1.6] text-text-placeholder">
-				Recorriste <strong>{result.totalCountries} {noun}</strong> en{" "}
-				<strong>{formatElapsedTime(result.elapsedMs)}</strong>.
+				Recorriste{" "}
+				<strong>
+					{result.totalCountries} {noun}
+				</strong>{" "}
+				en <strong>{formatElapsedTime(result.elapsedMs)}</strong>.
 			</p>
 		</>
 	);

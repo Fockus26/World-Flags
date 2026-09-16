@@ -17,12 +17,18 @@ function getScrollParent(node: HTMLElement): HTMLElement {
 	let el = node.parentElement;
 	while (el) {
 		const style = window.getComputedStyle(el);
-		if (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight) {
+		if (
+			/(auto|scroll)/.test(style.overflowY) &&
+			el.scrollHeight > el.clientHeight
+		) {
 			return el;
 		}
 		el = el.parentElement;
 	}
-	return (document.scrollingElement as HTMLElement | null) ?? document.documentElement;
+	return (
+		(document.scrollingElement as HTMLElement | null) ??
+		document.documentElement
+	);
 }
 
 /** Espera a que un scroll en curso termine (evento `scrollend`, con un plazo tope de seguridad). */

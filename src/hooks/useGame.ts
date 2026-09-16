@@ -226,9 +226,7 @@ export function useGame() {
 					const regionCodes = countries
 						.filter((country) => country.region === region)
 						.map((country) => country.code);
-					return (
-						getUnpracticedCodesToday(viewForLock, regionCodes).length > 0
-					);
+					return getUnpracticedCodesToday(viewForLock, regionCodes).length > 0;
 				});
 
 				if (remainingRegions.length !== lastScope.regions.length) {

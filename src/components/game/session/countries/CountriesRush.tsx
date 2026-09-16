@@ -230,7 +230,9 @@ export function CountriesRush() {
 		setFlyingCodes((previous) => new Set(previous).add(code));
 		setInputValue("");
 		setFeedback(null);
-		setAnnouncement(`${displayName}. ${acceptedCodesRef.current.size} de ${totalCount}.`);
+		setAnnouncement(
+			`${displayName}. ${acceptedCodesRef.current.size} de ${totalCount}.`,
+		);
 
 		attemptCountry(code, true, "countries");
 

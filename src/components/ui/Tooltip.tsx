@@ -76,6 +76,7 @@ export function Tooltip({ id, label, children, side = "top" }: TooltipProps) {
 	}, [coords, hide]);
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: el span no es un control; solo escucha el hover y el foco que suben del hijo interactivo (ya enfocable por teclado), y el hover replica lo que el foco ya muestra
 		<span
 			ref={wrapperRef}
 			className="inline-flex"
