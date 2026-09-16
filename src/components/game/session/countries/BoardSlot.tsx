@@ -28,7 +28,7 @@ interface BoardSlotProps {
 }
 
 const BASE_CLASS =
-	"inline-flex min-h-8 max-w-full items-center gap-1 break-words rounded-[var(--radius)] border px-2 py-1 text-sm font-bold min-[44rem]:text-base";
+	"inline-flex min-h-8 max-w-full items-center gap-1 break-words rounded-[var(--radius)] border px-2 py-1 text-sm font-bold transition-[background-color,border-color,color,box-shadow] duration-200 ease-in-out min-[44rem]:text-base";
 
 const STATE_CLASSES: Record<BoardSlotState, string> = {
 	hidden: "border-surface-border bg-surface-hover",
@@ -98,7 +98,18 @@ function renderContent(
 			return (
 				<>
 					<span aria-hidden="true">
-						<span>{country.name.slice(0, hintLetters)}</span>
+						{/* Una letra por `<span>` con `key` estable: al pedir otra
+						    pista solo se monta la nueva, y es la única que hace
+						    el fade-in (las ya reveladas no se vuelven a animar). */}
+						{[...country.name.slice(0, hintLetters)].map((letter, index) => (
+							<span
+								// biome-ignore lint/suspicious/noArrayIndexKey: la posición ES la identidad de cada letra de pista — el nombre no cambia mientras dura la tarjeta
+								key={index}
+								className="animate-in fade-in-0 duration-300"
+							>
+								{letter}
+							</span>
+						))}
 						<span className="invisible select-none">
 							{country.name.slice(hintLetters)}
 						</span>

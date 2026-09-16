@@ -41,7 +41,8 @@ export function DailyPractice({
 	const startTimeRef = useRef(Date.now());
 	const slotRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
-	const { currentCode, totalCount, completedCount, grade } = usePracticeQueue({
+	const { currentCode, totalCount, completedCount, completedCodes, grade } =
+		usePracticeQueue({
 		initialCodes: countryCodes,
 		countryHistory: toGameView(learningData, gameType).countryHistory,
 		onGrade: (code, gradeValue, isFirstAttempt) => {
@@ -116,6 +117,7 @@ export function DailyPractice({
 						<CountryClozeCard
 							countryCode={currentCountry.code}
 							targetState={isRevealed ? "revealed" : "target"}
+							completedCodes={completedCodes}
 							slotRefs={slotRefs}
 						/>
 					) : (
