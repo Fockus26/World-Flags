@@ -12,6 +12,16 @@ interface UserSummaryProps {
 	className?: string;
 }
 
+const MOBILE_NAME_MAX_CHARS = 15;
+
+/** Por caracteres reales (no unidades UTF-16), para no partir un emoji a la mitad. */
+function truncateName(name: string): string {
+	const characters = [...name];
+	return characters.length > MOBILE_NAME_MAX_CHARS
+		? `${characters.slice(0, MOBILE_NAME_MAX_CHARS).join("")}…`
+		: name;
+}
+
 export function UserSummary({
 	name,
 	avatarUrl,
@@ -41,11 +51,17 @@ export function UserSummary({
 
 			<span className="flex min-w-0 flex-1 flex-col gap-1 py-1 sm:py-2.5">
 				<span className="flex min-w-0 items-baseline gap-2">
-					<strong className="overflow-hidden text-base text-ellipsis whitespace-nowrap">
+					{/* Mobile: solo el nombre, cortado a un número fijo de
+					    caracteres — el correo de la cuenta no cabe junto a él.
+					    El nombre completo ya va en el aria-label del botón. */}
+					<strong className="overflow-hidden text-base text-ellipsis whitespace-nowrap sm:hidden">
+						{truncateName(name)}
+					</strong>
+					<strong className="hidden overflow-hidden text-base text-ellipsis whitespace-nowrap sm:inline">
 						{name}
 					</strong>
 
-					<span className="shrink-0 text-[0.7rem] font-semibold text-text-placeholder">
+					<span className="hidden shrink-0 text-[0.7rem] font-semibold text-text-placeholder sm:inline">
 						{accountLabel}
 					</span>
 				</span>

@@ -3,6 +3,19 @@ import type { ReviewGrade, ReviewState } from "@/types/progress";
 const INITIAL_EASE_FACTOR = 2.5;
 const MIN_EASE_FACTOR = 1.3;
 
+/**
+ * Tope del intervalo (100 años, el mismo máximo por defecto de Anki). Sin él,
+ * calificar muchas veces seguidas un país con "Fácil" (la práctica por
+ * continente califica aunque no esté vencido) multiplica el intervalo sin
+ * límite: hacia la 11.ª vez la fecha pasa del año 9999 — `toISOString` la
+ * escribe como "+016849-03…", que como string es MENOR que "2026-…" y el país
+ * aparece como vencido en la práctica diaria — y hacia la 13.ª la fecha se
+ * sale del rango de `Date` y `toISOString` lanza `RangeError`: el botón
+ * "Fácil" se quedaba sin avanzar (solo "Otra vez", que reinicia el
+ * intervalo, lo destrababa).
+ */
+const MAX_INTERVAL_DAYS = 36_500;
+
 const GRADE_FACTOR: Record<Exclude<ReviewGrade, "again">, number> = {
 	hard: 1.2,
 	good: 1.0,
@@ -52,8 +65,9 @@ export function calculateNextReview(
 	} else if (repetitions === 2) {
 		intervalDays = 6;
 	} else {
-		intervalDays = Math.round(
-			previousInterval * easeFactor * GRADE_FACTOR[grade],
+		intervalDays = Math.min(
+			MAX_INTERVAL_DAYS,
+			Math.round(previousInterval * easeFactor * GRADE_FACTOR[grade]),
 		);
 	}
 
@@ -71,6 +85,10 @@ export function isDue(
 	today: string = new Date().toISOString().slice(0, 10),
 ): boolean {
 	if (!review) return true;
+	// Datos ya guardados antes del tope: un año de más de 4 cifras sale como
+	// "+016849-03" (ver `MAX_INTERVAL_DAYS`). Es una fecha lejanísima, no una
+	// vencida — la comparación de strings de abajo diría lo contrario.
+	if (!/^\d{4}-/.test(review.dueDate)) return false;
 	return review.dueDate <= today;
 }
 

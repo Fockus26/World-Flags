@@ -22,6 +22,13 @@ interface CountryBoardProps {
 	flyingCodes?: ReadonlySet<string>;
 	/** Letras de pista para el único país en estado "target" (tarjeta cloze). */
 	hintLetters?: number;
+	/**
+	 * Si viene, el contador de cada continente cuenta estos códigos en vez de
+	 * los huecos resueltos en pantalla. La tarjeta cloze lo necesita: su único
+	 * hueco "resuelto" es el objetivo, que se resuelve y vuelve a "context" en
+	 * cada tarjeta — contado así, el encabezado saltaba 0/12 → 1/12 → 0/12.
+	 */
+	countedCodes?: ReadonlySet<string>;
 	/** Expone los `<li>` del DOM por código: `useFlyToSlot` los necesita para medir su posición. */
 	slotRefs: RefObject<Map<string, HTMLLIElement>>;
 	className?: string;
@@ -38,6 +45,7 @@ export function CountryBoard({
 	defaultState = "hidden",
 	flyingCodes,
 	hintLetters,
+	countedCodes,
 	slotRefs,
 	className,
 }: CountryBoardProps) {
@@ -68,6 +76,14 @@ export function CountryBoard({
 		return callback;
 	}
 
+	// Un país recién acertado sigue viéndose sin descubrir mientras su clon
+	// vuela (`useFlyToSlot`): el verde aparece cuando el texto aterriza, no
+	// antes — si no, el hueco se pintaba de verde con el nombre todavía lejos.
+	function getVisibleState(code: string): BoardSlotState {
+		const state = stateByCode[code] ?? defaultState;
+		return state === "revealed" && flyingCodes?.has(code) ? "hidden" : state;
+	}
+
 	return (
 		// <section> con aria-label (no un <div role="group">, que biome pide
 		// cambiar por un elemento semántico): así ya tiene el equivalente de
@@ -79,10 +95,16 @@ export function CountryBoard({
 			tabIndex={0}
 			aria-label={`Tablero de ${groups.map((group) => group.label).join(" + ")}`}
 		>
-			<div className="flex flex-col gap-4">
+			{/* El padding deja sitio al anillo del hueco objetivo (`ring-2`, se
+			    dibuja por fuera del borde): sin él, el `overflow-y-auto` lo
+			    recortaba en los huecos pegados a un borde. El de abajo es más
+			    generoso para que el final del scroll no quede pegado al borde. */}
+			<div className="flex flex-col gap-4 p-1 pb-4">
 				{groups.map((group) => {
 					const resolvedCount = group.countries.filter((country) =>
-						RESOLVED_STATES.has(stateByCode[country.code] ?? defaultState),
+						countedCodes
+							? countedCodes.has(country.code)
+							: RESOLVED_STATES.has(getVisibleState(country.code)),
 					).length;
 					const headingId = `board-group-${group.region}`;
 
@@ -96,7 +118,7 @@ export function CountryBoard({
 							</h3>
 							<ol className="m-0 flex list-none flex-wrap gap-1.5 p-0">
 								{group.countries.map((country) => {
-									const state = stateByCode[country.code] ?? defaultState;
+									const state = getVisibleState(country.code);
 
 									return (
 										<BoardSlot

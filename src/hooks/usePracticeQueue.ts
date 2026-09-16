@@ -33,7 +33,11 @@ export function usePracticeQueue({
 }: UsePracticeQueueOptions) {
 	const [totalCount] = useState(initialCodes.length);
 	const [queue, setQueue] = useState<string[]>(initialCodes);
-	const [completedCount, setCompletedCount] = useState(0);
+	// Los códigos (no solo cuántos): la tarjeta cloze de Países los marca en
+	// el tablero y los cuenta en el encabezado de cada continente.
+	const [completedCodes, setCompletedCodes] = useState<ReadonlySet<string>>(
+		() => new Set(),
+	);
 	const [attemptedCount, setAttemptedCount] = useState(0);
 
 	const cardStateRef = useRef<Record<string, PracticeCardState>>({});
@@ -76,7 +80,7 @@ export function usePracticeQueue({
 			return;
 		}
 
-		setCompletedCount((value) => value + 1);
+		setCompletedCodes((previous) => new Set(previous).add(currentCode));
 
 		if (rest.length === 0) {
 			onFinish();
@@ -86,5 +90,12 @@ export function usePracticeQueue({
 		setQueue(rest);
 	}
 
-	return { currentCode, totalCount, completedCount, attemptedCount, grade };
+	return {
+		currentCode,
+		totalCount,
+		completedCount: completedCodes.size,
+		completedCodes,
+		attemptedCount,
+		grade,
+	};
 }

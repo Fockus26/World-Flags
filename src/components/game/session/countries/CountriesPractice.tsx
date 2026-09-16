@@ -184,8 +184,10 @@ export function CountriesPractice() {
 	const regionLabel = REGION_LABELS[currentCountry.region];
 	const maxHintLetters = Math.max(currentCountry.name.length - 1, 0);
 
+	// Mientras el nombre vuela hacia su hueco, el hueco sigue como objetivo:
+	// el verde de acierto aparece al aterrizar, no con el texto todavía lejos.
 	const targetState: BoardSlotState =
-		answerStatus === "idle"
+		answerStatus === "idle" || isTargetFlying
 			? "target"
 			: answerStatus === "correct"
 				? "revealed"
@@ -293,6 +295,7 @@ export function CountriesPractice() {
 					className="mt-[0.65rem] min-[30rem]:mt-[clamp(0.75rem,2vh,1.5rem)]"
 					countryCode={currentCountry.code}
 					targetState={targetState}
+					completedCodes={practiceQueue.completedCodes}
 					flyingCodes={
 						isTargetFlying ? new Set([currentCountry.code]) : undefined
 					}
@@ -313,7 +316,7 @@ export function CountriesPractice() {
 						disabled={hintLetters >= maxHintLetters}
 						onClick={handleHint}
 						aria-label={`Pista: revelar una letra (${hintLetters}/${maxHintLetters})`}
-						className="mt-[0.65rem] self-start min-[30rem]:mt-[clamp(0.75rem,2vh,1.5rem)]"
+						className="my-[0.65rem] self-start min-[30rem]:my-[clamp(0.75rem,2vh,1.5rem)]"
 					>
 						Pista
 					</Button>

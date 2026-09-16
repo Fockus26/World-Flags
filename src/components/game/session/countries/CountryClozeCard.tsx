@@ -15,6 +15,13 @@ interface CountryClozeCardProps {
 	 * revela) simplemente nunca le pasa "missed".
 	 */
 	targetState: BoardSlotState;
+	/**
+	 * Países ya completados en la sesión (salieron de la cola): se ven en
+	 * verde y son los que suma el contador de cada continente, así el
+	 * progreso se acumula tarjeta a tarjeta (1/12, 2/12…) en vez de volver a
+	 * 0 al pasar a la siguiente.
+	 */
+	completedCodes?: ReadonlySet<string>;
 	hintLetters?: number;
 	flyingCodes?: ReadonlySet<string>;
 	slotRefs: RefObject<Map<string, HTMLLIElement>>;
@@ -29,6 +36,7 @@ interface CountryClozeCardProps {
 export function CountryClozeCard({
 	countryCode,
 	targetState,
+	completedCodes,
 	hintLetters,
 	flyingCodes,
 	slotRefs,
@@ -40,18 +48,28 @@ export function CountryClozeCard({
 		return null;
 	}
 
-	const board = buildBoard(
-		allCountries.filter((candidate) => candidate.region === country.region),
+	const regionCountries = allCountries.filter(
+		(candidate) => candidate.region === country.region,
 	);
+	const board = buildBoard(regionCountries);
+
+	const stateByCode: Record<string, BoardSlotState> = {};
+	for (const candidate of regionCountries) {
+		if (completedCodes?.has(candidate.code)) {
+			stateByCode[candidate.code] = "revealed";
+		}
+	}
+	stateByCode[countryCode] = targetState;
 
 	return (
 		<CountryBoard
 			className={className}
 			groups={board}
-			stateByCode={{ [countryCode]: targetState }}
+			stateByCode={stateByCode}
 			defaultState="context"
 			flyingCodes={flyingCodes}
 			hintLetters={hintLetters}
+			countedCodes={completedCodes ?? new Set()}
 			slotRefs={slotRefs}
 		/>
 	);

@@ -4,6 +4,29 @@
 
 ## Estado actual
 
+**Cerrado y mergeado a `main` (sin push): `fix/pulido-modo-paises`** (base `main`, trabajada en el
+worktree `.claude/worktrees/fix-pulido-modo-paises` porque otra sesión usaba
+la carpeta principal en `feat/racha-tab-usuario`). Ronda de pulido de feedback
+del dueño:
+
+- **Bug de práctica diaria ("Fácil" no avanza):** el intervalo SRS crecía sin
+  tope. Tras ~11 "Fácil" la fecha pasaba del año 9999 (`"+016849-03"`, que
+  como string es menor que hoy → el país salía como vencido) y hacia el 13.º
+  `toISOString` lanzaba `RangeError` dentro del timeout de `GradeButtons`.
+  Fix: tope de 36.500 días en `calculateNextReview` + `isDue` trata esas fechas
+  de año extendido como no vencidas (sana datos ya guardados).
+- Tablero: padding para que el `ring-2` del objetivo no se recorte y aire al
+  final del scroll; el hueco se pinta de verde al aterrizar el vuelo (práctica
+  y rush), con transición de color; letras de pista con fade-in.
+- Tarjeta cloze (práctica y práctica diaria): el contador del continente
+  acumula los países ya completados (y éstos se ven en verde) en vez de saltar
+  0/12 → 1/12 → 0/12.
+- Botón "Pista" con margen inferior. Tooltips acotados al viewport.
+  Mobile: la cabecera muestra solo el nombre (máx. 15 caracteres + "…"), sin
+  el correo.
+- **Abierto:** el modal "a 100% de ancho" en mobile no se reprodujo (a 360 y
+  375px deja ~14-15px por lado) — pendiente de captura/dispositivo del dueño.
+
 **Cerrado (pendiente de decisión del dueño sobre merge): modo de juego "Países"
 (rama experimental `feat/modo-paises`).** Implementa `context/plans/modo-paises.md`
 completo — un segundo tipo de juego (aprender qué país pertenece a cada
