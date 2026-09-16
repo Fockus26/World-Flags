@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { PageFlip } from "@/components/app/PageFlip";
+import { SystemSnackbars } from "@/components/app/SystemSnackbars";
 import { useGame } from "@/hooks/useGame";
 import { AchievementToasts } from "./AchievementToasts";
 import { Configuration } from "./configuration/Configuration";
@@ -112,6 +113,7 @@ export default function FlagGame() {
 			{/* Fuera de `FlagGameContent`: tiene que verse en cualquier vista
 			    (sesión, práctica diaria, resultados...), no solo en una. */}
 			<AchievementToasts />
+			<SystemSnackbars />
 		</main>
 	);
 }

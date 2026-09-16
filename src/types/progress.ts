@@ -1,4 +1,9 @@
-import type { GameConfiguration, GameType, PracticeRegion, Region } from "./country";
+import type {
+	GameConfiguration,
+	GameType,
+	PracticeRegion,
+	Region,
+} from "./country";
 
 export const AVATAR_STYLES = [
 	"adventurer-neutral",
@@ -124,6 +129,19 @@ export interface GameProgress {
 	lastPracticeByCountry: LastPracticeByCountry;
 }
 
+/**
+ * Respuesta (una sola vez, cualquier dispositivo) al snackbar "¿te aviso
+ * mañana...?". `answered` es lo que impide volver a preguntar; `optedIn` es
+ * la respuesta en sí. No guarda hora/zona/endpoint de la suscripción — eso es
+ * infraestructura por-dispositivo y vive en la tabla `push_subscriptions` de
+ * Supabase, no en este blob que se sincroniza entero por cuenta.
+ */
+export interface DailyReminderPreference {
+	answered: boolean;
+	optedIn: boolean;
+	answeredAt: string | null;
+}
+
 export interface UserLearningData {
 	profile: UserProfile;
 	countryHistory: CountriesLearningHistory;
@@ -136,4 +154,5 @@ export interface UserLearningData {
 	achievements: UnlockedAchievements;
 	stats: UserStats;
 	sessionHistory: SessionRecord[];
+	dailyReminder: DailyReminderPreference;
 }
