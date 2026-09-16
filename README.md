@@ -1,216 +1,162 @@
 # 🌍 World Flags
 
-A web app (installable as a PWA) for learning the world's flags through spaced repetition (Anki-style), with cloud-synced progress, a timed "rush" competitive mode with a public leaderboard, and flexible practice scopes.
+[![CI](https://github.com/Fockus26/World-Flags/actions/workflows/ci.yml/badge.svg)](https://github.com/Fockus26/World-Flags/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
----
+Learn every country and flag in the world with Anki-style spaced repetition.
+An installable PWA with cloud-synced progress, a timed competitive mode with a public
+leaderboard, streaks, achievements and daily reminders.
 
-## 🌍 Overview
+**▶ Play it:** [world-flags-hazel.vercel.app](https://world-flags-hazel.vercel.app)
 
-World Flags aims to turn flag learning into a sustainable habit, applying the same principle used by tools like Anki: **spaced repetition (SM2 algorithm)**. Instead of reviewing the whole deck equally, the system prioritizes the flags the user tends to forget and spaces out the ones they already master.
-
-The system allows users to:
-
-- Create an account and save progress, synced across devices via Supabase
-- Practice with flexible settings: theme, difficulty, order, and geographic scope (whole world, several continents combined, and/or hand-picked individual countries)
-- Choose between practice mode (no pressure, spaced repetition) or competitive "rush" mode (the whole session is timed, best time saved)
-- Compete on a public leaderboard for the fastest "whole world" rush time
-- Track their own progress per continent, thanks to the spaced repetition system and a once-per-day-per-country practice lock
+> The app's interface is in Spanish. Code, issues and PRs can be in English or Spanish.
 
 ---
 
 ## ✨ Features
 
-### 🎮 Gameplay & Configuration
+### Two games
 
-- 🧠 Anki-style spaced repetition (SM2 algorithm) to prioritize flags based on hits/misses, with a daily practice queue (`Práctica diaria`) for whatever is due
-- 🔁 Missed flags ("otra vez" / "difícil") are requeued and asked again later in the *same* session, both in daily practice and continent practice
-- ✅ Once-per-day-per-country lock for practice mode (based on local calendar day, not a rolling 24h window) — already-practiced countries are auto-excluded from a new session instead of blocking it outright
-- 🕹️ Two modes:
-  - **Practice** — no pressure, optional per-flag timer (toggle), scored and tracked by the spaced repetition system
-  - **Competitive ("rush")** — the whole session is a stopwatch; wrong answers and skips reveal the answer, add a time penalty, and auto-advance. Best time is saved per continent and for the whole world
-  - ⏭️ Skip button for flags you don't know, auto-graded as "otra vez"
-- 🌎 Flexible practice scope: the whole world, any combination of whole continents, and/or individual countries hand-picked from the country picker (📍) — all combinable in a single session
-- 🔤 Alphabetical or random flag order
-- 🎚️ Easy or hard difficulty (hard mode requires correct accents in answers)
-- 🎨 Light, dark, or system theme
+- **🗺️ Countries** — learn which countries belong to each continent. Countries fly into
+  their slot on a board as you name them. Practice mode shows a fill-in-the-blank card
+  with letter hints; rush mode is "name them all" against the clock, with a *give up*
+  option that reveals what you missed.
+- **🏳️ Flags** — see a flag, type the country. Easy or hard difficulty (hard requires
+  correct accents), alphabetical or random order.
 
-### 🏆 Leaderboard
+### Two modes for each game
 
-- Public ranking (🏆) of the best "whole world" rush time, showing the top 5 and — if you're not in it — your own rank below the list (e.g. `#32 · 1:25.59`)
-- Backed by its own Supabase table (`leaderboard_entries`, public read / owner-only write via RLS), separate from the private per-user progress table — see [supabase/leaderboard.sql](./supabase/leaderboard.sql)
+- **Practice** — no pressure, optional per-card timer, graded with the SM-2 spaced
+  repetition algorithm. Cards you miss come back later in the same session. Each country
+  can be practiced once per calendar day.
+- **Competitive ("rush")** — the whole session is a stopwatch (in Flags, wrong answers and
+  skips add a time penalty). Best times are saved per continent and for the whole world.
 
-### 🔐 Account & Progress
+### Learning & progress
 
-- 👤 User authentication (Supabase)
-- ☁️ Progress saved and synced to the cloud, with a `localStorage` fallback for guest mode
-- 📊 Per-region stats: practice score average, best rush time, and today's practice progress
-- 📱 Installable PWA with an offline-capable service worker
+- 🧠 **Daily practice** queue with every card that is due today
+- 🌎 **Flexible scope:** whole world, any mix of continents, and/or hand-picked countries
+- 🏆 **Leaderboard** of the best whole-world rush time, separate for each game
+- 🏅 **Achievements** across six categories (discovery, continents, speed, accuracy,
+  consistency, meta), unlocked retroactively from existing progress
+- 🔥 **Streaks** with a monthly activity calendar
+- 🔔 **Daily reminders** via push notifications
+- ☁️ **Cloud sync** across devices with a Supabase account, or play as a guest
+  (progress stays in `localStorage`)
 
----
+### App
 
-## 🛠 Tech Stack
-
-- **Base framework:** Astro 7 (static output — a single-page shell mounting one React tree; no SSR/multi-page routing is in use today)
-- **Interactive UI:** React 19 + TypeScript (React Compiler enabled via `babel-plugin-react-compiler`)
-- **Component library:** [HeroUI v3](https://www.heroui.com/) (`@heroui/react` + `@heroui/styles`) on top of Tailwind CSS v4
-- **Runtime / toolchain:** Bun
-- **Global state:** Redux Toolkit
-- **Auth & backend:** Supabase (client in `src/lib/supabase.ts`)
-- **Local persistence:** `localStorage`, wrapped by `src/utils/learning-storage.ts`
-- **Styling:** Tailwind CSS v4 (CSS-first, no `tailwind.config.js`). Own tokens in `src/styles/variables.css` are bridged to HeroUI's tokens in `src/styles/heroui-theme.css`
-- **Animations:** `tw-animate-css` (ships with `@heroui/styles`) + CSS transitions. `framer-motion` is installed but effectively deprecated — it doesn't run in this stack (see `context/decisions/03-animaciones.md`)
-- **Icons:** [iconoir-react](https://iconoir.com/)
-- **PWA:** hand-rolled service worker (`public/sw.js`) + web manifest
-- **Agent context:** `CLAUDE.md` + `context/` — start there before working on this repo
+- 📱 Installable PWA with offline support and an "update available" prompt
+- 🎨 Light, dark or system theme
+- ♿ Built to WCAG 2.1 AA: full keyboard support, visible focus, no state conveyed by
+  color only, usable down to 320px
 
 ---
 
-## 📂 Project Structure
+## 🛠 Tech stack
+
+| Area | Choice |
+|---|---|
+| Framework | [Astro 7](https://astro.build) — static output, a single page mounting one React island |
+| UI | React 19 + TypeScript (strict), with the React Compiler |
+| Components | [HeroUI v3](https://www.heroui.com/) on top of Tailwind CSS v4 (CSS-first, no config file) |
+| State | Redux Toolkit, accessed only through hooks in `src/hooks/` |
+| Backend | [Supabase](https://supabase.com) — auth, progress sync, leaderboard, edge functions for push |
+| Animations | `tw-animate-css` + CSS transitions |
+| Icons | [iconoir-react](https://iconoir.com/) |
+| PWA | Hand-rolled service worker (`public/sw.js`) + web manifest |
+| Tooling | [Bun](https://bun.sh), Biome, Playwright |
+| Hosting | Vercel |
+
+---
+
+## 🚀 Getting started
+
+**Requirements:** [Bun](https://bun.sh) 1.3+ and Node.js 22.12+.
+
+```sh
+git clone https://github.com/Fockus26/World-Flags.git
+cd World-Flags
+bun install
+cp .env.example .env   # then fill in your Supabase URL and anon key
+bun run dev            # http://localhost:4321
+```
+
+The Supabase client needs `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` to start.
+The database schema is private — see [`supabase/README.md`](./supabase/README.md) for
+what works without it and how to request access.
+
+### Scripts
+
+| Command | What it does |
+|---|---|
+| `bun run dev` | Start the dev server |
+| `bun run build` | Production build to `./dist/` |
+| `bun run preview` | Preview the production build |
+| `bunx astro check` | Type-check |
+| `bunx biome check ./src` | Lint and format check |
+| `bun run test:e2e` | Playwright end-to-end tests (needs the dev server running) |
+
+> **Service worker tip:** the SW caches aggressively. If you don't see your changes in dev,
+> unregister it and clear caches from DevTools (Application → Service workers / Storage).
+
+---
+
+## 📂 Project structure
 
 ```text
 src/
 ├── components/
-│   ├── app/                          # Providers and startup effects
-│   │   ├── AuthEffects.tsx           # Supabase session listener
-│   │   ├── GameEffects.tsx           # progress hydration/sync + leaderboard push
-│   │   ├── Providers.tsx             # <Provider store={store}> + Effects
-│   │   └── ThemeEffects.tsx          # theme persistence + prefers-color-scheme
+│   ├── app/            # Providers, startup effects (auth, sync, theme, achievements), snackbars
 │   ├── game/
-│   │   ├── configuration/
-│   │   │   ├── configurationModal/   # profile, game settings and account tabs
-│   │   │   ├── Configuration.tsx     # main screen: scope, mode, ranking & country-picker icons
-│   │   │   ├── CountryPickerModal.tsx
-│   │   │   ├── LeaderboardModal.tsx
-│   │   │   ├── RegionOption.tsx
-│   │   │   ├── RegionSelector.tsx
-│   │   │   ├── ThemeSwitcher.tsx
-│   │   │   └── UserSummary.tsx
-│   │   ├── session/
-│   │   │   ├── AnswerForm.tsx
-│   │   │   ├── ConfirmationModal.tsx
-│   │   │   ├── DailyPractice.tsx
-│   │   │   ├── FlagDisplay.tsx
-│   │   │   ├── Header.tsx            # live stopwatch in rush mode
-│   │   │   ├── Session.tsx           # rush mechanics: penalties, pause/advance, requeue
-│   │   │   └── Timer.tsx
+│   │   ├── configuration/   # Home screen: game type, scope, mode, modals (settings, leaderboard, achievements, streak)
+│   │   ├── session/         # Flags session, daily practice, timer
+│   │   │   └── countries/   # Countries board, cloze card, practice and rush
 │   │   ├── FlagGame.tsx
-│   │   └── Results.tsx               # practice score vs. competitive time, by result.mode
-│   ├── ui/                           # Button, IconButton, Modal, Select, Tooltip, GradeButtons, ...
-│   └── App.tsx
-├── data/
-│   └── countries.ts                  # countries/flags dataset
-├── hooks/
-│   ├── useAuth.ts
-│   ├── useGame.ts                    # all learningData mutations go through here
-│   ├── usePracticeQueue.ts           # shared Anki-style requeue queue (daily + continent)
-│   └── useTheme.ts
-├── layouts/
-│   └── Layout.astro
-├── lib/
-│   └── supabase.ts                   # Supabase client
-├── pages/
-│   └── index.astro
-├── store/
-│   ├── index.ts                      # configureStore, RootState/AppDispatch
-│   ├── hooks.ts                      # typed useAppDispatch/useAppSelector
-│   └── slices/
-│       ├── authSlice.ts
-│       ├── gameSlice.ts
-│       └── themeSlice.ts
-├── styles/
-│   ├── animations.ts                 # legacy framer-motion variants (mostly inert — see context/decisions/03)
-│   ├── global.css                    # Tailwind + @heroui/styles entrypoint + base reset
-│   ├── variables.css                 # own tokens (--app-color-*), light + [data-theme="dark"]
-│   ├── theme.css                     # @theme inline: own tokens → Tailwind utilities + radius scale
-│   └── heroui-theme.css              # bridge: rewrite HeroUI base tokens with the brand palette
-├── types/
-│   ├── country.ts                    # PracticeScope, GameConfiguration, GameResult
-│   └── progress.ts                   # UserLearningData, RegionBestTimes, LastPracticeByCountry
-├── utils/
-│   ├── avatar.ts
-│   ├── cloud-storage.ts              # Supabase sync (fetch/push/merge/syncOnLogin) + leaderboard
-│   ├── date.ts                       # local calendar-day helpers
-│   ├── learning-storage.ts           # single entry point to localStorage
-│   ├── normalize-answer.ts           # answer normalization (hard mode, accents)
-│   ├── practice-queue.ts             # Anki-style requeue decision logic
-│   ├── practice-scope.ts             # PracticeScope → country list / label / region-key helpers
-│   ├── prepare-countries.ts
-│   ├── region-stats.ts
-│   ├── score.ts
-│   ├── shuffle.ts
-│   └── spaced-repetition.ts          # SM2 algorithm
-└── env.d.ts
+│   │   └── Results.tsx
+│   └── ui/             # Wrappers over HeroUI (Button, Modal, Select, Tooltip…) — keep their API stable
+├── data/               # Countries dataset
+├── hooks/              # The only way components touch Redux (useGame, useAuth, useAchievements…)
+├── store/              # Redux Toolkit store and slices
+├── styles/             # Tailwind entry, design tokens, HeroUI theme bridge
+├── types/              # Game configuration, scope, progress types
+└── utils/              # SM-2, practice queue, scope resolution, storage, cloud sync, achievements
 
-CLAUDE.md                              # agent onboarding — read first
-context/                               # living project context (decisions, inventories, current phase, git state)
-docs/                                  # deeper dives: state management, design system, components, PWA assets
-e2e/                                   # Playwright flow tests (bun run test:e2e)
-supabase/                              # SQL migrations to run manually in the Supabase SQL editor
+public/                 # Flags, PWA icons, manifest, service worker
+docs/                   # State management, design system, components, PWA assets
+context/                # Design rules, tokens and decision records (ADRs)
+e2e/                    # Playwright tests
 ```
 
----
+Deeper dives:
 
-## 🏗️ Architecture
-
-### State management
-
-In-memory state lives in **Redux Toolkit**, split into three slices: `auth`, `game`, and `theme`. Components never access `useAppDispatch`/`useAppSelector` or `localStorage` directly — they consume dedicated hooks (`useAuth`, `useGame`, `useTheme`), which expose the same public interface the old React Context hooks used to. See [docs/state-management.md](./docs/state-management.md) for the full rules, including why every mutation in `useGame.ts` reads `store.getState()` directly instead of a render-time selector (multiple dispatches in the same event handler would otherwise clobber each other, since `setLearningData` replaces the whole slice rather than merging it).
-
-Three "Effect" components, mounted once at the app root (`components/app/`), handle startup side effects: the Supabase session listener (`AuthEffects`), progress hydration/sync plus leaderboard push (`GameEffects`, with an 800ms debounced push), and theme persistence (`ThemeEffects`).
-
-### Practice scope & scoring
-
-What a session practices is modeled by `PracticeScope` (`src/types/country.ts`): either the whole world, or any combination of whole continents plus individually hand-picked countries. `src/utils/practice-scope.ts` resolves a scope to its country list and decides when it counts as "one continent" for per-continent stats. Practice mode enforces a once-per-day-per-country lock (`lastPracticeByCountry`); competitive mode ("rush") times the whole session and saves a best time per continent and for the world.
-
-### Persistence & sync
-
-`src/utils/learning-storage.ts` is the single entry point to `localStorage`. Syncing with Supabase goes through `src/utils/cloud-storage.ts`, which fetches, pushes, and merges remote progress with local progress, and also reads/writes the public `leaderboard_entries` table. The Supabase client is initialized in `src/lib/supabase.ts`.
-
-### Design system
-
-UI is built on **HeroUI v3** with **Tailwind CSS v4** utility classes. The app's own
-design tokens (`src/styles/variables.css`, exposed as utilities via `@theme inline` in
-`theme.css`) are bridged to HeroUI's token names in `src/styles/heroui-theme.css`, so
-both systems share one palette driven by `[data-theme]` on `<html>`. No hardcoded
-hex/px for color, radius or shadow. Animations use `tw-animate-css` (`animate-in …`)
-and CSS transitions — **not** framer-motion, which doesn't execute in this
-React 19 + HeroUI + Astro-islands setup. See [docs/design-system.md](./docs/design-system.md),
-[docs/components.md](./docs/components.md), and `context/` (especially
-`context/decisions/`) for the full picture.
-
----
-
-## ⚙️ Installation & Setup
-
-1. Create a [Supabase](https://supabase.com) project and set up:
-   - Auth (email/password)
-   - A private `user_learning_data` table for per-user progress (RLS: owner-only read/write)
-   - The daily-lock / best-time columns — run [supabase/practice-sync.sql](./supabase/practice-sync.sql) once in the SQL editor so `lastPracticeByCountry` and `regionBestTimes` sync across devices
-   - The public leaderboard table — run [supabase/leaderboard.sql](./supabase/leaderboard.sql) once in the SQL editor
-2. Create a `.env` file with:
-   ```env
-   PUBLIC_SUPABASE_URL=your-project-url
-   PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   ```
-3. Install and run:
-   ```sh
-   bun install       # install dependencies
-   bun dev           # start dev server at localhost:4321
-   bun build         # build for production to ./dist/
-   bun preview       # preview the production build locally
-   ```
+- [State management](./docs/state-management.md)
+- [Design system](./docs/design-system.md) and [components](./docs/components.md)
+- [Decision records](./context/DECISIONS_INDEX.md) — read before re-opening a settled decision
 
 ---
 
 ## 🗺️ Roadmap
 
-- **🎨 Visual design pass** — the current UI is functional but hasn't had a dedicated design pass; revisit layout, spacing, and visual polish across the app.
-- **🕹️ New related game mode** — a mode that builds on the flag quiz instead of replacing it. Candidates being considered (see [TODO.md](./TODO.md)): naming all countries of a scope against the clock, guessing a country's capital, or clicking a country's location on a map.
-- Achievements (e.g. "learned a continent", "first 100 flags", "the whole world")
-- Per-continent leaderboards (the `leaderboard_entries` schema already supports it via the `scope` column — only the UI to pick a scope is missing)
+1. **🏛️ Capitals mode** — see a country, name its capital. Practice, rush and daily
+   practice, like the existing games.
+2. **📍 Map mode** — locate each country on a world map that fills in as you go, with a
+   keyboard-accessible alternative to clicking.
+3. **🎨 Redesign** — a full visual pass over the app, built on the existing design tokens.
+4. **💰 Monetization** — evaluate ads and alternatives (ad-free premium, donations)
+   without hurting the learning experience.
+
+The detailed task list lives in [`TODO.md`](./TODO.md).
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the workflow
+(branches, Conventional Commits, pull requests) and the project's non-negotiable rules.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the [MIT License](./LICENSE) — free and open for public use.
+[MIT](./LICENSE)
