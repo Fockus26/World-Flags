@@ -357,6 +357,7 @@ export function Configuration() {
 
 			<AchievementsModal
 				isOpen={isAchievementsOpen}
+				gameType={gameType}
 				onClose={() => {
 					setIsAchievementsOpen(false);
 					// Se marcan como vistos al cerrar, no al abrir: mientras el

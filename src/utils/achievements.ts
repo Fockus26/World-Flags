@@ -1,5 +1,5 @@
 import { countries } from "@/data/countries";
-import { REGIONS, type Region } from "@/types/country";
+import { REGIONS, type GameType, type Region } from "@/types/country";
 import type { UserLearningData } from "@/types/progress";
 import { getCurrentStreak, isCountryLearned } from "@/utils/learning-storage";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
@@ -66,6 +66,14 @@ export interface AchievementDefinition {
 	description: string;
 	emoji: string;
 	category: AchievementCategory;
+	/**
+	 * Juego al que pertenece, para separarlos en el modal de logros (feedback
+	 * del dueño). Ausente = compartido entre Países y Banderas: hoy son los que
+	 * leen `stats.*` (constancia, precisión agregada) o cruzan ambos juegos a
+	 * propósito (`primero_los_paises`, `coleccionista`) — se muestran siempre,
+	 * en los dos modos.
+	 */
+	gameType?: GameType;
 	evaluate: (
 		data: UserLearningData,
 		unlockedIds: ReadonlySet<string>,
@@ -154,6 +162,7 @@ function learnedCountAchievement(
 		description,
 		emoji,
 		category: "descubrimiento",
+		gameType: "flags",
 		evaluate: (data) => ({ current: countLearned(data), target }),
 	};
 }
@@ -173,6 +182,7 @@ function regionAchievement(
 		description: `Aprende los ${target} países de ${regionLabel}`,
 		emoji,
 		category: "continentes",
+		gameType: "flags",
 		evaluate: (data) => ({
 			current: countLearnedInRegions(data, regions),
 			target,
@@ -196,6 +206,7 @@ function countriesRegionAchievement(
 		description: `Aprende los ${target} países de ${regionLabel} en el modo Países`,
 		emoji,
 		category: "continentes",
+		gameType: "countries",
 		evaluate: (data) => ({
 			current: countLearnedInCountriesGameRegions(data, regions),
 			target,
@@ -293,6 +304,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		description: "Termina una partida en modo competitivo",
 		emoji: "⏱️",
 		category: "velocidad",
+		gameType: "flags",
 		evaluate: (data) => flag(Object.keys(data.regionBestTimes).length > 0),
 	},
 	{
@@ -302,6 +314,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		description: "Recorre todo el mundo en menos de 15 minutos",
 		emoji: "🏎️",
 		category: "velocidad",
+		gameType: "flags",
 		evaluate: (data) => {
 			const worldBest = data.regionBestTimes.world;
 
@@ -316,6 +329,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 			"Termina un competitivo de 20 banderas o más sin fallar ninguna",
 		emoji: "🎯",
 		category: "velocidad",
+		gameType: "flags",
 		evaluate: (data) =>
 			flag(
 				data.sessionHistory.some(
@@ -337,6 +351,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 			"Termina un competitivo de 20 banderas o más sin saltarte ninguna",
 		emoji: "🚀",
 		category: "velocidad",
+		gameType: "flags",
 		evaluate: (data) =>
 			flag(
 				data.sessionHistory.some(
@@ -358,6 +373,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		description: "Saca un 10 en una práctica por continente",
 		emoji: "🔟",
 		category: "precision",
+		gameType: "flags",
 		evaluate: (data) =>
 			flag(
 				Object.values(data.regionGameScores)
@@ -472,6 +488,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		description: "Completa un rush de países (cualquier alcance)",
 		emoji: "🧩",
 		category: "velocidad",
+		gameType: "countries",
 		evaluate: (data) =>
 			flag(
 				data.sessionHistory.some(
@@ -489,6 +506,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		description: 'Completa el rush de países de "Todo el mundo"',
 		emoji: "🌐",
 		category: "velocidad",
+		gameType: "countries",
 		evaluate: (data) =>
 			flag(data.countriesGame.regionBestTimes.world !== undefined),
 	},
