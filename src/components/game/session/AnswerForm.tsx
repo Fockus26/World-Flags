@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { motionTransition, motionVariants } from "@/styles/animations";
 import type { AnswerStatus, GameMode } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
+import { focusWhenVisible } from "@/utils/focus";
 
 interface AnswerFormProps {
 	countryName: string;
@@ -49,7 +50,7 @@ export function AnswerForm({
 
 	useEffect(() => {
 		if (answerStatus === "idle") {
-			resolvedInputRef.current?.focus();
+			focusWhenVisible(resolvedInputRef.current);
 		}
 	}, [answerStatus, resolvedInputRef]);
 

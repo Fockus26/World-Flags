@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { useFlyToSlot } from "@/hooks/useFlyToSlot";
 import { useGame } from "@/hooks/useGame";
 import { buildBoard, findMatch } from "@/utils/country-board";
+import { focusWhenVisible } from "@/utils/focus";
 import { getScopeLabel } from "@/utils/practice-scope";
 import type { BoardSlotState } from "./BoardSlot";
 import { CountryBoard } from "./CountryBoard";
@@ -85,7 +86,7 @@ export function CountriesRush() {
 	// haya rendido (ahí el input queda deshabilitado/oculto).
 	useEffect(() => {
 		if (!isExitModalOpen && !isSurrenderModalOpen && !hasSurrendered) {
-			inputRef.current?.focus();
+			focusWhenVisible(inputRef.current);
 		}
 	}, [isExitModalOpen, isSurrenderModalOpen, hasSurrendered]);
 
@@ -93,7 +94,7 @@ export function CountriesRush() {
 	// accionable que queda en pantalla.
 	useEffect(() => {
 		if (hasSurrendered) {
-			seeResultsButtonRef.current?.focus();
+			focusWhenVisible(seeResultsButtonRef.current);
 		}
 	}, [hasSurrendered]);
 
