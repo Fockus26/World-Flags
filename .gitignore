@@ -2,22 +2,22 @@
 dist/
 # generated types
 .astro/
-# claude
+# claude (worktrees, settings locales)
 .claude/
 
 # dependencies
 node_modules/
 
 # logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-
-# environment variables
-.env
-.env.production
+# environment variables: todo menos el ejemplo
+.env*
+!.env.example
 
 # macOS-specific files
 .DS_Store
@@ -25,8 +25,29 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+# vercel
+.vercel/
+
 # playwright
 /test-results/
 /playwright-report/
 /blob-report/
 /.playwright/
+
+# supabase: esquema SQL y edge functions son privados (solo se sube el README)
+/supabase/*
+!/supabase/README.md
+
+# context volátil: vive solo en local (se suben solo los documentos fijos)
+/context/CURRENT_PHASE.md
+/context/GIT_STATE.md
+/context/CONTENT_CHECKLIST.md
+/context/COMPONENTS_INVENTORY.md
+/context/PAGE_INVENTORY.md
+/context/SECTION_INVENTORY.md
+/context/PHASE_LOG/
+/context/plans/
+
+# salidas de Claude Design (en cualquier carpeta)
+*.dc.html
+**/design-canvas/
