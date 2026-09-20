@@ -892,7 +892,10 @@ export function mergeLearningData(
 		achievements: mergeAchievements(remote.achievements, local.achievements),
 		stats: mergeStats(remote.stats, local.stats, sessionHistory),
 		sessionHistory,
-		dailyReminder: mergeDailyReminder(remote.dailyReminder, local.dailyReminder),
+		dailyReminder: mergeDailyReminder(
+			remote.dailyReminder,
+			local.dailyReminder,
+		),
 	};
 }
 

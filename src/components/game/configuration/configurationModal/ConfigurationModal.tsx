@@ -135,9 +135,7 @@ export function ConfigurationModal({
 
 			<Tabs
 				selectedKey={activeTab}
-				onSelectionChange={(key) =>
-					setActiveTab(key as ConfigurationModalTab)
-				}
+				onSelectionChange={(key) => setActiveTab(key as ConfigurationModalTab)}
 			>
 				<Tabs.List aria-label="Secciones" className="mb-4">
 					<Tabs.Tab id="account">Usuario</Tabs.Tab>

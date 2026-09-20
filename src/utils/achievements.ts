@@ -1,5 +1,5 @@
 import { countries } from "@/data/countries";
-import { REGIONS, type GameType, type Region } from "@/types/country";
+import { type GameType, REGIONS, type Region } from "@/types/country";
 import type { UserLearningData } from "@/types/progress";
 import { getCurrentStreak, isCountryLearned } from "@/utils/learning-storage";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";

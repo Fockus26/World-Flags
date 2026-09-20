@@ -87,5 +87,7 @@
 	/* ===========================
 	   Tipografía
 	=========================== */
-	--font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-sans:
+		"Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+		sans-serif;
 }

@@ -66,7 +66,8 @@ export function Configuration() {
 	// Sin config guardada (usuario nuevo): arranca en Países (D030). Con
 	// config vieja sin `gameType`, `migrateConfiguration` ya la migró a
 	// "flags" — este fallback solo cubre el caso de "nunca hubo config".
-	const gameType = learningData.lastConfiguration?.gameType ?? DEFAULT_GAME_TYPE;
+	const gameType =
+		learningData.lastConfiguration?.gameType ?? DEFAULT_GAME_TYPE;
 	const scope = learningData.lastConfiguration?.scope ?? DEFAULT_SCOPE;
 	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
 
@@ -155,9 +156,7 @@ export function Configuration() {
 
 					<Tooltip
 						label={
-							unseenCount > 0
-								? `Logros (${unseenCount} sin ver)`
-								: "Logros"
+							unseenCount > 0 ? `Logros (${unseenCount} sin ver)` : "Logros"
 						}
 						position="left"
 						side="bottom"

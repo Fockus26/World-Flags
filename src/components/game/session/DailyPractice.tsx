@@ -43,28 +43,28 @@ export function DailyPractice({
 
 	const { currentCode, totalCount, completedCount, completedCodes, grade } =
 		usePracticeQueue({
-		initialCodes: countryCodes,
-		countryHistory: toGameView(learningData, gameType).countryHistory,
-		onGrade: (code, gradeValue, isFirstAttempt) => {
-			// Solo la primera vez que aparece cada bandera, y "otra vez" es el
-			// único lapso real: `calculateNextReview` reinicia las repeticiones
-			// justamente ahí y no en "difícil".
-			if (isFirstAttempt && gradeValue !== "again") {
-				correctAnswersRef.current += 1;
-			}
+			initialCodes: countryCodes,
+			countryHistory: toGameView(learningData, gameType).countryHistory,
+			onGrade: (code, gradeValue, isFirstAttempt) => {
+				// Solo la primera vez que aparece cada bandera, y "otra vez" es el
+				// único lapso real: `calculateNextReview` reinicia las repeticiones
+				// justamente ahí y no en "difícil".
+				if (isFirstAttempt && gradeValue !== "again") {
+					correctAnswersRef.current += 1;
+				}
 
-			// Sin `markPracticed`: la práctica diaria es un scope aparte del
-			// de continentes, y no debe contar como "practicado hoy" para el
-			// candado de continentes.
-			gradeCountryReview(code, gradeValue, gameType);
-		},
-		onFinish: () =>
-			onComplete({
-				totalCountries: countryCodes.length,
-				correctAnswers: correctAnswersRef.current,
-				elapsedMs: Date.now() - startTimeRef.current,
-			}),
-	});
+				// Sin `markPracticed`: la práctica diaria es un scope aparte del
+				// de continentes, y no debe contar como "practicado hoy" para el
+				// candado de continentes.
+				gradeCountryReview(code, gradeValue, gameType);
+			},
+			onFinish: () =>
+				onComplete({
+					totalCountries: countryCodes.length,
+					correctAnswers: correctAnswersRef.current,
+					elapsedMs: Date.now() - startTimeRef.current,
+				}),
+		});
 
 	const currentCountry = countries.find(
 		(country) => country.code === currentCode,

@@ -11,7 +11,12 @@ import type { Country } from "@/types/country";
  * - "context": país del mismo continente que ya se sabe, mostrado atenuado
  *   como referencia en la tarjeta cloze (no es el objetivo de esta tarjeta).
  */
-export type BoardSlotState = "hidden" | "revealed" | "target" | "missed" | "context";
+export type BoardSlotState =
+	| "hidden"
+	| "revealed"
+	| "target"
+	| "missed"
+	| "context";
 
 interface BoardSlotProps {
 	country: Country;
@@ -34,7 +39,8 @@ const STATE_CLASSES: Record<BoardSlotState, string> = {
 	hidden: "border-surface-border bg-surface-hover",
 	revealed: "border-success bg-success-soft text-surface-soft",
 	context: "border-surface-border bg-surface text-text-placeholder",
-	target: "border-primary bg-primary-soft text-surface-soft ring-2 ring-primary",
+	target:
+		"border-primary bg-primary-soft text-surface-soft ring-2 ring-primary",
 	missed: "border-danger bg-danger-soft text-surface-soft",
 };
 
@@ -124,10 +130,7 @@ function renderContent(
 			return (
 				<>
 					<span aria-hidden="true">{country.name}</span>
-					<Xmark
-						className="size-3.5 shrink-0 text-danger"
-						aria-hidden="true"
-					/>
+					<Xmark className="size-3.5 shrink-0 text-danger" aria-hidden="true" />
 					<span className="sr-only">{country.name}, no encontrado</span>
 				</>
 			);

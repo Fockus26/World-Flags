@@ -61,7 +61,10 @@ export function GameTypeToggle({
 					aria-hidden="true"
 					className="absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] transition-transform duration-200 ease-in-out"
 					style={{
-						transform: selectedIndex === 1 ? "translateX(calc(100% + 0.5rem))" : "translateX(0)",
+						transform:
+							selectedIndex === 1
+								? "translateX(calc(100% + 0.5rem))"
+								: "translateX(0)",
 					}}
 				/>
 
