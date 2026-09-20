@@ -76,9 +76,9 @@ El código usa además breakpoints arbitrarios `min-[30rem]`, `min-[43rem]`,
 
 ## Git
 
-- Nada se commitea sin aprobación explícita del dueño.
-- Contra `main`: merge `--no-ff`, **sin push**.
-- Nada destructivo.
+- Todo llega a `main` por Pull Request; el dueño revisa y mergea (squash).
+- Nunca push directo a `main` ni merge de PRs por parte de un agente.
+- Nada destructivo. Detalle en `CLAUDE.md` → "Cómo se trabaja aquí".
 
 ## Reglas específicas de este proyecto
 

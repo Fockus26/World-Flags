@@ -13,13 +13,26 @@ cronometrado ("rush") con ranking público, y alcance de práctica flexible
 ## Antes de tocar código, lee en este orden
 
 1. `context/PROJECT_CONTEXT.md` — qué es, stack, alcance
-2. `context/CURRENT_PHASE.md` — dónde quedó todo y qué está abierto
+2. `context/CURRENT_PHASE.md` — dónde quedó todo y qué está abierto *(local)*
 3. `context/DESIGN_RULES.md` — lo que no se negocia
-4. `context/GIT_STATE.md` — cuál es la rama base ahora mismo
-5. `context/DECISIONS_INDEX.md` — buscador de decisiones ya tomadas (no las re-litigues)
+4. `context/DECISIONS_INDEX.md` — buscador de decisiones ya tomadas (no las re-litigues)
 
-Detalle técnico más profundo en `docs/` (estado, tokens, componentes) y en el
-`README.md`.
+Detalle técnico más profundo en `docs/` (estado, tokens, componentes), en el
+`README.md` y en `CONTRIBUTING.md`.
+
+### Qué está en el repo y qué vive solo en local
+
+En git solo están los documentos **fijos** de `context/`: `PROJECT_CONTEXT`,
+`DESIGN_RULES`, `COLORS`, `DESIGN_TOKENS`, `TYPOGRAPHY`, `DECISIONS_INDEX` y `decisions/`.
+
+Son **locales** (gitignored) y no existen en un checkout limpio ni en un worktree nuevo:
+`CURRENT_PHASE.md`, `CONTENT_CHECKLIST.md`, los inventarios (`*_INVENTORY.md`),
+`PHASE_LOG/`, `plans/` (incluidos los diseños de Claude Design, `*.dc.html`) y todo
+`supabase/` salvo su `README.md` (esquema SQL y edge functions son privados).
+Si trabajas en un worktree y te faltan, léelos (y actualízalos) en la carpeta principal
+del repo: `C:\Users\Admin\Documents\Work\world-flags\`. Nunca los agregues a git
+(ni con `git add -f`). `GIT_STATE.md` quedó obsoleto con el flujo de PRs: el estado
+de las ramas es `gh pr list`.
 
 ---
 
@@ -43,7 +56,7 @@ Detalle técnico más profundo en `docs/` (estado, tokens, componentes) y en el
 bun install
 bun run build          # sí puedes correr esto
 bunx astro check       # typecheck — sí
-bunx biome check ./src # lint — sí
+bunx biome check ./src # lint — sí (hoy src/ trae errores previos; en CI no bloquea)
 bun run test:e2e       # Playwright (necesita el server corriendo)
 ```
 
@@ -59,17 +72,32 @@ de HeroUI, Astro, React Aria, Supabase o Tailwind — cambian rápido.
 
 Una unidad a la vez (un componente, una pantalla, un flujo, un fix acotado).
 
+Todo cambio llega a `main` **por Pull Request**. `main` está protegida.
+
 ```
-[git-flow: rama]  →  implementar  →  [skill a11y]  →  [skill seo si aplica]
-   →  bunx astro check + bun run build  →  actualizar context/
-   →  PAUSA: el dueño revisa y aprueba  →  commit (Conventional Commits) → merge
+git switch main && git pull  →  git switch -c <tipo>/<descripcion>
+   →  implementar  →  [skill a11y]  →  [skill seo si aplica]
+   →  bunx astro check + bunx biome check ./src + bun run build
+   →  actualizar context/ (local)  →  commit(s) Conventional Commits en la rama
+   →  git push -u origin <rama>  →  gh pr create (rellena la plantilla)
+   →  PAUSA: el dueño revisa el PR y lo mergea en GitHub (squash)
 ```
 
-- **Nada se commitea sin aprobación explícita del dueño.**
-- Rama base = lo que diga `context/GIT_STATE.md` (hoy: `main`, sin rama madre).
-- Contra `main` se mergea con `--no-ff` y **no se hace push** — el dueño decide cuándo.
+- Base siempre `main`. Una unidad = una rama = un PR.
+- En **tu rama** puedes commitear y hacer push sin pedir permiso: la aprobación del
+  dueño es la revisión del PR. `git add` solo de los archivos de la unidad, nunca `-A` a ciegas.
+- **Nunca** hagas push a `main`, **nunca** ejecutes `gh pr merge` ni actives auto-merge.
+  El merge lo hace el dueño.
+- Si el dueño pide cambios en el PR: nuevos commits en la misma rama + push. Sin amend
+  ni force-push sobre commits ya empujados.
+- Tras el merge: `git switch main && git pull`. Ojo: si el PR dejó de trackear archivos,
+  el pull los borra del disco — cópialos fuera del repo antes y restáuralos después.
 - Nada destructivo: sin `reset --hard`, sin `push --force`, sin reescribir historia,
   sin borrar ramas ajenas.
+- **Sobre la skill global `git-flow`:** en este repo aplican sus nombres de rama
+  (`feat fix refactor style docs chore perf test design a11y seo`), Conventional Commits
+  y prohibiciones. **No aplican** su pausa antes del commit (2.2), su merge local (2.4)
+  ni su regla de push (2.5): los reemplaza el flujo de PR de arriba. Tampoco `GIT_STATE.md`.
 
 ### Puertas de calidad (skills)
 
@@ -77,7 +105,7 @@ Una unidad a la vez (un componente, una pantalla, un flujo, un fix acotado).
 |---|---|
 | `a11y` | Siempre que se toque UI, antes de pedir revisión. Objetivo axe-core limpio + checklist manual |
 | `seo` | Al cerrar contenido/página. Ojo: `SITE_URL` sigue siendo un placeholder (ver `CONTENT_CHECKLIST.md`) |
-| `git-flow` | Al abrir y al cerrar cada unidad |
+| `git-flow` | Al abrir y al cerrar cada unidad (con las excepciones de PR de arriba) |
 
 ### Subagentes de QA
 
