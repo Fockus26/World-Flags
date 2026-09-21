@@ -42,8 +42,20 @@ export function useServiceWorkerUpdate() {
 			);
 		});
 
+		// Solo recarga un cambio que *reemplaza* a un controlador anterior (el
+		// botón "Actualizar" de esta pestaña o de otra). En la primera visita
+		// la página arranca sin controlador y el `clients.claim()` de
+		// `sw.js` también dispara `controllerchange`, pero ahí no hay versión
+		// vieja: recargar solo haría perder lo que el usuario empezara. Se
+		// sigue el controlador en vivo, no el del montaje, para que tras esa
+		// primera toma un "Actualizar" en la misma sesión sí recargue.
+		let controller = navigator.serviceWorker.controller;
 		let reloaded = false;
 		function handleControllerChange() {
+			const previous = controller;
+			controller = navigator.serviceWorker.controller;
+			if (!previous) return;
+
 			// `controllerchange` puede dispararse más de una vez en teoría;
 			// una sola recarga evita un bucle.
 			if (reloaded) return;
