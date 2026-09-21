@@ -25,6 +25,7 @@ import type {
 	UserProfile,
 	UserStats,
 } from "@/types/progress";
+import { isCatalogCountryCode } from "@/utils/country-catalog";
 import { getLocalDateString } from "@/utils/date";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
 import { calculateNextReview, isDue } from "@/utils/spaced-repetition";
@@ -1115,11 +1116,14 @@ export function isCountryLearned(review: ReviewState | null): boolean {
 	return review !== null && review.repetitions > 0;
 }
 
+/** Solo cuenta países del catálogo actual: un código que no conoce no puede dar "196/195 · 101 %". */
 export function countLearnedCountries(
 	history: CountriesLearningHistory,
 ): number {
-	return Object.values(history).filter(({ review }) => isCountryLearned(review))
-		.length;
+	return Object.entries(history).filter(
+		([code, { review }]) =>
+			isCatalogCountryCode(code) && isCountryLearned(review),
+	).length;
 }
 
 export function calculateLearningProgress(
@@ -1259,8 +1263,14 @@ export function saveReviewResults(
 	return updatedData;
 }
 
+/**
+ * Solo países del catálogo actual: un código que no conoce inflaría
+ * "Práctica diaria (N)" y, al llegar a la cabeza de la cola, no habría
+ * bandera ni nombre que mostrar.
+ */
 export function getDueCountries(history: CountriesLearningHistory): string[] {
-	return Object.keys(history).filter((code) =>
-		isDue(history[code]?.review ?? null),
+	return Object.keys(history).filter(
+		(code) =>
+			isCatalogCountryCode(code) && isDue(history[code]?.review ?? null),
 	);
 }

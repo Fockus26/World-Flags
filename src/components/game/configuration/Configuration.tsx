@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { IconButton } from "@/components/ui/IconButton";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { countries } from "@/data/countries";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
 import { useGame } from "@/hooks/useGame";
@@ -17,6 +18,7 @@ import {
 	DEFAULT_TIMER_DURATION,
 } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
+import { isCatalogCountryCode } from "@/utils/country-catalog";
 import {
 	calculateLearningProgress,
 	countLearnedCountries,
@@ -32,6 +34,9 @@ import { LeaderboardModal } from "./LeaderboardModal";
 import { RegionSelector } from "./RegionSelector";
 import { StreakPanel } from "./StreakPanel";
 import { UserSummary } from "./UserSummary";
+
+const EMPTY_SCOPE_MESSAGE =
+	"Elige al menos un continente o algún país para practicar.";
 
 export function Configuration() {
 	const {
@@ -70,6 +75,9 @@ export function Configuration() {
 		learningData.lastConfiguration?.gameType ?? DEFAULT_GAME_TYPE;
 	const scope = learningData.lastConfiguration?.scope ?? DEFAULT_SCOPE;
 	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
+	// El selector recibe `customCodes` entero (los devuelve intactos al
+	// confirmar); el contador del 📍 solo cuenta los que existen en el catálogo.
+	const customCatalogCount = customCodes.filter(isCatalogCountryCode).length;
 
 	// El progreso mostrado (aprendidos, puntajes, mejores tiempos) es el del
 	// juego seleccionado, no siempre el de Banderas — de ahí `toGameView`.
@@ -77,7 +85,7 @@ export function Configuration() {
 	const learnedCountries = countLearnedCountries(gameView.countryHistory);
 	const learningProgress = calculateLearningProgress(
 		gameView.countryHistory,
-		196,
+		countries.length,
 	);
 
 	const dueCount = getDueCountries(gameView.countryHistory).length;
@@ -86,9 +94,7 @@ export function Configuration() {
 		event.preventDefault();
 
 		if (isEmptyScope(scope)) {
-			setBlockedMessage(
-				"Elige al menos un continente o algún país para practicar.",
-			);
+			setBlockedMessage(EMPTY_SCOPE_MESSAGE);
 			return;
 		}
 
@@ -103,8 +109,12 @@ export function Configuration() {
 		});
 
 		if (!started) {
+			// En competitivo `startGame` solo se niega si el scope no resuelve
+			// a ningún país: "ya practicaste hoy" no aplica ahí.
 			setBlockedMessage(
-				`Ya practicaste ${getScopeLabel(scope)} hoy en modo práctica. Vuelve mañana o elige otros países.`,
+				mode === "practice"
+					? `Ya practicaste ${getScopeLabel(scope)} hoy en modo práctica. Vuelve mañana o elige otros países.`
+					: EMPTY_SCOPE_MESSAGE,
 			);
 			return;
 		}
@@ -154,7 +164,7 @@ export function Configuration() {
 						accountLabel={accountLabel}
 						learningProgress={learningProgress}
 						learnedCountries={learnedCountries}
-						totalCountries={196}
+						totalCountries={countries.length}
 						activeDays={learningData.stats.activeDays}
 						isStreakOpen={isStreakOpen}
 						onToggleStreak={() => setIsStreakOpen((current) => !current)}
@@ -211,8 +221,8 @@ export function Configuration() {
 
 					<Tooltip
 						label={
-							customCodes.length > 0
-								? `${customCodes.length} país${customCodes.length === 1 ? "" : "es"} elegidos a mano`
+							customCatalogCount > 0
+								? `${customCatalogCount} país${customCatalogCount === 1 ? "" : "es"} elegidos a mano`
 								: "Elegir países específicos"
 						}
 						position="left"
@@ -229,12 +239,12 @@ export function Configuration() {
 								📍
 							</IconButton>
 
-							{customCodes.length > 0 && (
+							{customCatalogCount > 0 && (
 								<span
 									aria-hidden="true"
 									className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-black text-primary-soft"
 								>
-									{customCodes.length}
+									{customCatalogCount}
 								</span>
 							)}
 						</span>

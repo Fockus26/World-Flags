@@ -130,11 +130,16 @@ export function useGame() {
 
 		let effectiveConfiguration = configuration;
 
+		const requestedCodes = getScopeCountryCodes(countries, configuration.scope);
+
+		// En los dos modos: un scope que no resuelve a ningún país del
+		// catálogo (p. ej. solo países sueltos con códigos que ya no conoce)
+		// montaría una sesión sin nada que mostrar.
+		if (requestedCodes.length === 0) {
+			return false;
+		}
+
 		if (configuration.mode === "practice") {
-			const requestedCodes = getScopeCountryCodes(
-				countries,
-				configuration.scope,
-			);
 			const effectiveCodes = getUnpracticedCodesToday(
 				toGameView(getCurrentLearningData(), configuration.gameType),
 				requestedCodes,
@@ -369,9 +374,12 @@ export function useGame() {
 	};
 
 	const startDailyPractice = (gameType: GameType) => {
+		// `getDueCountries` ya descarta los códigos fuera del catálogo.
 		const dueCodes = getDueCountries(
 			toGameView(learningData, gameType).countryHistory,
 		);
+
+		if (dueCodes.length === 0) return;
 
 		dispatch(setDailyPracticeQueue({ gameType, codes: dueCodes }));
 	};

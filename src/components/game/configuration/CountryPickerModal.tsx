@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { countries } from "@/data/countries";
 import { motionVariants } from "@/styles/animations";
 import { REGION_LABELS, REGIONS, type Region } from "@/types/country";
+import { isCatalogCountryCode } from "@/utils/country-catalog";
 
 interface CountryPickerModalProps {
 	isOpen: boolean;
@@ -158,6 +159,13 @@ export function CountryPickerModal({
 		});
 	}
 
+	// `selected` conserva los códigos que el catálogo no conoce (vienen del
+	// scope guardado y vuelven intactos en `onConfirm`), pero no se cuentan:
+	// no hay casilla que los muestre.
+	const selectedCatalogCount = [...selected].filter(
+		isCatalogCountryCode,
+	).length;
+
 	return (
 		<Modal
 			isOpen={isOpen}
@@ -186,13 +194,13 @@ export function CountryPickerModal({
 					ellos, no todo el continente. Los ya practicados hoy aparecen
 					bloqueados.
 				</p>
-				{selected.size > 0 && (
+				{selectedCatalogCount > 0 && (
 					<button
 						type="button"
 						onClick={clearAll}
 						className="shrink-0 cursor-pointer whitespace-nowrap rounded-sm px-1 text-[0.78rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
 					>
-						Limpiar todo ({selected.size})
+						Limpiar todo ({selectedCatalogCount})
 					</button>
 				)}
 			</div>
@@ -288,7 +296,8 @@ export function CountryPickerModal({
 					Cancelar
 				</Button>
 				<Button type="button" color="primary" onClick={handleConfirm}>
-					Usar {selected.size} país{selected.size === 1 ? "" : "es"}
+					Usar {selectedCatalogCount} país
+					{selectedCatalogCount === 1 ? "" : "es"}
 				</Button>
 			</div>
 		</Modal>

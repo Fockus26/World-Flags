@@ -9,6 +9,7 @@ import { useGame } from "@/hooks/useGame";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import type { GameType } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
+import { isCatalogCountryCode } from "@/utils/country-catalog";
 import { toGameView } from "@/utils/learning-storage";
 import { CountryClozeCard } from "./countries/CountryClozeCard";
 
@@ -40,10 +41,17 @@ export function DailyPractice({
 	const correctAnswersRef = useRef(0);
 	const startTimeRef = useRef(Date.now());
 	const slotRefs = useRef<Map<string, HTMLLIElement>>(new Map());
+	// La cola ya llega sin códigos fuera del catálogo (`getDueCountries`),
+	// pero se filtra otra vez aquí: un código sin bandera ni nombre en la
+	// cabeza de la cola dejaba la pantalla en blanco, sin cabecera ni "Salir".
+	// Se congela al montar, igual que la cola de `usePracticeQueue`.
+	const [playableCodes] = useState(() =>
+		countryCodes.filter(isCatalogCountryCode),
+	);
 
 	const { currentCode, totalCount, completedCount, completedCodes, grade } =
 		usePracticeQueue({
-			initialCodes: countryCodes,
+			initialCodes: playableCodes,
 			countryHistory: toGameView(learningData, gameType).countryHistory,
 			onGrade: (code, gradeValue, isFirstAttempt) => {
 				// Solo la primera vez que aparece cada bandera, y "otra vez" es el
@@ -60,7 +68,7 @@ export function DailyPractice({
 			},
 			onFinish: () =>
 				onComplete({
-					totalCountries: countryCodes.length,
+					totalCountries: playableCodes.length,
 					correctAnswers: correctAnswersRef.current,
 					elapsedMs: Date.now() - startTimeRef.current,
 				}),
@@ -98,7 +106,16 @@ export function DailyPractice({
 		// biome-ignore lint/correctness/useExhaustiveDependencies: handleGrade estabilizado por React Compiler (ver docs/components.md)
 	}, [isRevealed, isExitModalOpen, handleGrade]);
 
-	if (!currentCode || !currentCountry) {
+	// Nada que practicar (la cola quedó vacía tras filtrar): de vuelta a la
+	// configuración en vez de una pantalla en blanco. Sale por `onAbandon`,
+	// no por `onComplete`: no hubo sesión que registrar.
+	const hasCard = currentCountry !== undefined;
+
+	useEffect(() => {
+		if (!hasCard) onAbandon();
+	}, [hasCard, onAbandon]);
+
+	if (!currentCountry) {
 		return null;
 	}
 

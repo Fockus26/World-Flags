@@ -1,4 +1,4 @@
-const CACHE_NAME = "banderas-cache-v2";
+const CACHE_NAME = "banderas-cache-v3";
 const OFFLINE_URL = "/";
 
 // Sin `skipWaiting()` automático a propósito: así el service worker nuevo se

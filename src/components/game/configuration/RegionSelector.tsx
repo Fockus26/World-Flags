@@ -1,4 +1,5 @@
 import { Fieldset } from "@/components/ui/Fieldset";
+import { countries } from "@/data/countries";
 import {
 	type GameMode,
 	type PracticeRegion,
@@ -97,7 +98,7 @@ export function RegionSelector({
 				<RegionOption
 					value="world"
 					label="Todo el mundo"
-					countryCount={196}
+					countryCount={countries.length}
 					score={
 						mode === "practice" ? calculateWorldAverage(regionGameScores) : null
 					}
