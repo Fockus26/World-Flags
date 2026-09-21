@@ -13,10 +13,28 @@ import {
 } from "@/utils/cloud-storage";
 
 import {
+	applyReviewsSince,
 	clearLearningData,
 	createDefaultLearningData,
 	getLearningData,
+	mergeLearningData,
 } from "@/utils/learning-storage";
+
+/**
+ * Espera antes de cada reintento de una sincronización fallida (el último
+ * valor se repite mientras siga fallando). Además se reintenta en cuanto
+ * vuelve la red (`online`) y con cada evento de Supabase Auth (D044).
+ */
+const SYNC_RETRY_DELAYS_MS = [5_000, 15_000, 30_000, 60_000];
+
+/** Una sincronización de la cuenta falló y se juega en modo `local`. */
+interface FailedSync {
+	userId: string;
+	/** Inicio del primer intento: lo revisado desde entonces es de esta cuenta (D046). */
+	since: string;
+	/** Fallos seguidos: elige la espera en `SYNC_RETRY_DELAYS_MS`. */
+	failures: number;
+}
 
 export function GameEffects() {
 	const dispatch = useAppDispatch();
@@ -28,6 +46,14 @@ export function GameEffects() {
 	const { user, status } = useAuth();
 
 	const hydratedUserRef = useRef<string | null>(null);
+
+	/**
+	 * Sobrevive a las re-ejecuciones del efecto de hidratación (`user` cambia
+	 * de identidad con cada evento de Supabase Auth): distingue un reintento,
+	 * que no vuelve a `loading` ni reemplaza los datos con los que ya se está
+	 * jugando, de un primer intento.
+	 */
+	const failedSyncRef = useRef<FailedSync | null>(null);
 
 	/** `status` del render anterior: distingue un logout real de un invitado normal. */
 	const previousStatusRef = useRef<typeof status | null>(null);
@@ -85,6 +111,8 @@ export function GameEffects() {
 
 			hydratedUserRef.current = null;
 
+			failedSyncRef.current = null;
+
 			/**
 			 * Logout real (authenticated -> guest): mientras se estuvo
 			 * autenticado las acciones del juego persistieron los datos del
@@ -120,31 +148,82 @@ export function GameEffects() {
 
 		let cancelled = false;
 
+		let isSyncing = false;
+
+		let retryTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+		/**
+		 * Aborta la sincronización en vuelo si el efecto se limpia (logout,
+		 * otro usuario): una respuesta tardía ya no sube nada.
+		 */
+		const controller = new AbortController();
+
 		const hydrateAuthenticatedUser = async () => {
 			clearTimeout(pushTimeoutRef.current);
 
-			dispatch(setHydrationStatus("loading"));
+			clearTimeout(retryTimeoutId);
+
+			const failedSync =
+				failedSyncRef.current?.userId === user.id
+					? failedSyncRef.current
+					: null;
+
+			const since = failedSync?.since ?? new Date().toISOString();
+
+			// En un reintento ya se está jugando sobre los datos locales
+			// (`local`): volver a `loading` no aportaría nada.
+			if (!failedSync) {
+				dispatch(setHydrationStatus("loading"));
+			}
+
+			isSyncing = true;
+
+			/**
+			 * Data stored locally before login.
+			 *
+			 * This is the guest data that may be transferred
+			 * if the account has no existing progress.
+			 */
+			const localData = getLearningData();
 
 			try {
-				/**
-				 * Data stored locally before login.
-				 *
-				 * This is the guest data that may be transferred
-				 * if the account has no existing progress.
-				 */
-				const localData = getLearningData();
-
 				/**
 				 * syncOnLogin:
 				 *
 				 * - account with progress -> remote wins
 				 * - account without progress -> guest data transfers
 				 */
-				const authenticatedData = await syncOnLogin(user.id, localData);
+				const syncedData = await syncOnLogin(
+					user.id,
+					localData,
+					controller.signal,
+				);
 
 				if (cancelled) {
 					return;
 				}
+
+				/**
+				 * Lo jugado mientras la sincronización estaba en vuelo ya está
+				 * en `localStorage` pero no en `syncedData`: reemplazar sin más
+				 * lo borraría. Y lo revisado en modo `local` perdería contra la
+				 * nube en `mergeLearningData` (D020) aunque sea de esta misma
+				 * cuenta (D046).
+				 */
+				const latestLocalData = getLearningData();
+
+				const mergedData =
+					JSON.stringify(latestLocalData) === JSON.stringify(localData)
+						? syncedData
+						: mergeLearningData(syncedData, latestLocalData);
+
+				const authenticatedData = applyReviewsSince(
+					mergedData,
+					latestLocalData,
+					since,
+				);
+
+				failedSyncRef.current = null;
 
 				/**
 				 * IMPORTANT:
@@ -167,22 +246,53 @@ export function GameEffects() {
 				console.error("Failed to hydrate authenticated user:", error);
 
 				/**
-				 * Fallback to local data if Supabase fails.
+				 * Sin la nube se sigue jugando sobre `localStorage`, pero en
+				 * `local`, NUNCA en `ready`: `ready` habilita el push, que haría
+				 * upsert de la fila entera con esta copia — vieja si se jugó en
+				 * otro dispositivo, o vacía tras un logout (que la borra) — y
+				 * pisaría el progreso de la cuenta (D044). En un reintento no se
+				 * reemplaza nada: ya se está jugando sobre esos datos.
 				 */
-				const localData = getLearningData();
+				if (!failedSync) {
+					dispatch(setLearningData(getLearningData()));
+				}
 
-				dispatch(setLearningData(localData));
+				dispatch(setHydrationStatus("local"));
 
-				hydratedUserRef.current = user.id;
+				const failures = (failedSync?.failures ?? 0) + 1;
 
-				dispatch(setHydrationStatus("ready"));
+				failedSyncRef.current = { userId: user.id, since, failures };
+
+				retryTimeoutId = setTimeout(
+					() => void hydrateAuthenticatedUser(),
+					SYNC_RETRY_DELAYS_MS[
+						Math.min(failures, SYNC_RETRY_DELAYS_MS.length) - 1
+					],
+				);
+			} finally {
+				isSyncing = false;
 			}
 		};
+
+		/** Volver a tener red es la mejor señal para reintentar: no se espera al temporizador. */
+		const retryWhenOnline = () => {
+			if (!isSyncing && failedSyncRef.current?.userId === user.id) {
+				void hydrateAuthenticatedUser();
+			}
+		};
+
+		window.addEventListener("online", retryWhenOnline);
 
 		void hydrateAuthenticatedUser();
 
 		return () => {
 			cancelled = true;
+
+			controller.abort();
+
+			clearTimeout(retryTimeoutId);
+
+			window.removeEventListener("online", retryWhenOnline);
 		};
 	}, [status, user, dispatch]);
 

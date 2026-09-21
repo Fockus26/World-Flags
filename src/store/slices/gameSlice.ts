@@ -11,7 +11,17 @@ import type { UserLearningData } from "@/types/progress";
 
 import { DEFAULT_DATA } from "@/utils/learning-storage";
 
-export type HydrationStatus = "idle" | "loading" | "ready";
+/**
+ * - `idle`: arranque; aún no se hidrató nada (el store tiene `DEFAULT_DATA`).
+ * - `loading`: sincronizando con Supabase la cuenta autenticada.
+ * - `local`: se muestran los datos de `localStorage` sin haberlos contrastado
+ *   con la nube, porque la sincronización de la cuenta falló o no respondió
+ *   a tiempo (`GameEffects` la reintenta). Se puede jugar, pero el push a
+ *   Supabase, el ranking y los logros siguen bloqueados como en `idle`: subir
+ *   esa copia pisaría el progreso de la cuenta (D044).
+ * - `ready`: los datos del usuario actual ya están en el store.
+ */
+export type HydrationStatus = "idle" | "loading" | "local" | "ready";
 
 export interface ActiveGame {
 	/** Identifica esta partida en particular (no la configuración): fuerza a

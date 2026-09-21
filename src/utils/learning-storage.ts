@@ -28,7 +28,11 @@ import type {
 import { isCatalogCountryCode } from "@/utils/country-catalog";
 import { getLocalDateString } from "@/utils/date";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
-import { calculateNextReview, isDue } from "@/utils/spaced-repetition";
+import {
+	calculateNextReview,
+	isDue,
+	pickMoreRecentReview,
+} from "@/utils/spaced-repetition";
 
 const STORAGE_KEY = "world-flags-learning-data";
 
@@ -900,6 +904,81 @@ export function mergeLearningData(
 			remote.dailyReminder,
 			local.dailyReminder,
 		),
+	};
+}
+
+/** `applyReviewsSince` para un solo juego. Devuelve `base` tal cual si no cambia nada. */
+function applyHistoryReviewsSince(
+	base: CountriesLearningHistory,
+	local: CountriesLearningHistory,
+	since: string,
+): CountriesLearningHistory {
+	let merged = base;
+
+	for (const [code, entry] of Object.entries(local)) {
+		const localReview = entry.review;
+
+		if (!localReview || localReview.lastReviewedAt < since) continue;
+
+		// La más reciente, no la local a ciegas: otro dispositivo pudo revisar
+		// ese mismo país después, con la nube funcionando.
+		const review = pickMoreRecentReview(
+			base[code]?.review ?? null,
+			localReview,
+		);
+
+		if (review === base[code]?.review) continue;
+
+		if (merged === base) merged = { ...base };
+		merged[code] = { ...base[code], review };
+	}
+
+	return merged;
+}
+
+/**
+ * Revisiones hechas en modo `local`: la cuenta está autenticada pero su
+ * sincronización falló, y se juega sobre `localStorage` sin subir nada.
+ * Cuando la sincronización se recupera, `mergeLearningData` da la razón a la
+ * nube en `countryHistory` (D020) y esas revisiones se perderían. Pero todo lo
+ * revisado desde `since` (el primer intento de sincronizar) lo hizo esta
+ * cuenta, así que pisa a `base` país por país, en los dos juegos, salvo que
+ * la nube tenga una revisión aún más reciente (D046).
+ *
+ * Solo `countryHistory`: `regionGameScores`, el perfil y la última
+ * configuración de ese rato siguen cediendo ante la nube (sin marca de
+ * tiempo, no hay forma de saber qué parte es de ese rato). En un login de
+ * invitado lo revisado por el invitado es anterior a `since`, así que para él
+ * D020 sigue igual.
+ */
+export function applyReviewsSince(
+	base: UserLearningData,
+	local: UserLearningData,
+	since: string,
+): UserLearningData {
+	const countryHistory = applyHistoryReviewsSince(
+		base.countryHistory,
+		local.countryHistory,
+		since,
+	);
+
+	const countriesHistory = applyHistoryReviewsSince(
+		base.countriesGame.countryHistory,
+		local.countriesGame.countryHistory,
+		since,
+	);
+
+	if (
+		countryHistory === base.countryHistory &&
+		countriesHistory === base.countriesGame.countryHistory
+	) {
+		return base;
+	}
+
+	return {
+		...base,
+		countryHistory,
+		countriesGame: { ...base.countriesGame, countryHistory: countriesHistory },
 	};
 }
 

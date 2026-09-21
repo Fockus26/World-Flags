@@ -12,6 +12,7 @@
   - `ThemeEffects.tsx` — persistencia de tema + listener de `prefers-color-scheme`
 - Persistencia real (localStorage): `src/utils/learning-storage.ts` — única puerta de entrada a `window.localStorage`
 - Sync con Supabase: `src/utils/cloud-storage.ts` (`fetchRemoteLearningData`/`pushLearningData`/``syncOnLogin`), invocado desde `GameEffects.tsx`
+  - `syncOnLogin` se rinde a los 10 s y acepta una `AbortSignal` (D045). Si falla, `GameEffects` deja `hydrationStatus = "local"` (**nunca `ready`**: habilitaría el push, que haría upsert de la fila entera con la copia de `localStorage`) y reintenta a los 5/15/30/60 s, con `online` y con cada evento de Auth. Al recuperarse, las revisiones hechas en `local` ganan por país (`applyReviewsSince`, D046). Ver `context/decisions/12-sync-fallida.md` (D044–D046)
 - Patrón para nuevos campos persistidos:
   1. Agregar campo a `UserLearningData` en `types/progress.ts`
   2. Default en `DEFAULT_DATA` + fallback en **`normalizeLearningData()`** (el normalizador exportado y compartido: lo usan tanto `getLearningData()` como `fetchRemoteLearningData()`, así que un campo nuevo se rellena venga de localStorage o de una fila vieja de Supabase). Ojo: una columna jsonb nueva llega como `{}`, no como `undefined`
