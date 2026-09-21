@@ -39,6 +39,10 @@ Clases: `rounded-sm/md/lg/xl/2xl` ya heredan estos valores. Modales HeroUI usan
 - Transiciones CSS propias: `duration-150` / `duration-180` / `duration-200` según componente.
 - `tw-animate-css` (viene con `@heroui/styles`): `animate-in fade-in-0 slide-in-from-*
   duration-200` para entradas de vista y paneles de tabs.
+- Skeleton (`ui/Skeleton.tsx`, D042): brillo de HeroUI (`skeleton 2s linear
+  infinite` en `::after`) + entrada `animate-in fade-in duration-200` que espera
+  `SKELETON_DELAY_MS` (300 ms) para que una carga rápida no parpadee. Con
+  movimiento reducido: sin brillo, misma espera, fundido de 0,01 ms.
 - `src/styles/animations.ts` (`motionVariants`, `motionTransition`) — **legado de
   framer-motion, mayormente inerte**. No lo uses para nada nuevo. Ver
   `decisions/03-animaciones.md`.
