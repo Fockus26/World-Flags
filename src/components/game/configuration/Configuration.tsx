@@ -114,6 +114,12 @@ export function Configuration() {
 
 	return (
 		<>
+			{/* La sección es el único contenedor con scroll: todo va a su alto
+			    natural y, si no cabe (pantallas bajas, móvil en horizontal o
+			    el panel de racha abierto), se scrollea la tarjeta entera. Si
+			    cabe, `max-h-full` no llega a actuar y no aparece barra. Ver
+			    el comentario de `RegionSelector` sobre por qué no es el grid
+			    de continentes el que hace scroll. */}
 			<motion.section
 				className="
 					flex
@@ -122,7 +128,8 @@ export function Configuration() {
 					max-h-full
 					flex-col
 					gap-4
-					overflow-hidden
+					overflow-x-hidden
+					overflow-y-auto
 					border
 					border-surface-border
 					bg-surface
@@ -274,8 +281,6 @@ export function Configuration() {
 				<form
 					className="
 						flex
-						min-h-0
-						flex-1
 						flex-col
 						gap-4
 					"
