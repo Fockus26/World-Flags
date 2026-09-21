@@ -9,6 +9,7 @@ import {
 } from "@/types/country";
 import {
 	calculateRegionAverage,
+	calculateWorldAverage,
 	formatElapsedTime,
 } from "@/utils/learning-storage";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
@@ -97,7 +98,10 @@ export function RegionSelector({
 					value="world"
 					label="Todo el mundo"
 					countryCount={196}
-					score={null}
+					score={
+						mode === "practice" ? calculateWorldAverage(regionGameScores) : null
+					}
+					scoreTooltipLabel="Media de tus continentes, ponderada por número de países"
 					bestTimeLabel={
 						mode === "competitive" && regionBestTimes.world !== undefined
 							? formatElapsedTime(regionBestTimes.world)
