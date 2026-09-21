@@ -37,6 +37,7 @@
 | danger | `#e0435f` · soft `#fde8ec` | incorrecto, "Otra vez", "Cerrar"/"Abandonar" |
 | neutral | `#57536b` · soft `#eeedf6` | botones neutros, "Cancelar" |
 | overlay (`--overlay`) | `#ffffff` | **fondo** de modal/popover/tooltip de HeroUI (opaco) |
+| skeleton (`--surface-tertiary`) | = `surface-border` (`#e2dff1`) | relleno del `Skeleton` de HeroUI (al 70 %, brillo al 100 %). Puenteado con `var()`, no es un color nuevo — en oscuro sale `#34304a` solo (D043) |
 | backdrop (`--backdrop`) | `rgb(28 20 46 / 55%)` | scrim tras el modal |
 | btn-contained-fg | `#ffffff` | texto de botones `contained` (blanco en claro) |
 

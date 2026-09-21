@@ -9,6 +9,8 @@
   - `Providers.tsx` — envuelve la app en `<Provider store={store}>` + monta los 3 Effects
   - `AuthEffects.tsx` — listener de sesión de Supabase, despacha `setAuthState`
   - `GameEffects.tsx` — hidratación inicial desde localStorage, sync al iniciar sesión (`syncOnLogin`), limpieza al volver a invitado, push debounced a Supabase (800ms)
+    - `game.hydrationStatus`: `idle` (arranque, `DEFAULT_DATA`) → `loading` (sync de la cuenta) → `ready`; o `local` si Supabase Auth no resuelve en 2.5 s y se muestra `localStorage` sin confirmar. Push, logros y recordatorio solo corren en `ready`
+    - `game.hasHydratedOnce` (pegajoso) distingue la carga inicial de las re-hidrataciones (login, sync tras el fallback). La UI no lo lee a pelo: `useHydration()` → `isInitialLoad`, que decide el skeleton de la pantalla de inicio (D042, `context/decisions/11-skeleton-carga.md`)
   - `ThemeEffects.tsx` — persistencia de tema + listener de `prefers-color-scheme`
 - Persistencia real (localStorage): `src/utils/learning-storage.ts` — única puerta de entrada a `window.localStorage`
 - Sync con Supabase: `src/utils/cloud-storage.ts` (`fetchRemoteLearningData`/`pushLearningData`/``syncOnLogin`), invocado desde `GameEffects.tsx`

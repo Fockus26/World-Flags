@@ -1,4 +1,5 @@
 import { type CSSProperties, useId } from "react";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useTheme } from "@/hooks/useTheme";
 import { formatScore } from "@/utils/learning-storage";
@@ -29,8 +30,15 @@ interface RegionOptionProps {
 	 *  o "Todo el mundo"), para que todas las tarjetas del grid midan lo mismo
 	 *  en vez de saltar de alto según cuál se practicó. */
 	showPracticedLine?: boolean;
+	/** Carga inicial (D042): skeleton en el hueco de la nota y en la línea de
+	 *  `practicedLabel`, sin cambiar el alto de la tarjeta. El nombre y el
+	 *  número de países no dependen del progreso y se muestran igual. */
+	isLoading?: boolean;
 	className?: string;
 }
+
+/** Referencia invisible para el ancho del skeleton de la nota (D038). */
+const SCORE_SIZING_SAMPLE = `${formatScore(10)}/10`;
 
 export function RegionOption({
 	value,
@@ -43,6 +51,7 @@ export function RegionOption({
 	onChange,
 	practicedLabel,
 	showPracticedLine,
+	isLoading,
 	className,
 }: RegionOptionProps) {
 	const tooltipId = useId();
@@ -153,7 +162,13 @@ export function RegionOption({
 					</span>
 
 					<span className="flex shrink-0 items-center gap-1.5">
-						{score !== null && (
+						{isLoading && (
+							<Skeleton shape="line" className="text-xs font-black">
+								{SCORE_SIZING_SAMPLE}
+							</Skeleton>
+						)}
+
+						{!isLoading && score !== null && (
 							<Tooltip id={tooltipId} label={scoreTooltipLabel}>
 								<button
 									type="button"
@@ -215,7 +230,13 @@ export function RegionOption({
 						className="text-surface-soft text-[0.68rem] font-bold"
 						aria-hidden={!practicedLabel || undefined}
 					>
-						{practicedLabel ?? " "}
+						{isLoading ? (
+							<Skeleton shape="line" className="w-16">
+								{" "}
+							</Skeleton>
+						) : (
+							(practicedLabel ?? " ")
+						)}
 					</span>
 				)}
 			</span>
