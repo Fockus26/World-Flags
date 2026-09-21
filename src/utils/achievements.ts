@@ -1,7 +1,11 @@
 import { countries } from "@/data/countries";
 import { type GameType, REGIONS, type Region } from "@/types/country";
 import type { UserLearningData } from "@/types/progress";
-import { getCurrentStreak, isCountryLearned } from "@/utils/learning-storage";
+import {
+	countLearnedCountries,
+	getCurrentStreak,
+	isCountryLearned,
+} from "@/utils/learning-storage";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
 
 /**
@@ -90,10 +94,13 @@ const AMERICAS_REGIONS: Region[] = [
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 
+/**
+ * Solo países del catálogo actual (`countLearnedCountries` ya filtra): un
+ * código huérfano podría sellar "La vuelta al mundo" en falso, y por la
+ * invariante de arriba ese desbloqueo ya no tendría vuelta atrás.
+ */
 function countLearned(data: UserLearningData): number {
-	return Object.values(data.countryHistory).filter(({ review }) =>
-		isCountryLearned(review),
-	).length;
+	return countLearnedCountries(data.countryHistory);
 }
 
 function countLearnedInRegions(

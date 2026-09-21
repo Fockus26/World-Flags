@@ -5,6 +5,7 @@ import type {
 	Region,
 } from "@/types/country";
 import { REGION_LABELS } from "@/types/country";
+import { isCatalogCountryCode } from "@/utils/country-catalog";
 
 /** Resuelve un `PracticeScope` a la lista de países que le corresponde. */
 export function resolveScopeCountries(
@@ -58,11 +59,22 @@ export function getScopeRegionKey(scope: PracticeScope): PracticeRegion | null {
 	return getExactSingleRegion(scope);
 }
 
+/**
+ * Cuántos de los países sueltos del scope existen en el catálogo actual.
+ * `scope.countryCodes` se guarda tal cual (puede traer códigos que este
+ * catálogo no conoce, ver `country-catalog.ts`), pero `resolveScopeCountries`
+ * los ignora: contarlos daría un "1 país personalizado" fantasma, o un scope
+ * que parece no vacío y resuelve a cero países.
+ */
+function countCatalogCountryCodes(countryCodes: readonly string[]): number {
+	return countryCodes.filter(isCatalogCountryCode).length;
+}
+
 export function isEmptyScope(scope: PracticeScope): boolean {
 	return (
 		scope.type === "custom" &&
 		scope.regions.length === 0 &&
-		scope.countryCodes.length === 0
+		countCatalogCountryCodes(scope.countryCodes) === 0
 	);
 }
 
@@ -72,9 +84,9 @@ export function getScopeLabel(scope: PracticeScope): string {
 	}
 
 	const parts = scope.regions.map((region) => REGION_LABELS[region]);
+	const count = countCatalogCountryCodes(scope.countryCodes);
 
-	if (scope.countryCodes.length > 0) {
-		const count = scope.countryCodes.length;
+	if (count > 0) {
 		parts.push(
 			`${count} país${count === 1 ? "" : "es"} personalizado${count === 1 ? "" : "s"}`,
 		);

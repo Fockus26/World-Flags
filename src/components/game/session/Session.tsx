@@ -210,6 +210,17 @@ export function Session() {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [isPracticeMode, answerStatus, isExitModalOpen, isSkipPending]);
 
+	// Partida sin ningún país que mostrar: `startGame` ya no arranca un scope
+	// que no resuelve a ninguno, pero si llegara a pasar, de vuelta a la
+	// configuración en vez de una pantalla en blanco sin "Salir". Con
+	// `activeGame` a `null` (partida recién terminada, mostrando Resultados)
+	// no hay que tocar nada: `exitGame` también borraría `lastResult`.
+	const isEmptyGame = activeGame !== null && currentCountry === undefined;
+
+	useEffect(() => {
+		if (isEmptyGame) exitGame();
+	}, [isEmptyGame, exitGame]);
+
 	if (!activeGame || !currentCountry) {
 		return null;
 	}
