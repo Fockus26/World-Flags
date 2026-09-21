@@ -80,8 +80,9 @@ export function GameEffects() {
 	 * configurado), `status` se queda en "loading" para siempre y el invitado
 	 * ve su progreso vacío. Tras 2.5 s sin resolver, se hidrata desde
 	 * localStorage igualmente (si luego llega la sesión, el efecto de abajo
-	 * re-hidrata). No se toca `hydrationStatus` "ready" para no habilitar el
-	 * push a Supabase antes de tiempo.
+	 * re-hidrata). Se marca `local`, no `ready`: `ready` habilitaría el push a
+	 * Supabase antes de tiempo, pero sin ninguna marca la pantalla de inicio
+	 * se quedaría en skeleton para siempre (D042).
 	 */
 	useEffect(() => {
 		if (status !== "loading") {
@@ -90,6 +91,7 @@ export function GameEffects() {
 
 		const timeoutId = setTimeout(() => {
 			dispatch(setLearningData(getLearningData()));
+			dispatch(setHydrationStatus("local"));
 		}, 2500);
 
 		return () => clearTimeout(timeoutId);

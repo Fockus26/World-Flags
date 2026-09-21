@@ -33,10 +33,12 @@ navegador abandonaba el `fetch` (minutos).
   pero push, ranking, logros y recordatorio siguen bloqueados (todos comparan
   contra `"ready"`). `hydratedUserRef` **no** se fija: la cuenta sigue sin
   hidratar.
-- `local` es el mismo valor, con el mismo significado, que introduce PR #8
-  para el fallback de 2,5 s de Supabase Auth (datos de `localStorage` sin
-  contrastar con la nube, push bloqueado). Si ese PR entra antes, el
-  conflicto en `gameSlice.ts` es solo el comentario del tipo.
+- `local` es el mismo valor, con el mismo significado, que introdujo PR #8
+  (D042) para el fallback de 2,5 s de Supabase Auth: datos de `localStorage`
+  sin contrastar con la nube, push bloqueado. Como `local` también marca
+  `hasHydratedOnce`, una sync fallida quita el skeleton de la carga inicial
+  igual que antes lo hacía `ready`, y con el tope de D045 el skeleton ya no
+  puede durar más de ~10 s.
 - **Reintentos:** a los 5 s, 15 s, 30 s y después cada 60 s mientras siga
   fallando. Además, uno inmediato con el evento `online` y con cualquier
   evento de Supabase Auth (el efecto se re-ejecuta porque `user` cambia de

@@ -18,6 +18,14 @@
 		   visible y un poco más de alto para que se lean como campos. */
 		--field-border-width: 1px;
 		--field-radius: calc(var(--radius) * 0.85);
+
+		/* Relleno del `Skeleton` de HeroUI (D043). Su gris neutro por defecto
+		   se sale de la paleta lavanda, así que se reutiliza el tono de los
+		   bordes de tarjeta — no es un color nuevo, y al ir por `var()` vira
+		   solo con el tema, igual que el borde. Aparte del Skeleton, este
+		   token solo lo usan las variantes "tertiary" de Card/Surface, que la
+		   app no usa. */
+		--surface-tertiary: var(--app-color-surface-border);
 	}
 
 	:root,

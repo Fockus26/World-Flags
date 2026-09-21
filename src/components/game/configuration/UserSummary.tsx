@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { motionVariants } from "@/styles/animations";
 import { getCurrentStreak } from "@/utils/learning-storage";
 
@@ -13,10 +15,25 @@ interface UserSummaryProps {
 	isStreakOpen: boolean;
 	onToggleStreak: () => void;
 	onOpenModal: () => void;
+	/** Carga inicial (D042): mismo árbol y misma caja, con skeleton en cada
+	 *  dato. Los props llegan con los valores por defecto y solo se usan,
+	 *  invisibles, para dar el ancho de cada skeleton. */
+	isLoading?: boolean;
 	className?: string;
 }
 
 const MOBILE_NAME_MAX_CHARS = 15;
+
+/** Tamaño y forma del avatar: compartido por la imagen y su skeleton. */
+const AVATAR_BOX_CLASS = "size-13 sm:size-16 shrink-0 rounded-full";
+
+/**
+ * Posición del badge de racha, compartida con su skeleton. `left`/`top` fijos
+ * que coinciden con el tamaño del avatar (52px en mobile, 64px en sm+) — ver
+ * el comentario del badge abajo.
+ */
+const STREAK_BADGE_BOX_CLASS =
+	"absolute left-8 -top-1.5 sm:left-11 z-10 h-6 min-w-6 rounded-full border-2 border-surface";
 
 /** Por caracteres reales (no unidades UTF-16), para no partir un emoji a la mitad. */
 function truncateName(name: string): string {
@@ -24,6 +41,43 @@ function truncateName(name: string): string {
 	return characters.length > MOBILE_NAME_MAX_CHARS
 		? `${characters.slice(0, MOBILE_NAME_MAX_CHARS).join("")}…`
 		: name;
+}
+
+/**
+ * El avatar viene de dicebear (CDN externo): aunque los datos ya estén, la
+ * imagen tarda en llegar, o no llega sin red. Mientras tanto se ve el
+ * skeleton (que, como todos, espera `SKELETON_DELAY_MS` antes de verse: un
+ * avatar en caché no parpadea); si falla, queda un disco quieto en vez de un
+ * hueco. `UserSummary` le pone `key={src}` para que un avatar nuevo vuelva a
+ * empezar en "cargando".
+ *
+ * El skeleton se quita, no queda debajo: los avatares de dicebear tienen
+ * fondo transparente y el brillo se vería a través de la imagen.
+ */
+function AvatarImage({ src }: { src: string }) {
+	const [status, setStatus] = useState<"loading" | "loaded" | "error">(
+		"loading",
+	);
+
+	return (
+		<span className={`relative ${AVATAR_BOX_CLASS}`}>
+			{status !== "loaded" && (
+				<Skeleton
+					className="absolute inset-0 rounded-full"
+					animated={status === "loading"}
+				/>
+			)}
+
+			<img
+				className={`size-full rounded-full object-cover ${status === "loaded" ? "" : "opacity-0"}`}
+				src={src}
+				alt=""
+				aria-hidden="true"
+				onLoad={() => setStatus("loaded")}
+				onError={() => setStatus("error")}
+			/>
+		</span>
+	);
 }
 
 export function UserSummary({
@@ -37,11 +91,13 @@ export function UserSummary({
 	isStreakOpen,
 	onToggleStreak,
 	onOpenModal,
+	isLoading = false,
 	className,
 }: UserSummaryProps) {
 	const currentStreak = getCurrentStreak(activeDays);
 	const streakLabel =
 		currentStreak === 1 ? "1 día seguido" : `${currentStreak} días seguidos`;
+	const progressLabel = `${learningProgress}% · ${learnedCountries}/${totalCountries}`;
 
 	return (
 		<motion.div
@@ -49,6 +105,8 @@ export function UserSummary({
 			variants={motionVariants.contentEnter}
 			initial={false}
 			animate="visible"
+			// Los props aún son los por defecto: nada de esto es del usuario.
+			inert={isLoading}
 		>
 			<button
 				type="button"
@@ -56,12 +114,11 @@ export function UserSummary({
 				aria-label={`${name}, progreso ${learningProgress} por ciento. Abrir perfil y configuración.`}
 				onClick={onOpenModal}
 			>
-				<img
-					className="size-13 sm:size-16 shrink-0 rounded-full object-cover"
-					src={avatarUrl}
-					alt=""
-					aria-hidden="true"
-				/>
+				{isLoading ? (
+					<Skeleton className={AVATAR_BOX_CLASS} />
+				) : (
+					<AvatarImage key={avatarUrl} src={avatarUrl} />
+				)}
 
 				<span className="flex min-w-0 flex-1 flex-col gap-1 py-1 sm:py-2.5">
 					<span className="flex min-w-0 items-baseline gap-2">
@@ -69,14 +126,22 @@ export function UserSummary({
 						    caracteres — el correo de la cuenta no cabe junto a él.
 						    El nombre completo ya va en el aria-label del botón. */}
 						<strong className="overflow-hidden text-base text-ellipsis whitespace-nowrap sm:hidden">
-							{truncateName(name)}
+							{isLoading ? (
+								<Skeleton shape="line">{truncateName(name)}</Skeleton>
+							) : (
+								truncateName(name)
+							)}
 						</strong>
 						<strong className="hidden overflow-hidden text-base text-ellipsis whitespace-nowrap sm:inline">
-							{name}
+							{isLoading ? <Skeleton shape="line">{name}</Skeleton> : name}
 						</strong>
 
 						<span className="hidden shrink-0 text-[0.7rem] font-semibold text-text-placeholder sm:inline">
-							{accountLabel}
+							{isLoading ? (
+								<Skeleton shape="line">{accountLabel}</Skeleton>
+							) : (
+								accountLabel
+							)}
 						</span>
 					</span>
 
@@ -87,14 +152,22 @@ export function UserSummary({
 							className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-sm bg-surface-hover transition-colors group-hover:bg-surface group-active:bg-surface"
 							aria-hidden="true"
 						>
-							<span
-								className="block h-full rounded-sm bg-surface-soft transition-[width] duration-180 ease-in-out"
-								style={{ width: `${learningProgress}%` }}
-							/>
+							{isLoading ? (
+								<Skeleton className="h-full" />
+							) : (
+								<span
+									className="block h-full rounded-sm bg-surface-soft transition-[width] duration-180 ease-in-out"
+									style={{ width: `${learningProgress}%` }}
+								/>
+							)}
 						</span>
 
 						<span className="shrink-0 whitespace-nowrap text-[0.72rem] font-semibold text-text-placeholder">
-							{learningProgress}% · {learnedCountries}/{totalCountries}
+							{isLoading ? (
+								<Skeleton shape="line">{progressLabel}</Skeleton>
+							) : (
+								progressLabel
+							)}
 						</span>
 					</span>
 				</span>
@@ -108,16 +181,20 @@ export function UserSummary({
 				`left`/`top` fijos que coinciden con el tamaño del avatar
 				(52px en mobile, 64px en sm+) en vez de anidar.
 			*/}
-			<button
-				type="button"
-				className="absolute left-8 -top-1.5 sm:left-11 z-10 flex h-6 min-w-6 cursor-pointer items-center justify-center rounded-full border-2 border-surface bg-primary px-1 text-[0.65rem] font-black text-primary-soft transition-transform duration-150 ease-in-out hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
-				aria-expanded={isStreakOpen}
-				aria-controls="streak-panel"
-				aria-label={`Racha, ${streakLabel}. ${isStreakOpen ? "Ocultar calendario" : "Ver calendario"}.`}
-				onClick={onToggleStreak}
-			>
-				{currentStreak}
-			</button>
+			{isLoading ? (
+				<Skeleton className={STREAK_BADGE_BOX_CLASS} />
+			) : (
+				<button
+					type="button"
+					className={`${STREAK_BADGE_BOX_CLASS} flex cursor-pointer items-center justify-center bg-primary px-1 text-[0.65rem] font-black text-primary-soft transition-transform duration-150 ease-in-out hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]`}
+					aria-expanded={isStreakOpen}
+					aria-controls="streak-panel"
+					aria-label={`Racha, ${streakLabel}. ${isStreakOpen ? "Ocultar calendario" : "Ver calendario"}.`}
+					onClick={onToggleStreak}
+				>
+					{currentStreak}
+				</button>
+			)}
 		</motion.div>
 	);
 }
