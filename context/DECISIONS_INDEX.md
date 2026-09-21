@@ -43,3 +43,4 @@
 | D036 | Logros | Los logros existentes siguen siendo de Banderas; `rush_impecable`/`sin_frenos` filtran además `(session.gameType ?? "flags") === "flags"`. 4 logros nuevos de Países | `decisions/07-modo-paises.md` | Implementado (en `main`) |
 | D037 | Animación | Animación de "vuelo" (texto del input a su hueco en el tablero) con Web Animations API, no framer-motion | `decisions/07-modo-paises.md` | Implementado (en `main`) |
 | D038 | Diseño | Ancho del hueco = ancho del nombre real (`invisible`), sin valores mágicos de width; tablero accesible por teclado (`tabIndex`) | `decisions/07-modo-paises.md` | Implementado (en `main`) |
+| D039 | UX | Nota de "Todo el mundo" **derivada** (media de los 8 continentes ponderada por país), no persistida — evita duplicar el invariante de `perfectSessions` (D017/D019); solo se muestra con los 8 continentes practicados | `decisions/08-puntuacion-todo-el-mundo.md` | Implementado |

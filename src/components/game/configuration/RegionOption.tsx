@@ -15,6 +15,10 @@ interface RegionOptionProps {
 	label: string;
 	countryCount: number;
 	score: number | null;
+	/** Texto del tooltip de la nota; por defecto describe el promedio de un
+	 *  continente. "Todo el mundo" no promedia partidas propias (no existen)
+	 *  sino los continentes ya practicados, así que necesita su propio texto. */
+	scoreTooltipLabel?: string;
 	bestTimeLabel?: string | null;
 	checked: boolean;
 	onChange: () => void;
@@ -33,6 +37,7 @@ export function RegionOption({
 	label,
 	countryCount,
 	score,
+	scoreTooltipLabel = "Promedio de tus últimas 3 partidas",
 	bestTimeLabel,
 	checked,
 	onChange,
@@ -149,10 +154,7 @@ export function RegionOption({
 
 					<span className="flex shrink-0 items-center gap-1.5">
 						{score !== null && (
-							<Tooltip
-								id={tooltipId}
-								label="Promedio de tus últimas 3 partidas"
-							>
+							<Tooltip id={tooltipId} label={scoreTooltipLabel}>
 								<button
 									type="button"
 									className="

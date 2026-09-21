@@ -7,6 +7,7 @@ import {
 	type GameType,
 	type PracticeRegion,
 	type PracticeScope,
+	REGIONS,
 	type Region,
 } from "@/types/country";
 import type {
@@ -15,6 +16,7 @@ import type {
 	GameProgress,
 	LastPracticeByCountry,
 	RegionBestTimes,
+	RegionGameScores,
 	ReviewGrade,
 	ReviewState,
 	SessionRecord,
@@ -24,6 +26,7 @@ import type {
 	UserStats,
 } from "@/types/progress";
 import { getLocalDateString } from "@/utils/date";
+import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
 import { calculateNextReview, isDue } from "@/utils/spaced-repetition";
 
 const STORAGE_KEY = "world-flags-learning-data";
@@ -1142,6 +1145,39 @@ export function calculateRegionAverage(
 	const total = scores.reduce((accumulator, score) => accumulator + score, 0);
 
 	return Math.round((total / scores.length) * 10) / 10;
+}
+
+/**
+ * Nota de "Todo el mundo": media de los 8 continentes ponderada por su número
+ * de países (D039). No hay una "nota de mundo" persistida: cada sesión de
+ * mundo se registra por continente (`regionBreakdown`), así que se deriva de
+ * `regionGameScores`, igual que la nota de cada continente. Solo se calcula
+ * cuando los 8 tienen nota — una media parcial sería engañosa al lado de las
+ * tarjetas de continente, que sí reflejan el 100% de su alcance.
+ */
+export function calculateWorldAverage(
+	regionGameScores: RegionGameScores,
+): number | null {
+	const regionAverages = REGIONS.map((region) =>
+		calculateRegionAverage(regionGameScores[region]),
+	);
+
+	if (regionAverages.some((average) => average === null)) {
+		return null;
+	}
+
+	const totalCountries = REGIONS.reduce(
+		(sum, region) => sum + REGION_COUNTRY_COUNTS[region],
+		0,
+	);
+
+	const weightedSum = REGIONS.reduce(
+		(sum, region, index) =>
+			sum + (regionAverages[index] as number) * REGION_COUNTRY_COUNTS[region],
+		0,
+	);
+
+	return Math.round((weightedSum / totalCountries) * 10) / 10;
 }
 
 export function formatScore(score: number): string {
