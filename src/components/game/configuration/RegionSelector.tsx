@@ -66,14 +66,19 @@ export function RegionSelector({
 		});
 	}
 
+	// El grid va a su alto natural y el scroll lo hace la sección entera
+	// (`Configuration`). Antes intentaba ser él el único que scrolleaba
+	// (`flex-1 min-h-0` en el fieldset + `overflow-y-auto` aquí), pero en
+	// Chromium eso nunca funcionó: el contenido de un <fieldset> vive en una
+	// caja anónima que no hereda el alto flexible del fieldset, así que el
+	// fieldset se encogía y el grid seguía midiendo lo mismo, desbordándose
+	// por debajo de los botones sin forma de alcanzarlo.
 	return (
 		<Fieldset
 			legend="Continentes"
 			className="
 				min-w-0
 				m-0
-				flex-1
-				min-h-0
 				flex flex-col
 				gap-3
 			"
@@ -81,12 +86,8 @@ export function RegionSelector({
 			<div
 				className="
 					grid
-					min-h-0
 					grid-cols-2
 					gap-3
-					overflow-x-hidden
-					overflow-y-auto
-					overscroll-contain
 					px-1
 					py-1.5
 					min-[44rem]:grid-cols-3

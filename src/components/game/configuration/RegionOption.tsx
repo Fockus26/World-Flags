@@ -95,10 +95,17 @@ export function RegionOption({
 				tabIndex={0}
 				checked={checked}
 				onChange={onChange}
+				// Cubre la tarjeta entera (sigue invisible y sin eventos): al
+				// tabular dentro de la sección con scroll, el navegador trae a la
+				// vista el input enfocado, no el <label>. Con 1px en el centro, la
+				// tarjeta — y su anillo de foco — quedaba medio cortada al subir con
+				// Shift+Tab. `scroll-m-2` deja sitio para el `outline-offset-3`.
 				className="
 					pointer-events-none
 					absolute
-					size-px
+					inset-0
+					size-full
+					scroll-m-2
 					opacity-0
 				"
 			/>
