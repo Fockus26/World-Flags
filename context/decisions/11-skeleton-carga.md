@@ -106,6 +106,10 @@ verdad el `fetch` falla al instante y se cae a `localStorage`. Poner un timeout
 a la sincronización toca la lógica de sync (qué pasa con lo que el usuario
 juegue mientras tanto), así que queda fuera de esta unidad.
 
+> **Resuelto en D045** (`12-sync-fallida.md`): `syncOnLogin` se rinde a los
+> 10 s y la sync fallida pasa a `local` (que también marca `hasHydratedOnce`),
+> así que el skeleton de una cuenta dura como mucho ~10 s.
+
 ### Verificación
 
 `bunx astro check` 0 errores · `bunx biome check ./src` limpio · `bun run build`
