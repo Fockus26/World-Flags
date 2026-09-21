@@ -483,7 +483,7 @@ export const countries: Country[] = [
 		region: "oceania",
 	},
 
-	// Asia — 48
+	// Asia — 49
 	{
 		code: "af",
 		name: "Afganistán",
@@ -687,6 +687,11 @@ export const countries: Country[] = [
 	{
 		code: "th",
 		name: "Tailandia",
+		region: "asia",
+	},
+	{
+		code: "tw",
+		name: "Taiwán",
 		region: "asia",
 	},
 	{
@@ -998,8 +1003,10 @@ export const countries: Country[] = [
 	},
 ];
 
-if (countries.length !== 196) {
+// 193 miembros de la ONU + sus 2 observadores (Vaticano, Palestina) + Kosovo y
+// Taiwán. El criterio y por qué entra cada uno: D041.
+if (countries.length !== 197) {
 	throw new Error(
-		`La aplicación debe contener 196 países, pero contiene ${countries.length}.`,
+		`La aplicación debe contener 197 países, pero contiene ${countries.length}.`,
 	);
 }

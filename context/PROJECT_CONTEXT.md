@@ -5,7 +5,7 @@
 
 ## Resumen
 
-App web / PWA para aprender las 196 banderas del mundo con repetición espaciada
+App web / PWA para aprender las 197 banderas del mundo con repetición espaciada
 (SM2, estilo Anki). Convierte el estudio de banderas en un hábito sostenible:
 prioriza lo que el usuario olvida y espacia lo que ya domina.
 
@@ -95,7 +95,7 @@ El track por fases aplicaría a partir de un rediseño mayor o modos de juego nu
 - **Entorno de este equipo (Windows):** Playwright / navegador embebido fallan a
   ratos (`window.innerHeight === 0`, Chromium cuelga). Afecta a QA automatizada,
   no al producto.
-- Las 196 banderas están autohospedadas en `public/flags/{code}.svg` (~3.1 MB,
+- Las 197 banderas están autohospedadas en `public/flags/{code}.svg` (~3.1 MB,
   descargadas una vez de `flagcdn.com`) y se sirven desde el propio origen, así
   que `sw.js` ya las cachea igual que el resto de assets same-origin — la
   primera vez que aparece una bandera pide red y de ahí en más sale de caché,
