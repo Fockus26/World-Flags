@@ -1,4 +1,4 @@
-# 12 — Service worker: sin recarga en la primera visita
+# 13 — Service worker: sin recarga en la primera visita
 
 > Fix acotado, rama `fix/sw-recarga-primera-visita`. Hallazgo (3) de la unidad
 > `feat/skeleton-carga` (PR #8), reportado ahí y no tocado.
@@ -26,7 +26,7 @@ a 62 ms → `controllerchange` a 74 ms → carga #2 de tipo `reload`.
 Lo mismo pasaba tras una recarga forzada (Ctrl+Shift+R, la página queda sin
 controlador) si en ese momento se activaba un SW nuevo.
 
-## D044 — Solo se recarga si había un controlador antes del cambio
+## D047 — Solo se recarga si había un controlador antes del cambio
 
 `handleControllerChange` recarga únicamente si la página ya estaba controlada
 antes del evento: ese es el caso de una versión que reemplaza a otra (el

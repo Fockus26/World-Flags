@@ -41,3 +41,6 @@ en `@/store/` y se consume por los hooks de `@/hooks/`.)
 - Antes de un botón: `Button` de `ui/` tiene 6 colores × 4 variantes. No dupliques.
 - Antes de un tooltip: `ui/Tooltip.tsx` (portal a `<body>`) — no uses el de HeroUI
   directamente (ver `context/decisions/01-heroui-migracion.md` D011).
+- Antes de un estado de carga: `ui/Skeleton.tsx` (wrapper del de HeroUI, con el
+  umbral de 300 ms y el texto de referencia invisible) + `ui/LoadingAnnouncer.tsx`
+  para anunciarlo. Ver `context/decisions/11-skeleton-carga.md` (D042).

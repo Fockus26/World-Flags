@@ -26,6 +26,8 @@ interface RegionSelectorProps {
 		practiced: number;
 		total: number;
 	};
+	/** Carga inicial del progreso (D042). */
+	isLoading?: boolean;
 }
 
 function getPracticedLabel(
@@ -44,10 +46,19 @@ export function RegionSelector({
 	regionBestTimes,
 	mode,
 	getRegionPracticeProgress,
+	isLoading = false,
 }: RegionSelectorProps) {
 	const isWorldSelected = scope.type === "world";
 	const selectedRegions = scope.type === "custom" ? scope.regions : [];
 	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
+
+	// Mientras carga, `scope` y `mode` son los por defecto, no los del
+	// usuario: ninguna tarjeta se pinta marcada (el alcance por defecto es
+	// "Todo el mundo" y parecería ya elegido), y se reserva la línea de
+	// "Practicado hoy" del modo práctica — el modo del que vuelve cada día
+	// y tiene progreso que esperar. Si al final es competitivo, las
+	// tarjetas se acortan esa línea una vez (D042).
+	const showPracticedLine = isLoading || mode === "practice";
 
 	function toggleWorld() {
 		onScopeChange(
@@ -108,9 +119,10 @@ export function RegionSelector({
 							? formatElapsedTime(regionBestTimes.world)
 							: null
 					}
-					checked={isWorldSelected}
+					checked={!isLoading && isWorldSelected}
 					onChange={toggleWorld}
-					showPracticedLine={mode === "practice"}
+					showPracticedLine={showPracticedLine}
+					isLoading={isLoading}
 					className="col-span-2 min-[44rem]:col-span-1"
 				/>
 
@@ -137,13 +149,18 @@ export function RegionSelector({
 									? formatElapsedTime(bestTime)
 									: null
 							}
-							checked={!isWorldSelected && selectedRegions.includes(region)}
+							checked={
+								!isLoading &&
+								!isWorldSelected &&
+								selectedRegions.includes(region)
+							}
 							onChange={() => toggleRegion(region)}
 							practicedLabel={getPracticedLabel(
 								progress.practiced,
 								progress.total,
 							)}
-							showPracticedLine={mode === "practice"}
+							showPracticedLine={showPracticedLine}
+							isLoading={isLoading}
 						/>
 					);
 				})}

@@ -8,19 +8,37 @@ import {
 	normalizeLearningData,
 } from "./learning-storage";
 
+/**
+ * Tope de `syncOnLogin`. El GET normal tarda menos de un segundo; 10 s dan
+ * margen a una red lenta y a los reintentos propios de postgrest-js ante un
+ * error de red (1 s + 2 s + 4 s). Pasado el tope, `GameEffects` sigue con los
+ * datos locales, sin subir nada, y reintenta más tarde (D045).
+ */
+const SYNC_TIMEOUT_MS = 10_000;
+
 export async function fetchRemoteLearningData(
 	userId: string,
+	signal?: AbortSignal,
 ): Promise<UserLearningData | null> {
-	const { data, error } = await supabase
+	let query = supabase
 		.from("user_learning_data")
 		.select(
 			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, countries_game, achievements, stats, session_history, daily_reminder",
 		)
-		.eq("user_id", userId)
-		.maybeSingle();
+		.eq("user_id", userId);
+
+	if (signal) {
+		query = query.abortSignal(signal);
+	}
+
+	const { data, error } = await query.maybeSingle();
 
 	if (error) {
-		console.error("Failed to fetch remote learning data:", error);
+		// Abortada a propósito (timeout o cancelación): quien la abortó ya
+		// sabe por qué, y este log solo sería ruido.
+		if (!signal?.aborted) {
+			console.error("Failed to fetch remote learning data:", error);
+		}
 
 		throw error;
 	}
@@ -54,8 +72,9 @@ export async function fetchRemoteLearningData(
 export async function pushLearningData(
 	userId: string,
 	data: UserLearningData,
+	signal?: AbortSignal,
 ): Promise<void> {
-	const { error } = await supabase.from("user_learning_data").upsert({
+	let query = supabase.from("user_learning_data").upsert({
 		user_id: userId,
 		profile: data.profile,
 		country_history: data.countryHistory,
@@ -71,11 +90,34 @@ export async function pushLearningData(
 		updated_at: new Date().toISOString(),
 	});
 
+	if (signal) {
+		query = query.abortSignal(signal);
+	}
+
+	const { error } = await query;
+
 	if (error) {
-		console.error("Failed to push learning data:", error);
+		if (!signal?.aborted) {
+			console.error("Failed to push learning data:", error);
+		}
 
 		throw error;
 	}
+}
+
+/** Se rechaza en cuanto `signal` se aborta (con su `reason`); si no, nunca termina. */
+function rejectOnAbort(signal: AbortSignal): Promise<never> {
+	return new Promise((_, reject) => {
+		if (signal.aborted) {
+			reject(signal.reason);
+
+			return;
+		}
+
+		signal.addEventListener("abort", () => reject(signal.reason), {
+			once: true,
+		});
+	});
 }
 
 /**
@@ -91,12 +133,57 @@ export async function pushLearningData(
  *
  * The returned value is always the data that should become
  * the authenticated user's local/Redux state.
+ *
+ * Se rinde a los `SYNC_TIMEOUT_MS` o cuando se aborta `signal` (el efecto
+ * que la lanzó se limpió): rechaza, y lo que quedara en vuelo sale abortado,
+ * así que una respuesta tardía ya no sube nada a la nube (D045).
  */
 export async function syncOnLogin(
 	userId: string,
 	localData: UserLearningData,
+	signal?: AbortSignal,
 ): Promise<UserLearningData> {
-	const remote = await fetchRemoteLearningData(userId);
+	const controller = new AbortController();
+
+	const abortFromCaller = () => controller.abort(signal?.reason);
+
+	const timeoutId = setTimeout(() => {
+		controller.abort(
+			new Error(`syncOnLogin: sin respuesta en ${SYNC_TIMEOUT_MS} ms`),
+		);
+	}, SYNC_TIMEOUT_MS);
+
+	if (signal?.aborted) {
+		abortFromCaller();
+	}
+
+	signal?.addEventListener("abort", abortFromCaller, { once: true });
+
+	try {
+		/**
+		 * La carrera no sobra aunque las peticiones lleven la señal: el
+		 * cliente de Supabase espera al token de sesión ANTES del `fetch`, y
+		 * esa espera no la corta ninguna señal. Si se colgara ahí, esta
+		 * promesa no terminaría nunca; con la carrera se rechaza a tiempo, y
+		 * cuando ese `fetch` por fin salga lo hará ya abortado (no se envía).
+		 */
+		return await Promise.race([
+			runSyncOnLogin(userId, localData, controller.signal),
+			rejectOnAbort(controller.signal),
+		]);
+	} finally {
+		clearTimeout(timeoutId);
+
+		signal?.removeEventListener("abort", abortFromCaller);
+	}
+}
+
+async function runSyncOnLogin(
+	userId: string,
+	localData: UserLearningData,
+	signal: AbortSignal,
+): Promise<UserLearningData> {
+	const remote = await fetchRemoteLearningData(userId, signal);
 
 	/**
 	 * No existe información para este usuario.
@@ -105,7 +192,7 @@ export async function syncOnLogin(
 	 * progreso inicial de la cuenta.
 	 */
 	if (!remote || !hasLearningProgress(remote)) {
-		await pushLearningData(userId, localData);
+		await pushLearningData(userId, localData, signal);
 
 		return localData;
 	}
@@ -126,7 +213,7 @@ export async function syncOnLogin(
 	 * y se perdía en el siguiente.
 	 */
 	if (JSON.stringify(merged) !== JSON.stringify(remote)) {
-		await pushLearningData(userId, merged);
+		await pushLearningData(userId, merged, signal);
 	}
 
 	return merged;

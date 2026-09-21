@@ -4,11 +4,14 @@ import { AutoHeight } from "@/components/ui/AutoHeight";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { IconButton } from "@/components/ui/IconButton";
+import { LoadingAnnouncer } from "@/components/ui/LoadingAnnouncer";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { countries } from "@/data/countries";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
 import { useGame } from "@/hooks/useGame";
+import { useHydration } from "@/hooks/useHydration";
 import { motionVariants } from "@/styles/animations";
 import {
 	DEFAULT_DIFFICULTY,
@@ -38,6 +41,11 @@ import { UserSummary } from "./UserSummary";
 const EMPTY_SCOPE_MESSAGE =
 	"Elige al menos un continente o algún país para practicar.";
 
+// ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #16): solo lo oyen los lectores
+// de pantalla, pendiente de aprobación del dueño.
+const LOADING_MESSAGE = "Cargando tu progreso…";
+const LOADED_MESSAGE = "Progreso cargado";
+
 export function Configuration() {
 	const {
 		learningData,
@@ -57,6 +65,9 @@ export function Configuration() {
 	const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 	const { status, user } = useAuth();
 	const { unseenCount, markAllSeen } = useAchievements();
+	// Mientras sea `true`, `learningData` es `DEFAULT_DATA`, no el del usuario:
+	// todo lo que sale de ahí se pinta como skeleton (D042).
+	const { isInitialLoad } = useHydration();
 
 	const accountLabel =
 		status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
@@ -89,6 +100,11 @@ export function Configuration() {
 	);
 
 	const dueCount = getDueCountries(gameView.countryHistory).length;
+	const dailyPracticeLabel = `Práctica diaria (${dueCount})`;
+	const title =
+		gameType === "countries"
+			? "Aprende los países del mundo"
+			: "Aprende las banderas del mundo";
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -152,9 +168,19 @@ export function Configuration() {
 				variants={motionVariants.contentEnter}
 				initial={false}
 				animate="visible"
+				// Carga inicial (D042): la tarjeta entera queda `inert` — nada
+				// enfocable ni clicable, y fuera del árbol de accesibilidad, así
+				// que ni los skeletons ni los valores por defecto se anuncian como
+				// contenido. Actuar sobre ella ahora sería hacerlo sobre
+				// `DEFAULT_DATA` (empezar una partida con la configuración por
+				// defecto, elegir continentes que la sincronización pisaría). La
+				// carga la anuncia `LoadingAnnouncer`, fuera de la sección.
+				inert={isInitialLoad}
+				aria-busy={isInitialLoad || undefined}
 			>
 				<div className="flex items-center gap-2">
 					<UserSummary
+						isLoading={isInitialLoad}
 						className="min-w-0 flex-1"
 						name={learningData.profile.name}
 						avatarUrl={getAvatarUrl(
@@ -196,7 +222,10 @@ export function Configuration() {
 								🏅
 							</IconButton>
 
-							{unseenCount > 0 && (
+							{/* Los iconos no dependen del progreso y se ven desde el
+							    principio; sus contadores sí, así que esperan a los
+							    datos. Son `absolute`: al aparecer no mueven nada. */}
+							{!isInitialLoad && unseenCount > 0 && (
 								<span
 									aria-hidden="true"
 									className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-black text-primary-soft"
@@ -239,7 +268,7 @@ export function Configuration() {
 								📍
 							</IconButton>
 
-							{customCatalogCount > 0 && (
+							{!isInitialLoad && customCatalogCount > 0 && (
 								<span
 									aria-hidden="true"
 									className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-black text-primary-soft"
@@ -264,6 +293,7 @@ export function Configuration() {
 						updateSettings({ gameType: type });
 						setBlockedMessage(null);
 					}}
+					isLoading={isInitialLoad}
 					className="shrink-0"
 				/>
 
@@ -282,9 +312,13 @@ export function Configuration() {
 							min-[44rem]:text-3xl
 						"
 					>
-						{gameType === "countries"
-							? "Aprende los países del mundo"
-							: "Aprende las banderas del mundo"}
+						{isInitialLoad ? (
+							<Skeleton shape="line" className="w-fit max-w-full">
+								{title}
+							</Skeleton>
+						) : (
+							title
+						)}
 					</h1>
 				</header>
 
@@ -308,6 +342,7 @@ export function Configuration() {
 						getRegionPracticeProgress={(region) =>
 							getRegionPracticeProgress(region, gameType)
 						}
+						isLoading={isInitialLoad}
 					/>
 
 					{blockedMessage && (
@@ -321,17 +356,36 @@ export function Configuration() {
 					</Button>
 				</form>
 
-				{dueCount > 0 && (
-					<Button
-						color="secondary"
-						type="button"
-						className="shrink-0"
-						onClick={() => startDailyPractice(gameType)}
-					>
-						Práctica diaria ({dueCount})
-					</Button>
+				{/* Mientras carga se le reserva el sitio: quien vuelve cada día
+				    suele tener países pendientes, y es quien más espera a la
+				    sincronización. Si al final no hay, la tarjeta se acorta una
+				    vez (D042). La referencia es el propio botón, invisible, así
+				    que el skeleton mide lo mismo en cada breakpoint. */}
+				{isInitialLoad ? (
+					<Skeleton className="shrink-0 rounded-3xl">
+						<Button color="secondary" type="button">
+							{dailyPracticeLabel}
+						</Button>
+					</Skeleton>
+				) : (
+					dueCount > 0 && (
+						<Button
+							color="secondary"
+							type="button"
+							className="shrink-0"
+							onClick={() => startDailyPractice(gameType)}
+						>
+							{dailyPracticeLabel}
+						</Button>
+					)
 				)}
 			</motion.section>
+
+			<LoadingAnnouncer
+				isLoading={isInitialLoad}
+				loadingMessage={LOADING_MESSAGE}
+				readyMessage={LOADED_MESSAGE}
+			/>
 
 			<ConfigurationModal
 				isOpen={isConfigurationModalOpen}
