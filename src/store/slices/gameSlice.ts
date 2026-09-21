@@ -11,7 +11,15 @@ import type { UserLearningData } from "@/types/progress";
 
 import { DEFAULT_DATA } from "@/utils/learning-storage";
 
-export type HydrationStatus = "idle" | "loading" | "ready";
+/**
+ * - `idle`: arranque; aún no se hidrató nada (el store tiene `DEFAULT_DATA`).
+ * - `loading`: sincronizando con Supabase la cuenta autenticada.
+ * - `local`: Supabase Auth no resolvió a tiempo (red caída o lenta) y se
+ *   muestran los datos de `localStorage` sin confirmar de quién son. El push
+ *   a la nube sigue bloqueado, igual que en `idle` (ver `GameEffects`).
+ * - `ready`: los datos del usuario actual ya están en el store.
+ */
+export type HydrationStatus = "idle" | "loading" | "local" | "ready";
 
 export interface ActiveGame {
 	/** Identifica esta partida en particular (no la configuración): fuerza a
@@ -37,6 +45,12 @@ interface GameState {
 	lastResult: GameResult | null;
 	dailyPracticeQueue: DailyPracticeQueue | null;
 	hydrationStatus: HydrationStatus;
+	/** Pegajoso: pasa a `true` la primera vez que llegan datos a la pantalla
+	 *  (`local` o `ready`) y ya no vuelve atrás. Distingue la carga inicial
+	 *  (skeleton) de las re-hidrataciones posteriores — un login, o la
+	 *  sincronización que llega después del fallback `local` —, que
+	 *  reemplazan los datos en el sitio en vez de volver al skeleton (D042). */
+	hasHydratedOnce: boolean;
 }
 
 const initialState: GameState = {
@@ -45,6 +59,7 @@ const initialState: GameState = {
 	lastResult: null,
 	dailyPracticeQueue: null,
 	hydrationStatus: "idle",
+	hasHydratedOnce: false,
 };
 
 const gameSlice = createSlice({
@@ -59,6 +74,10 @@ const gameSlice = createSlice({
 
 		setHydrationStatus: (state, action: PayloadAction<HydrationStatus>) => {
 			state.hydrationStatus = action.payload;
+
+			if (action.payload === "local" || action.payload === "ready") {
+				state.hasHydratedOnce = true;
+			}
 		},
 
 		setActiveGame: (state, action: PayloadAction<ActiveGame | null>) => {

@@ -8,6 +8,10 @@ interface GameTypeToggleProps {
 	hideLegend?: boolean;
 	value: GameType;
 	onChange: (value: GameType) => void;
+	/** Carga inicial (D042): `value` aún es el por defecto, no el guardado.
+	 *  Sin píldora ni opción marcada, para que no aparezca en "Países" y se
+	 *  deslice a "Banderas" al llegar los datos. */
+	isLoading?: boolean;
 	className?: string;
 }
 
@@ -49,6 +53,7 @@ export function GameTypeToggle({
 	hideLegend,
 	value,
 	onChange,
+	isLoading = false,
 	className,
 }: GameTypeToggleProps) {
 	const name = useId();
@@ -57,20 +62,22 @@ export function GameTypeToggle({
 	return (
 		<Fieldset legend={legend} hideLegend={hideLegend} className={className}>
 			<div className="relative flex rounded-[var(--radius)] border border-[var(--border)] bg-[var(--default)] p-1">
-				<div
-					aria-hidden="true"
-					className="absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] transition-transform duration-200 ease-in-out"
-					style={{
-						transform:
-							selectedIndex === 1
-								? "translateX(calc(100% + 0.5rem))"
-								: "translateX(0)",
-					}}
-				/>
+				{!isLoading && (
+					<div
+						aria-hidden="true"
+						className="absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] transition-transform duration-200 ease-in-out"
+						style={{
+							transform:
+								selectedIndex === 1
+									? "translateX(calc(100% + 0.5rem))"
+									: "translateX(0)",
+						}}
+					/>
+				)}
 
 				{GAME_TYPES.map((type) => {
 					const Icon = GAME_TYPE_ICONS[type];
-					const checked = value === type;
+					const checked = !isLoading && value === type;
 
 					return (
 						<label
