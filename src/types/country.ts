@@ -60,7 +60,7 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
 
 /**
  * Qué se va a practicar en una sesión:
- * - "world": los 196 países.
+ * - "world": todos los países del catálogo (`countries.length`).
  * - "custom": cero o más continentes completos (`regions`) más cero o más
  *   países sueltos elegidos a mano (`countryCodes`), de cualquier continente.
  *   Permite combinar varios continentes en una sesión y/o elegir solo un
