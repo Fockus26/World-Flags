@@ -87,7 +87,11 @@ export function StreakPanel({ activeDays }: StreakPanelProps) {
 	return (
 		<div
 			id="streak-panel"
-			className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-surface-border bg-surface-hover/40 p-3 mt-2"
+			// `max-w-sm`: las celdas del calendario son cuadradas y ocupan un
+			// séptimo del ancho, así que sin tope el panel crece con la tarjeta
+			// (celdas de ~90 px y un panel más alto que la pantalla en móvil
+			// horizontal). El diseño elegido se dibujó a ~358 px de ancho.
+			className="flex max-w-sm flex-col gap-3 rounded-[var(--radius-md)] border border-surface-border bg-surface-hover/40 p-3 mt-2"
 		>
 			<div className="flex items-end justify-between gap-3">
 				<div className="flex flex-col gap-0.5">
