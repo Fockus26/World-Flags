@@ -4,7 +4,7 @@ import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Modal } from "@/components/ui/Modal";
 import { useAuth } from "@/hooks/useAuth";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
-import type { GameType } from "@/types/country";
+import { type GameType, LEADERBOARD_SCOPES } from "@/types/country";
 import {
 	fetchLeaderboard,
 	isNetworkFailure,
@@ -21,6 +21,12 @@ interface LeaderboardModalProps {
 }
 
 const TOP_COUNT = 5;
+
+/** ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #10). */
+const LEADERBOARD_DESCRIPTIONS: Record<GameType, string> = {
+	countries: "Mejor tiempo en modo competitivo practicando todos los países.",
+	flags: "Mejor tiempo en modo competitivo practicando todas las banderas.",
+};
 
 function LeaderboardRow({
 	rank,
@@ -82,11 +88,9 @@ export function LeaderboardModal({
 		// (`isOnline` en las dependencias) y el ranking aparece.
 		if (!isOnline) return;
 
-		// Scope aparte para Países (D033): la PK (user_id, scope) de
+		// Un scope por juego (D033): la PK (user_id, scope) de
 		// `leaderboard_entries` ya lo soporta sin migración.
-		const scope = gameType === "countries" ? "countries:world" : "world";
-
-		fetchLeaderboard(scope)
+		fetchLeaderboard(LEADERBOARD_SCOPES[gameType])
 			.then((result) => {
 				if (!cancelled) setEntries(result);
 			})
@@ -140,9 +144,7 @@ export function LeaderboardModal({
 			/>
 
 			<p className="mt-0 mb-3 text-[0.85rem] text-text-placeholder">
-				{gameType === "countries"
-					? "Mejor tiempo en modo competitivo practicando todos los países."
-					: "Mejor tiempo en modo competitivo practicando todas las banderas."}
+				{LEADERBOARD_DESCRIPTIONS[gameType]}
 			</p>
 
 			{error && (

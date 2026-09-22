@@ -4,6 +4,7 @@ import type { UserLearningData } from "@/types/progress";
 import {
 	countLearnedCountries,
 	getCurrentStreak,
+	getGameProgress,
 	isCountryLearned,
 } from "@/utils/learning-storage";
 import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
@@ -103,32 +104,19 @@ function countLearned(data: UserLearningData): number {
 	return countLearnedCountries(data.countryHistory);
 }
 
+/** Países aprendidos en esos continentes, en el progreso de `gameType` (D036). */
 function countLearnedInRegions(
 	data: UserLearningData,
+	gameType: GameType,
 	regions: readonly Region[],
 ): number {
 	const regionSet = new Set(regions);
+	const { countryHistory } = getGameProgress(data, gameType);
 
 	return countries.filter(
 		(country) =>
 			regionSet.has(country.region) &&
-			isCountryLearned(data.countryHistory[country.code]?.review ?? null),
-	).length;
-}
-
-/** Igual que `countLearnedInRegions`, pero sobre el progreso de Países (D036), no el de Banderas. */
-function countLearnedInCountriesGameRegions(
-	data: UserLearningData,
-	regions: readonly Region[],
-): number {
-	const regionSet = new Set(regions);
-
-	return countries.filter(
-		(country) =>
-			regionSet.has(country.region) &&
-			isCountryLearned(
-				data.countriesGame.countryHistory[country.code]?.review ?? null,
-			),
+			isCountryLearned(countryHistory[country.code]?.review ?? null),
 	).length;
 }
 
@@ -138,8 +126,8 @@ function hasRegionLearnedInBothGames(data: UserLearningData): boolean {
 		const target = REGION_COUNTRY_COUNTS[region];
 
 		return (
-			countLearnedInRegions(data, [region]) >= target &&
-			countLearnedInCountriesGameRegions(data, [region]) >= target
+			countLearnedInRegions(data, "flags", [region]) >= target &&
+			countLearnedInRegions(data, "countries", [region]) >= target
 		);
 	});
 }
@@ -191,7 +179,7 @@ function regionAchievement(
 		category: "continentes",
 		gameType: "flags",
 		evaluate: (data) => ({
-			current: countLearnedInRegions(data, regions),
+			current: countLearnedInRegions(data, "flags", regions),
 			target,
 		}),
 	};
@@ -215,7 +203,7 @@ function countriesRegionAchievement(
 		category: "continentes",
 		gameType: "countries",
 		evaluate: (data) => ({
-			current: countLearnedInCountriesGameRegions(data, regions),
+			current: countLearnedInRegions(data, "countries", regions),
 			target,
 		}),
 	};
@@ -515,7 +503,9 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		category: "velocidad",
 		gameType: "countries",
 		evaluate: (data) =>
-			flag(data.countriesGame.regionBestTimes.world !== undefined),
+			flag(
+				getGameProgress(data, "countries").regionBestTimes.world !== undefined,
+			),
 	},
 	{
 		id: "primero_los_paises",

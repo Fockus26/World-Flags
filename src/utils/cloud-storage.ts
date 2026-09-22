@@ -2,7 +2,49 @@ import { supabase } from "@/lib/supabase";
 
 import type { UserLearningData } from "@/types/progress";
 
-import { normalizeLearningData, planSync } from "./learning-storage";
+import {
+	normalizeLearningData,
+	planSync,
+	SUB_GAME_KEYS,
+	SUB_GAME_TYPES,
+	type SubGameType,
+} from "./learning-storage";
+
+/**
+ * La columna de `user_learning_data` de cada juego con sub-objeto propio
+ * (D028, D061). Una columna nueva aquí exige su SQL en `supabase/` corrido
+ * ANTES de desplegar: si el `select` pide una columna que no existe, falla y
+ * toda cuenta autenticada se queda en `local` sin sincronizar (D044/D050).
+ */
+const SUB_GAME_COLUMNS = {
+	countries: "countries_game",
+} as const satisfies Record<SubGameType, string>;
+
+type SubGameColumn = (typeof SUB_GAME_COLUMNS)[SubGameType];
+
+/** Las columnas de un `select` literal ("a, b, c" → "a" | "b" | "c"). */
+type SelectedColumns<Select extends string> =
+	Select extends `${infer Column}, ${infer Rest}`
+		? Column | SelectedColumns<Rest>
+		: Select;
+
+/**
+ * El `select` se queda como texto literal: supabase-js deduce de él el tipo
+ * de la fila. A cambio no puede salir del registro, así que esto no compila
+ * si le falta la columna de algún juego de `SUB_GAME_COLUMNS` — olvidarla
+ * no fallaría en ningún test: la nube devolvería el juego siempre vacío y
+ * su progreso no llegaría a los demás dispositivos.
+ */
+function learningDataSelect<Select extends string>(
+	select: Select &
+		(SubGameColumn extends SelectedColumns<Select> ? unknown : never),
+): Select {
+	return select;
+}
+
+const LEARNING_DATA_SELECT = learningDataSelect(
+	"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, countries_game, achievements, stats, session_history, daily_reminder, field_updated_at",
+);
 
 /**
  * Tope de `syncLearningData`. El GET normal tarda menos de un segundo; 10 s
@@ -68,9 +110,7 @@ export async function fetchRemoteLearningData(
 ): Promise<UserLearningData | null> {
 	let query = supabase
 		.from("user_learning_data")
-		.select(
-			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, countries_game, achievements, stats, session_history, daily_reminder, field_updated_at",
-		)
+		.select(LEARNING_DATA_SELECT)
 		.eq("user_id", userId);
 
 	if (signal) {
@@ -114,7 +154,12 @@ export async function fetchRemoteLearningData(
 		lastConfiguration: data.last_configuration,
 		regionBestTimes: data.region_best_times ?? {},
 		lastPracticeByCountry: data.last_practice_by_country ?? {},
-		countriesGame: data.countries_game ?? {},
+		...Object.fromEntries(
+			SUB_GAME_TYPES.map((gameType) => [
+				SUB_GAME_KEYS[gameType],
+				data[SUB_GAME_COLUMNS[gameType]] ?? {},
+			]),
+		),
 		achievements: data.achievements ?? {},
 		stats: data.stats ?? undefined,
 		sessionHistory: data.session_history ?? [],
@@ -143,7 +188,15 @@ export async function pushLearningData(
 		region_best_times: data.regionBestTimes,
 		last_configuration: data.lastConfiguration,
 		last_practice_by_country: data.lastPracticeByCountry,
-		countries_game: data.countriesGame,
+		// Se enumeran columnas, no se sube la fila a ciegas: un cliente viejo
+		// que no conoce un juego no manda su columna, y Postgres conserva lo
+		// que ya había (D028).
+		...Object.fromEntries(
+			SUB_GAME_TYPES.map((gameType) => [
+				SUB_GAME_COLUMNS[gameType],
+				data[SUB_GAME_KEYS[gameType]],
+			]),
+		),
 		achievements: data.achievements,
 		stats: data.stats,
 		session_history: data.sessionHistory,
