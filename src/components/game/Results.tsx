@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/hooks/useTheme";
-import type { GameResult } from "@/types/country";
+import { GAME_TYPE_NOUNS, type GameResult } from "@/types/country";
 import { formatElapsedTime } from "@/utils/learning-storage";
 import { getScopeLabel } from "@/utils/practice-scope";
 import {
@@ -21,7 +21,7 @@ function CompetitiveResults({
 	result: Extract<GameResult, { mode: "competitive" }>;
 }) {
 	// ⚠️ Copy provisional ("Te rendiste", "encontrados") — CONTENT_CHECKLIST #9.
-	const noun = result.gameType === "countries" ? "países" : "banderas";
+	const noun = GAME_TYPE_NOUNS[result.gameType];
 
 	// Rush de Países que terminó por rendición (D033): no hay mejor tiempo
 	// que mostrar (solo se registra al completar el 100%), así que el

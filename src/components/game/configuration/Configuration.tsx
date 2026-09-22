@@ -19,6 +19,7 @@ import {
 	DEFAULT_GAME_TYPE,
 	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
+	GAME_TYPE_TITLES,
 } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
 import { isCatalogCountryCode } from "@/utils/country-catalog";
@@ -101,10 +102,7 @@ export function Configuration() {
 
 	const dueCount = getDueCountries(gameView.countryHistory).length;
 	const dailyPracticeLabel = `Práctica diaria (${dueCount})`;
-	const title =
-		gameType === "countries"
-			? "Aprende los países del mundo"
-			: "Aprende las banderas del mundo";
+	const title = GAME_TYPE_TITLES[gameType];
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();

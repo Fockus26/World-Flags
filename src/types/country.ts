@@ -58,6 +58,32 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
 	flags: "Banderas",
 };
 
+// Lo que cambia por juego en la UI vive en mapas como estos, no en ternarios
+// repartidos por los componentes (D061): con `Record`, TypeScript obliga a
+// rellenar un juego nuevo en todos ellos.
+
+/** Título de la pantalla de configuración. ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #9). */
+export const GAME_TYPE_TITLES: Record<GameType, string> = {
+	countries: "Aprende los países del mundo",
+	flags: "Aprende las banderas del mundo",
+};
+
+/** Qué se recorre en una partida, en plural ("Recorriste 45 países"). */
+export const GAME_TYPE_NOUNS: Record<GameType, string> = {
+	countries: "países",
+	flags: "banderas",
+};
+
+/**
+ * Scope del ranking público de "Todo el mundo" en `leaderboard_entries`
+ * (PK `(user_id, scope)`, sin migración por juego). El de Banderas es
+ * "world" a secas porque es el original: cambiarlo reiniciaría su ranking.
+ */
+export const LEADERBOARD_SCOPES: Record<GameType, string> = {
+	countries: "countries:world",
+	flags: "world",
+};
+
 /**
  * Qué se va a practicar en una sesión:
  * - "world": todos los países del catálogo (`countries.length`).

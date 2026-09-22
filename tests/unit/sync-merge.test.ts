@@ -10,18 +10,21 @@
  * - D056: el invitado solo pasa a una cuenta sin progreso.
  * - D020: contadores por `max`, nunca suma; idempotencia del merge.
  * - D017/D021: un logro nunca se pierde, ni un id desconocido.
+ * - D061: el registro de juegos (cada juego se lee y se escribe en su sitio).
  */
 import assert from "node:assert/strict";
 import { beforeEach, describe, test } from "node:test";
 
-import type { GameConfiguration } from "@/types/country";
+import { GAME_TYPES, type GameConfiguration } from "@/types/country";
 import type { UserLearningData } from "@/types/progress";
 import {
 	clearLearningData,
 	createDefaultLearningData,
 	createSessionRecord,
 	fromGameView,
+	getGameProgress,
 	getSyncBase,
+	hasLearningProgress,
 	hasPendingChanges,
 	mergeLearningData,
 	normalizeLearningData,
@@ -595,5 +598,93 @@ describe("base de sincronización y cambios pendientes", () => {
 		const merged = mergeLearningData(base, local, base);
 
 		assert.ok(merged.achievements.primera_sesion);
+	});
+});
+
+describe("registro de juegos (D061)", () => {
+	test("Banderas se lee del primer nivel; los demás, de su sub-objeto", () => {
+		const data = sharedBase();
+
+		assert.equal(
+			getGameProgress(data, "flags").countryHistory,
+			data.countryHistory,
+		);
+		assert.equal(getGameProgress(data, "countries"), data.countriesGame);
+	});
+
+	test("ida y vuelta por la vista de cada juego no cambia nada", () => {
+		const data = sharedBase();
+
+		for (const gameType of GAME_TYPES) {
+			assertSameJson(
+				fromGameView(data, toGameView(data, gameType), gameType),
+				data,
+				gameType,
+			);
+		}
+	});
+
+	test("escribir en la vista de un juego solo toca ese juego", () => {
+		const data = sharedBase();
+
+		for (const gameType of GAME_TYPES) {
+			const view = registerRegionGame(
+				toGameView(data, gameType),
+				"oceania",
+				10,
+				at(DAY_2),
+			);
+			const result = fromGameView(data, view, gameType);
+
+			for (const other of GAME_TYPES) {
+				if (other === gameType) {
+					assert.deepEqual(
+						getGameProgress(result, other).regionGameScores.oceania,
+						[10],
+					);
+				} else {
+					assertSameJson(
+						getGameProgress(result, other),
+						getGameProgress(data, other),
+						`${gameType} no debe tocar ${other}`,
+					);
+				}
+			}
+		}
+	});
+
+	test("normalize y merge dejan las claves en el mismo orden", () => {
+		const base = sharedBase();
+		const merged = mergeLearningData(base, playOfflineEurope(base), base);
+
+		assert.deepEqual(
+			Object.keys(merged),
+			Object.keys(normalizeLearningData({})),
+		);
+	});
+
+	test("una cuenta con progreso en un solo juego, el que sea, no la pisa el invitado (D056)", () => {
+		const guest = registerRegionGame(
+			createDefaultLearningData(),
+			"asia",
+			3,
+			at(DAY_3),
+		);
+
+		for (const gameType of GAME_TYPES) {
+			const empty = createDefaultLearningData();
+			const account = fromGameView(
+				empty,
+				registerRegionGame(toGameView(empty, gameType), "europe", 8, at(DAY_1)),
+				gameType,
+			);
+
+			assert.equal(hasLearningProgress(account), true, gameType);
+			assert.equal(
+				planSync(account, guest, null).discardedLocal,
+				true,
+				gameType,
+			);
+		}
 	});
 });

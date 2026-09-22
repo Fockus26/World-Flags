@@ -15,6 +15,8 @@ import {
 	syncSucceeded,
 } from "@/store/slices/syncSlice";
 
+import { GAME_TYPES, type GameType, LEADERBOARD_SCOPES } from "@/types/country";
+
 import type { UserLearningData } from "@/types/progress";
 
 import {
@@ -26,6 +28,7 @@ import {
 import {
 	clearLearningData,
 	createDefaultLearningData,
+	getGameProgress,
 	getLearningData,
 	getSyncBase,
 	hasPendingChanges,
@@ -117,9 +120,8 @@ export function GameEffects() {
 	/** `status` del render anterior: distingue un logout real de un invitado normal. */
 	const previousStatusRef = useRef<typeof status | null>(null);
 
-	const pushedWorldBestRef = useRef<number | undefined>(undefined);
-
-	const pushedCountriesWorldBestRef = useRef<number | undefined>(undefined);
+	/** Última marca de "Todo el mundo" subida al ranking, por juego. */
+	const pushedWorldBestRef = useRef<Partial<Record<GameType, number>>>({});
 
 	/**
 	 * Red de seguridad: si Supabase Auth no resuelve (red caída, mal
@@ -567,12 +569,13 @@ export function GameEffects() {
 	}, [syncRequestId]);
 
 	/**
-	 * Leaderboard: cada vez que el mejor tiempo de "Todo el mundo" mejora, se
-	 * sube (mejor esfuerzo, ver upsertLeaderboardEntry) — no espera a las
-	 * subidas agrupadas porque esto no compite en frecuencia con el resto de
-	 * `learningData` (solo cambia al batir una marca). Si falla (sin
-	 * conexión), se reintenta tras la siguiente sincronización buena
-	 * (`lastSyncedAt`).
+	 * Ranking público: cada vez que mejora el mejor tiempo de "Todo el mundo"
+	 * de un juego, se sube a su scope (`LEADERBOARD_SCOPES`, D033) — mejor
+	 * esfuerzo, ver upsertLeaderboardEntry. No espera a las subidas agrupadas
+	 * porque esto no compite en frecuencia con el resto de `learningData`
+	 * (solo cambia al batir una marca). Si falla (sin conexión), se reintenta
+	 * tras la siguiente sincronización buena (`lastSyncedAt`). Un solo efecto
+	 * para todos los juegos (D061), con la última marca subida de cada uno.
 	 */
 	// biome-ignore lint/correctness/useExhaustiveDependencies: lastSyncedAt re-dispara el reintento de una marca que no se pudo subir
 	useEffect(() => {
@@ -586,84 +589,31 @@ export function GameEffects() {
 			return;
 		}
 
-		const worldBestMs = learningData.regionBestTimes.world;
+		for (const gameType of GAME_TYPES) {
+			const worldBestMs = getGameProgress(learningData, gameType)
+				.regionBestTimes.world;
 
-		if (
-			worldBestMs === undefined ||
-			pushedWorldBestRef.current === worldBestMs
-		) {
-			return;
-		}
-
-		pushedWorldBestRef.current = worldBestMs;
-
-		void upsertLeaderboardEntry(
-			user.id,
-			"world",
-			learningData.profile.name,
-			worldBestMs,
-		).then((uploaded) => {
-			if (!uploaded && pushedWorldBestRef.current === worldBestMs) {
-				pushedWorldBestRef.current = undefined;
-			}
-		});
-	}, [
-		learningData.regionBestTimes.world,
-		learningData.profile.name,
-		status,
-		user,
-		hydrationStatus,
-		connectivity,
-		lastSyncedAt,
-	]);
-
-	/** Igual que el efecto de arriba, pero para el rush de Países (D033). Scope aparte ("countries:world"): la PK `(user_id, scope)` de `leaderboard_entries` ya lo soporta sin migración. */
-	// biome-ignore lint/correctness/useExhaustiveDependencies: lastSyncedAt re-dispara el reintento de una marca que no se pudo subir
-	useEffect(() => {
-		if (
-			status !== "authenticated" ||
-			!user ||
-			hydrationStatus !== "ready" ||
-			hydratedUserRef.current !== user.id ||
-			connectivity === "offline"
-		) {
-			return;
-		}
-
-		const countriesWorldBestMs =
-			learningData.countriesGame.regionBestTimes.world;
-
-		if (
-			countriesWorldBestMs === undefined ||
-			pushedCountriesWorldBestRef.current === countriesWorldBestMs
-		) {
-			return;
-		}
-
-		pushedCountriesWorldBestRef.current = countriesWorldBestMs;
-
-		void upsertLeaderboardEntry(
-			user.id,
-			"countries:world",
-			learningData.profile.name,
-			countriesWorldBestMs,
-		).then((uploaded) => {
 			if (
-				!uploaded &&
-				pushedCountriesWorldBestRef.current === countriesWorldBestMs
+				worldBestMs === undefined ||
+				pushedWorldBestRef.current[gameType] === worldBestMs
 			) {
-				pushedCountriesWorldBestRef.current = undefined;
+				continue;
 			}
-		});
-	}, [
-		learningData.countriesGame.regionBestTimes.world,
-		learningData.profile.name,
-		status,
-		user,
-		hydrationStatus,
-		connectivity,
-		lastSyncedAt,
-	]);
+
+			pushedWorldBestRef.current[gameType] = worldBestMs;
+
+			void upsertLeaderboardEntry(
+				user.id,
+				LEADERBOARD_SCOPES[gameType],
+				learningData.profile.name,
+				worldBestMs,
+			).then((uploaded) => {
+				if (!uploaded && pushedWorldBestRef.current[gameType] === worldBestMs) {
+					pushedWorldBestRef.current[gameType] = undefined;
+				}
+			});
+		}
+	}, [learningData, status, user, hydrationStatus, connectivity, lastSyncedAt]);
 
 	return null;
 }

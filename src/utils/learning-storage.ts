@@ -3,6 +3,7 @@ import {
 	DEFAULT_GAME_TYPE,
 	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
+	GAME_TYPES,
 	type GameConfiguration,
 	type GameType,
 	type PracticeRegion,
@@ -86,6 +87,35 @@ export const DEFAULT_DAILY_REMINDER: DailyReminderPreference = {
 	optedIn: false,
 	answeredAt: null,
 };
+
+/** Los juegos que no son Banderas: los que guardan su progreso en un sub-objeto propio. */
+export type SubGameType = Exclude<GameType, "flags">;
+
+/** Las claves de `UserLearningData` que guardan el progreso de un juego entero. */
+export type SubGameKey = {
+	[K in keyof UserLearningData]: UserLearningData[K] extends GameProgress
+		? K
+		: never;
+}[keyof UserLearningData];
+
+/**
+ * Registro de juegos (D061): el único sitio que sabe dónde vive el progreso
+ * de cada uno. Banderas, el juego original, sigue en el primer nivel de
+ * `UserLearningData` (D028: renombrarlo rompería las filas ya guardadas y a
+ * los clientes viejos que el SW mantiene en caché); cada juego posterior
+ * tiene su sub-objeto y su columna en Supabase. Añadir un juego es añadir
+ * aquí su clave: `normalizeLearningData`, `mergeLearningData`,
+ * `hasLearningProgress` y las vistas de juego lo recorren solos, y el
+ * `Record` no deja olvidarlo.
+ */
+export const SUB_GAME_KEYS: Record<SubGameType, SubGameKey> = {
+	countries: "countriesGame",
+};
+
+/** Los juegos con sub-objeto, en el orden de `GAME_TYPES`: fija el orden de sus claves en `UserLearningData`. */
+export const SUB_GAME_TYPES: readonly SubGameType[] = GAME_TYPES.filter(
+	(gameType): gameType is SubGameType => gameType !== "flags",
+);
 
 export const DEFAULT_DATA: UserLearningData = {
 	profile: DEFAULT_PROFILE,
@@ -230,12 +260,12 @@ function migrateStats(
 }
 
 /**
- * Normaliza el progreso de un juego (Banderas vive en el primer nivel de
- * `UserLearningData`, ver `migrateCountryHistory`/etc. arriba; esto es para
- * `countriesGame`, el de Países). Igual que con `stats`, una columna de
- * Supabase creada con `default '{}'::jsonb` llega como `{}` en vez de
- * `undefined` para una fila anterior a esta versión — ambos casos son
- * "todavía sin progreso".
+ * Normaliza el progreso de un juego con sub-objeto propio (Banderas vive en
+ * el primer nivel de `UserLearningData`, ver `migrateCountryHistory`/etc.
+ * arriba; esto es para los demás, ver `SUB_GAME_KEYS`). Igual que con
+ * `stats`, una columna de Supabase creada con `default '{}'::jsonb` llega
+ * como `{}` en vez de `undefined` para una fila anterior a esta versión —
+ * ambos casos son "todavía sin progreso".
  */
 function migrateGameProgress(
 	progress: Partial<GameProgress> | undefined,
@@ -247,6 +277,23 @@ function migrateGameProgress(
 		lastPracticeByCountry: progress?.lastPracticeByCountry ?? {},
 		regionGameScoresUpdatedAt: progress?.regionGameScoresUpdatedAt ?? {},
 	};
+}
+
+/**
+ * Construye los sub-objetos de todos los juegos que no son Banderas, en el
+ * orden de `SUB_GAME_TYPES`. `normalizeLearningData` y `mergeLearningData`
+ * los insertan en la misma posición con este mismo orden: ver el comentario
+ * sobre `JSON.stringify` en `normalizeLearningData`.
+ */
+function buildSubGames(
+	build: (key: SubGameKey) => GameProgress,
+): Pick<UserLearningData, SubGameKey> {
+	return Object.fromEntries(
+		SUB_GAME_TYPES.map((gameType) => {
+			const key = SUB_GAME_KEYS[gameType];
+			return [key, build(key)];
+		}),
+	) as Pick<UserLearningData, SubGameKey>;
 }
 
 /** Datos anteriores a D055: sin fechas (`null`), la fusión usa la base. */
@@ -304,7 +351,7 @@ export function normalizeLearningData(
 		// Misma posición que en `mergeLearningData`: `syncLearningData` compara
 		// `JSON.stringify` de objetos completos para decidir si re-subir, y un
 		// orden de claves distinto haría que siempre parecieran diferentes.
-		countriesGame: migrateGameProgress(parsedData.countriesGame),
+		...buildSubGames((key) => migrateGameProgress(parsedData[key])),
 		achievements: parsedData.achievements ?? {},
 		stats: migrateStats(
 			parsedData.stats,
@@ -361,15 +408,13 @@ export function hasLearningProgress(data: UserLearningData): boolean {
 	// consideraría "vacía" y `syncLearningData` la pisaría con los datos locales.
 	const hasAchievements = Object.keys(data.achievements).length > 0;
 
+	// Todos los juegos, desde el registro: una cuenta que solo jugó uno de
+	// ellos también tiene progreso, y `planSync` no debe dejar que el
+	// invitado la pise (D056).
 	return (
-		hasGameProgress({
-			countryHistory: data.countryHistory,
-			regionGameScores: data.regionGameScores,
-			regionBestTimes: data.regionBestTimes,
-			lastPracticeByCountry: data.lastPracticeByCountry,
-			regionGameScoresUpdatedAt: data.regionGameScoresUpdatedAt,
-		}) ||
-		hasGameProgress(data.countriesGame) ||
+		GAME_TYPES.some((gameType) =>
+			hasGameProgress(getGameProgress(data, gameType)),
+		) ||
 		hasAchievements ||
 		data.sessionHistory.length > 0
 	);
@@ -386,13 +431,59 @@ export function clearLearningData(): void {
 }
 
 /**
+ * El progreso de `gameType`, esté donde esté guardado (ver `SUB_GAME_KEYS`).
+ * Para Banderas lo arma con los campos de primer nivel, en el mismo orden
+ * de claves que `migrateGameProgress`.
+ */
+export function getGameProgress(
+	data: UserLearningData,
+	gameType: GameType,
+): GameProgress {
+	if (gameType === "flags") {
+		return {
+			countryHistory: data.countryHistory,
+			regionGameScores: data.regionGameScores,
+			regionBestTimes: data.regionBestTimes,
+			lastPracticeByCountry: data.lastPracticeByCountry,
+			regionGameScoresUpdatedAt: data.regionGameScoresUpdatedAt,
+		};
+	}
+
+	return data[SUB_GAME_KEYS[gameType]];
+}
+
+/**
+ * `data` con el progreso de `gameType` sustituido por `progress`, sin
+ * persistir. Las claves que ya existen conservan su posición en el objeto
+ * (el spread no las reordena), así que `JSON.stringify` no cambia de forma.
+ */
+function setGameProgress(
+	data: UserLearningData,
+	gameType: GameType,
+	progress: GameProgress,
+): UserLearningData {
+	if (gameType === "flags") {
+		return {
+			...data,
+			countryHistory: progress.countryHistory,
+			regionGameScores: progress.regionGameScores,
+			regionBestTimes: progress.regionBestTimes,
+			lastPracticeByCountry: progress.lastPracticeByCountry,
+			regionGameScoresUpdatedAt: progress.regionGameScoresUpdatedAt,
+		};
+	}
+
+	return { ...data, [SUB_GAME_KEYS[gameType]]: progress };
+}
+
+/**
  * Proyecta el progreso de `gameType` sobre los campos de primer nivel de
  * `UserLearningData` — el sitio donde viven todas las funciones puras de
  * este archivo (`saveReviewResult`, `registerRegionGame`,
  * `getUnpracticedCodesToday`, `getDueCountries`…). Así una acción de
- * `useGame` puede llamar a esas funciones sin que sepan que existe un
- * segundo juego: para "flags" es la identidad (ya viven ahí); para
- * "countries" copia `countriesGame.*` al primer nivel. Ver D029.
+ * `useGame` puede llamar a esas funciones sin que sepan que hay más de un
+ * juego: para "flags" es la identidad (ya viven ahí); para los demás copia
+ * su sub-objeto al primer nivel. Ver D029.
  */
 export function toGameView(
 	data: UserLearningData,
@@ -400,30 +491,23 @@ export function toGameView(
 ): UserLearningData {
 	if (gameType === "flags") return data;
 
-	return {
-		...data,
-		countryHistory: data.countriesGame.countryHistory,
-		regionGameScores: data.countriesGame.regionGameScores,
-		regionBestTimes: data.countriesGame.regionBestTimes,
-		lastPracticeByCountry: data.countriesGame.lastPracticeByCountry,
-		regionGameScoresUpdatedAt: data.countriesGame.regionGameScoresUpdatedAt,
-	};
+	return setGameProgress(data, "flags", getGameProgress(data, gameType));
 }
 
 /**
  * Inversa de `toGameView`: toma el resultado de aplicar una función pura
  * sobre la vista de `gameType` y lo devuelve con el progreso en el sitio
- * correcto de `UserLearningData`. Para "flags" es la identidad. Para
- * "countries" restaura los campos de primer nivel de Banderas desde
- * `original` (la vista los había pisado con los de Países) y mueve lo que
- * cambió de vuelta a `countriesGame`, conservando de `view` todo lo
- * compartido (stats, sessionHistory, achievements, lastConfiguration,
- * profile) que la función pura haya tocado.
+ * correcto de `UserLearningData`. Para "flags" es la identidad. Para los
+ * demás restaura los campos de primer nivel de Banderas desde `original`
+ * (la vista los había pisado con los de ese juego) y mueve lo que cambió de
+ * vuelta a su sub-objeto, conservando de `view` todo lo compartido (stats,
+ * sessionHistory, achievements, lastConfiguration, profile) que la función
+ * pura haya tocado.
  *
  * Vuelve a persistir con `saveLearningData` cuando `gameType` no es "flags":
  * la función pura que se llamó sobre la vista (p. ej. `saveReviewResult`) ya
  * persistió por su cuenta, pero lo que escribió a `localStorage` es la VISTA
- * — de primer nivel trae el progreso de Países, y `countriesGame` todavía
+ * — de primer nivel trae el progreso de ese juego, y su sub-objeto todavía
  * está desactualizado. Sin este segundo `saveLearningData`, una recarga
  * antes del siguiente cambio leería ese estado a medio corregir.
  */
@@ -434,21 +518,11 @@ export function fromGameView(
 ): UserLearningData {
 	if (gameType === "flags") return view;
 
-	const corrected: UserLearningData = {
-		...view,
-		countryHistory: original.countryHistory,
-		regionGameScores: original.regionGameScores,
-		regionBestTimes: original.regionBestTimes,
-		lastPracticeByCountry: original.lastPracticeByCountry,
-		regionGameScoresUpdatedAt: original.regionGameScoresUpdatedAt,
-		countriesGame: {
-			countryHistory: view.countryHistory,
-			regionGameScores: view.regionGameScores,
-			regionBestTimes: view.regionBestTimes,
-			lastPracticeByCountry: view.lastPracticeByCountry,
-			regionGameScoresUpdatedAt: view.regionGameScoresUpdatedAt,
-		},
-	};
+	const corrected = setGameProgress(
+		setGameProgress(view, "flags", getGameProgress(original, "flags")),
+		gameType,
+		getGameProgress(view, "flags"),
+	);
 
 	saveLearningData(corrected);
 
@@ -641,8 +715,8 @@ export function registerRegionGame(
 			...currentData.regionGameScores,
 			[region]: regionScores,
 		},
-		// Sobre la vista de Países (`toGameView`) esto es la fecha de Países:
-		// `fromGameView` la devuelve a `countriesGame`.
+		// Sobre la vista de otro juego (`toGameView`) esto es la fecha de ese
+		// juego: `fromGameView` la devuelve a su sub-objeto.
 		regionGameScoresUpdatedAt: {
 			...currentData.regionGameScoresUpdatedAt,
 			[region]: updatedAt,
@@ -1023,10 +1097,11 @@ function mergeRegionGameScores(
 }
 
 /**
- * Fusiona el progreso de un juego (Banderas o Países): `countryHistory` por la
- * revisión más reciente de cada país, `regionGameScores` por la fecha de cada
- * continente (D055), y `regionBestTimes`/`lastPracticeByCountry` con las
- * mismas reglas que el resto de `mergeLearningData`.
+ * Fusiona el progreso de un juego, cualquiera (ver `getGameProgress`):
+ * `countryHistory` por la revisión más reciente de cada país,
+ * `regionGameScores` por la fecha de cada continente (D055),
+ * `regionBestTimes` por el menor tiempo y `lastPracticeByCountry` por la
+ * fecha más reciente.
  */
 function mergeGameProgress(
 	remote: GameProgress,
@@ -1101,7 +1176,8 @@ function mergeDailyReminder(
  * - `regionBestTimes`: por continente, el menor tiempo (la mejor marca).
  * - `lastPracticeByCountry`: por país, la fecha más reciente, para que una
  *   jornada en curso local sobreviva a un login con datos remotos viejos.
- * - `countriesGame`: mismas reglas de arriba, aplicadas al progreso de Países.
+ * - El sub-objeto de cada juego que no es Banderas (`SUB_GAME_KEYS`): mismas
+ *   reglas de arriba, las de `mergeGameProgress`.
  * - `achievements`: unión (nunca se pierde un logro, ni se borra un id
  *   desconocido de una versión más nueva).
  * - `stats` / `sessionHistory`: ver arriba.
@@ -1118,14 +1194,12 @@ export function mergeLearningData(
 	local: UserLearningData,
 	base: UserLearningData,
 ): UserLearningData {
-	const lastPracticeByCountry = mergeLastPracticeByCountry(
-		remote.lastPracticeByCountry,
-		local.lastPracticeByCountry,
-	);
-
-	const regionBestTimes = mergeRegionBestTimes(
-		remote.regionBestTimes,
-		local.regionBestTimes,
+	// Banderas sigue en el primer nivel, pero se fusiona con las mismas reglas
+	// que los demás juegos; abajo se reparte campo a campo en su sitio.
+	const flags = mergeGameProgress(
+		getGameProgress(remote, "flags"),
+		getGameProgress(local, "flags"),
+		getGameProgress(base, "flags"),
 	);
 
 	const sessionHistory = mergeSessionHistory(
@@ -1151,36 +1225,19 @@ export function mergeLearningData(
 		base.lastConfiguration,
 	);
 
-	const regionScores = mergeRegionGameScores(
-		{
-			scores: remote.regionGameScores,
-			updatedAt: remote.regionGameScoresUpdatedAt,
-		},
-		{
-			scores: local.regionGameScores,
-			updatedAt: local.regionGameScoresUpdatedAt,
-		},
-		base.regionGameScores,
-	);
-
 	// El orden de las claves replica el de `normalizeLearningData` a propósito:
 	// `syncLearningData` compara `JSON.stringify(merged)` con el del remoto para
 	// decidir si re-subir, y un orden distinto haría que siempre parecieran
 	// diferentes (un push de más en cada sincronización).
 	return {
 		profile: profile.value,
-		countryHistory: mergeCountryHistory(
-			remote.countryHistory,
-			local.countryHistory,
-		),
-		regionGameScores: regionScores.scores,
-		regionBestTimes,
+		countryHistory: flags.countryHistory,
+		regionGameScores: flags.regionGameScores,
+		regionBestTimes: flags.regionBestTimes,
 		lastConfiguration: lastConfiguration.value,
-		lastPracticeByCountry,
-		countriesGame: mergeGameProgress(
-			remote.countriesGame,
-			local.countriesGame,
-			base.countriesGame,
+		lastPracticeByCountry: flags.lastPracticeByCountry,
+		...buildSubGames((key) =>
+			mergeGameProgress(remote[key], local[key], base[key]),
 		),
 		achievements: mergeAchievements(remote.achievements, local.achievements),
 		stats: mergeStats(remote.stats, local.stats, sessionHistory),
@@ -1193,7 +1250,7 @@ export function mergeLearningData(
 			profile: profile.updatedAt,
 			lastConfiguration: lastConfiguration.updatedAt,
 		},
-		regionGameScoresUpdatedAt: regionScores.updatedAt,
+		regionGameScoresUpdatedAt: flags.regionGameScoresUpdatedAt,
 	};
 }
 
