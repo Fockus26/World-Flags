@@ -183,12 +183,10 @@ el `userId`; nunca se sube).
     selector lo avisa). Al volver la red se reintentan solos.
   - **Sincronización entre dispositivos y ranking:** esperan a la red (D050,
     D051).
-- **Pregunta abierta para el dueño — banderas nunca vistas:** el SW solo tiene
-  las banderas que ya aparecieron alguna vez. Sin red, practicar un continente
-  nunca visto enseña la imagen rota (el `alt`, "Bandera que debes
-  identificar"). Opciones: (a) precargar las 197 (~3,1 MB, una vez, en segundo
-  plano y no con "ahorro de datos"); (b) aviso en la tarjeta + saltar; (c)
-  dejarlo así. No se tocó en esta unidad.
+- **Banderas nunca vistas:** el SW solo tenía las que ya habían aparecido
+  alguna vez; sin red, un continente nunca practicado enseñaba imágenes rotas.
+  Se planteó (a) precargar las 197, (b) aviso en la tarjeta + saltar o
+  (c) dejarlo; el dueño eligió (a) → D054.
 - Copy provisional → `context/CONTENT_CHECKLIST.md`.
 
 ## D053 — Cerrar sesión con progreso sin subir
@@ -207,6 +205,34 @@ supabase-js lo permite sin red. `AuthSection`:
 - **Límite conocido:** un cierre de sesión involuntario (refresh token
   revocado) sigue borrando lo no subido. Sin red, supabase-js conserva la
   sesión ante un refresco fallido, así que no pasa por estar offline.
+
+## D054 — Precarga de las 197 banderas para jugar sin red
+
+Elegida por el dueño entre tres opciones (precargar / aviso + saltar /
+dejarlo). Sin ella, practicar sin red un continente nunca abierto enseñaba
+imágenes rotas.
+
+- **Quién decide la lista:** la app, que conoce el catálogo
+  (`utils/flag-precache.ts` → `getFlagUrls()`), la manda al service worker con
+  `postMessage({ type: "PRECACHE_FLAGS", urls })`. Así `sw.js` no duplica los
+  197 códigos. El SW solo acepta rutas `/flags/<código>.svg` (valida el
+  mensaje aunque venga de la propia página).
+- **Cómo descarga:** una a una, solo las que no están en caché (`cache.match`
+  antes de `cache.add`). Idempotente: se pide en cada carga y, con todo ya
+  guardado, no descarga nada. Si una falla (se fue la red), se para sin error
+  y la siguiente vez sigue donde quedó.
+- **Cuándo:** `FlagPrecacheEffects` la pide 5 s después de montar (la carga
+  inicial va primero) y otra vez con `online`. Nunca con "ahorro de datos"
+  (`navigator.connection.saveData`) ni en 2G; sin la Network Information API
+  (Safari, Firefox) se precarga.
+- **Coste:** ~3,1 MB una sola vez por dispositivo. Ojo: si algún día se sube
+  `CACHE_NAME`, el `activate` borra la caché vieja y se vuelven a descargar.
+- **Verificación:** `tests/unit/flag-precache.test.ts` (197 URLs únicas, todas
+  existen en `public/flags` y pasan el filtro de `sw.js`; reglas de ahorro de
+  datos) y el arnés aislado de `sw.js` (descarga solo lo que falta, ignora URLs
+  ajenas, se para sin red y retoma). En el navegador embebido, con el service
+  worker simulado (no registra SW reales, ver arriba), la app manda las 197 a
+  los ~5 s y no manda nada con "ahorro de datos".
 
 ## Verificación
 

@@ -10,9 +10,38 @@ self.addEventListener("install", (event) => {
 	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL)));
 });
 
+// Solo banderas propias: el mensaje viene de la página, pero se valida igual.
+const FLAG_URL_PATTERN = /^\/flags\/[a-z0-9-]+\.svg$/;
+
+// Precarga de banderas (D054): la app manda la lista del catálogo y aquí se
+// descargan una a una las que falten en caché. Idempotente: en cada carga
+// solo se piden las que no están. Si una falla (sin red), se para y la
+// próxima carga sigue donde quedó.
+async function precacheFlags(urls) {
+	const cache = await caches.open(CACHE_NAME);
+
+	for (const url of urls) {
+		if (await cache.match(url)) continue;
+
+		try {
+			await cache.add(url);
+		} catch {
+			return;
+		}
+	}
+}
+
 self.addEventListener("message", (event) => {
 	if (event.data?.type === "SKIP_WAITING") {
 		self.skipWaiting();
+	}
+
+	if (event.data?.type === "PRECACHE_FLAGS" && Array.isArray(event.data.urls)) {
+		const urls = event.data.urls.filter(
+			(url) => typeof url === "string" && FLAG_URL_PATTERN.test(url),
+		);
+
+		event.waitUntil(precacheFlags(urls));
 	}
 });
 
