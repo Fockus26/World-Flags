@@ -2,22 +2,36 @@ import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 
+import { store } from "@/store";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 import { setHydrationStatus, setLearningData } from "@/store/slices/gameSlice";
 
 import {
-	pushLearningData,
-	syncOnLogin,
+	resetSync,
+	setHasPendingChanges,
+	syncFailed,
+	syncSucceeded,
+} from "@/store/slices/syncSlice";
+
+import type { UserLearningData } from "@/types/progress";
+
+import {
+	isNetworkFailure,
+	syncLearningData,
 	upsertLeaderboardEntry,
 } from "@/utils/cloud-storage";
 
 import {
-	applyReviewsSince,
 	clearLearningData,
 	createDefaultLearningData,
 	getLearningData,
+	getSyncBase,
+	hasPendingChanges,
 	mergeLearningData,
+	saveLearningData,
+	saveSyncBase,
 } from "@/utils/learning-storage";
 
 /**
@@ -27,13 +41,45 @@ import {
  */
 const SYNC_RETRY_DELAYS_MS = [5_000, 15_000, 30_000, 60_000];
 
+/**
+ * Subidas agrupadas (D051): tras un cambio se espera a que el usuario pare
+ * `SYNC_IDLE_MS`, pero nunca más de `SYNC_MAX_WAIT_MS` desde el primer cambio
+ * sin subir. Una práctica de Europa (~60 calificaciones cada 2–4 s) pasa de
+ * ~60 subidas de la fila entera a una cada minuto más la del final. Esperar
+ * no arriesga nada: lo pendiente ya está en `localStorage` y se sube al
+ * volver, aunque se cierre la app antes.
+ */
+const SYNC_IDLE_MS = 5_000;
+const SYNC_MAX_WAIT_MS = 60_000;
+
 /** Una sincronización de la cuenta falló y se juega en modo `local`. */
 interface FailedSync {
 	userId: string;
-	/** Inicio del primer intento: lo revisado desde entonces es de esta cuenta (D046). */
-	since: string;
 	/** Fallos seguidos: elige la espera en `SYNC_RETRY_DELAYS_MS`. */
 	failures: number;
+}
+
+/**
+ * Base de sincronización en memoria (D049), con su JSON ya calculado: se
+ * compara contra `learningData` en cada cambio para saber si hay algo
+ * pendiente de subir.
+ */
+interface SyncBaseRef {
+	userId: string;
+	data: UserLearningData;
+	json: string;
+}
+
+function toSyncBaseRef(userId: string, data: UserLearningData): SyncBaseRef {
+	return { userId, data, json: JSON.stringify(data) };
+}
+
+/** Lo que el efecto de subidas expone a los demás efectos. */
+interface SyncScheduler {
+	/** Hubo un cambio: subir cuando el usuario pare (o al llegar al tope). */
+	schedule: () => void;
+	/** Subir ya. */
+	flush: () => void;
 }
 
 export function GameEffects() {
@@ -43,7 +89,15 @@ export function GameEffects() {
 
 	const hydrationStatus = useAppSelector((state) => state.game.hydrationStatus);
 
+	const connectivity = useAppSelector((state) => state.sync.connectivity);
+
+	const lastSyncedAt = useAppSelector((state) => state.sync.lastSyncedAt);
+
+	const syncRequestId = useAppSelector((state) => state.sync.syncRequestId);
+
 	const { user, status } = useAuth();
+
+	const userId = user?.id ?? null;
 
 	const hydratedUserRef = useRef<string | null>(null);
 
@@ -55,26 +109,18 @@ export function GameEffects() {
 	 */
 	const failedSyncRef = useRef<FailedSync | null>(null);
 
+	/** Base de sincronización de la cuenta actual (D049). */
+	const syncBaseRef = useRef<SyncBaseRef | null>(null);
+
+	const schedulerRef = useRef<SyncScheduler | null>(null);
+
 	/** `status` del render anterior: distingue un logout real de un invitado normal. */
 	const previousStatusRef = useRef<typeof status | null>(null);
-
-	const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-		undefined,
-	);
 
 	const pushedWorldBestRef = useRef<number | undefined>(undefined);
 
 	const pushedCountriesWorldBestRef = useRef<number | undefined>(undefined);
 
-	/**
-	 * Hydrate guest/authenticated state.
-	 *
-	 * Guest:
-	 *     localStorage -> Redux
-	 *
-	 * Authenticated:
-	 *     localStorage + Supabase -> Redux
-	 */
 	/**
 	 * Red de seguridad: si Supabase Auth no resuelve (red caída, mal
 	 * configurado), `status` se queda en "loading" para siempre y el invitado
@@ -97,6 +143,13 @@ export function GameEffects() {
 		return () => clearTimeout(timeoutId);
 	}, [status, dispatch]);
 
+	/**
+	 * Hidratación.
+	 *
+	 * Invitado: localStorage -> Redux.
+	 *
+	 * Cuenta: localStorage + base de sincronización + Supabase -> Redux.
+	 */
 	useEffect(() => {
 		if (status === "loading") {
 			return;
@@ -109,17 +162,21 @@ export function GameEffects() {
 		 * USER IS GUEST
 		 */
 		if (status === "guest") {
-			clearTimeout(pushTimeoutRef.current);
-
 			hydratedUserRef.current = null;
 
 			failedSyncRef.current = null;
 
+			syncBaseRef.current = null;
+
+			dispatch(resetSync());
+
 			/**
 			 * Logout real (authenticated -> guest): mientras se estuvo
 			 * autenticado las acciones del juego persistieron los datos del
-			 * usuario en localStorage, así que hay que limpiarlos para que no
-			 * queden disponibles para la sesión de invitado.
+			 * usuario en localStorage, así que hay que limpiarlos (con su base
+			 * de sincronización) para que no queden disponibles para la sesión
+			 * de invitado. Lo que no se hubiera subido se pierde aquí: por eso
+			 * `AuthSection` avisa antes de cerrar sesión con cambios pendientes.
 			 *
 			 * Carga normal de invitado: NO se limpia — se hidrata desde
 			 * localStorage para que el progreso del invitado (incluido el
@@ -161,16 +218,12 @@ export function GameEffects() {
 		const controller = new AbortController();
 
 		const hydrateAuthenticatedUser = async () => {
-			clearTimeout(pushTimeoutRef.current);
-
 			clearTimeout(retryTimeoutId);
 
 			const failedSync =
 				failedSyncRef.current?.userId === user.id
 					? failedSyncRef.current
 					: null;
-
-			const since = failedSync?.since ?? new Date().toISOString();
 
 			// En un reintento ya se está jugando sobre los datos locales
 			// (`local`): volver a `loading` no aportaría nada.
@@ -181,23 +234,25 @@ export function GameEffects() {
 			isSyncing = true;
 
 			/**
-			 * Data stored locally before login.
-			 *
-			 * This is the guest data that may be transferred
-			 * if the account has no existing progress.
+			 * Datos de este dispositivo: los de la cuenta (con lo jugado sin
+			 * conexión, si lo hubo) o los del invitado que acaba de entrar.
 			 */
 			const localData = getLearningData();
 
+			/**
+			 * Base de sincronización de la cuenta en este dispositivo (D049):
+			 * contra ella se sabe qué cambió aquí y no está en la nube. `null`
+			 * en el primer login en este dispositivo (y tras un logout): lo
+			 * local es del invitado y, en lo que no tiene marca de tiempo,
+			 * cede ante la cuenta (D020).
+			 */
+			const base = getSyncBase(user.id);
+
 			try {
-				/**
-				 * syncOnLogin:
-				 *
-				 * - account with progress -> remote wins
-				 * - account without progress -> guest data transfers
-				 */
-				const syncedData = await syncOnLogin(
+				const syncedData = await syncLearningData(
 					user.id,
 					localData,
+					base,
 					controller.signal,
 				);
 
@@ -208,36 +263,34 @@ export function GameEffects() {
 				/**
 				 * Lo jugado mientras la sincronización estaba en vuelo ya está
 				 * en `localStorage` pero no en `syncedData`: reemplazar sin más
-				 * lo borraría. Y lo revisado en modo `local` perdería contra la
-				 * nube en `mergeLearningData` (D020) aunque sea de esta misma
-				 * cuenta (D046).
+				 * lo borraría. Se fusiona con lo que se mandó como base: gana
+				 * lo que cambió durante el vuelo.
 				 */
 				const latestLocalData = getLearningData();
 
-				const mergedData =
+				const authenticatedData =
 					JSON.stringify(latestLocalData) === JSON.stringify(localData)
 						? syncedData
-						: mergeLearningData(syncedData, latestLocalData);
-
-				const authenticatedData = applyReviewsSince(
-					mergedData,
-					latestLocalData,
-					since,
-				);
+						: mergeLearningData(syncedData, latestLocalData, localData);
 
 				failedSyncRef.current = null;
 
 				/**
-				 * IMPORTANT:
-				 *
-				 * Do not persist authenticated data to the guest
-				 * localStorage.
-				 *
-				 * Supabase is the source of truth for authenticated users.
+				 * Datos y base se guardan juntos, en la misma tarea: tienen
+				 * que ser una pareja coherente para que la próxima carga sepa
+				 * qué quedó sin subir (D049). La base es lo que quedó en la
+				 * nube; la diferencia con `authenticatedData`, si la hay, es lo
+				 * jugado durante el vuelo, que el efecto de subidas manda.
 				 */
+				saveLearningData(authenticatedData);
+				saveSyncBase(user.id, syncedData);
+				syncBaseRef.current = toSyncBaseRef(user.id, syncedData);
+
 				dispatch(setLearningData(authenticatedData));
 
 				hydratedUserRef.current = user.id;
+
+				dispatch(syncSucceeded(new Date().toISOString()));
 
 				dispatch(setHydrationStatus("ready"));
 			} catch (error) {
@@ -245,25 +298,45 @@ export function GameEffects() {
 					return;
 				}
 
-				console.error("Failed to hydrate authenticated user:", error);
+				const kind = isNetworkFailure(error) ? "network" : "server";
+
+				// Sin red es un estado esperado que la UI ya comunica (D050).
+				if (kind === "server") {
+					console.error("Failed to hydrate authenticated user:", error);
+				}
 
 				/**
 				 * Sin la nube se sigue jugando sobre `localStorage`, pero en
-				 * `local`, NUNCA en `ready`: `ready` habilita el push, que haría
-				 * upsert de la fila entera con esta copia — vieja si se jugó en
-				 * otro dispositivo, o vacía tras un logout (que la borra) — y
-				 * pisaría el progreso de la cuenta (D044). En un reintento no se
-				 * reemplaza nada: ya se está jugando sobre esos datos.
+				 * `local`, NUNCA en `ready`: `ready` habilita las subidas, y
+				 * esta copia sin contrastar pisaría el progreso de la cuenta
+				 * (D044). En un reintento no se reemplaza nada: ya se está
+				 * jugando sobre esos datos.
 				 */
 				if (!failedSync) {
-					dispatch(setLearningData(getLearningData()));
+					dispatch(setLearningData(localData));
+
+					/**
+					 * Si la cuenta nunca sincronizó en este dispositivo, lo local
+					 * de este momento hace de base: lo que se juegue desde ahora
+					 * es de la cuenta y ganará al recuperarse, también en perfil,
+					 * configuración y notas, aunque se recargue sin conexión.
+					 */
+					const effectiveBase = base ?? localData;
+
+					if (!base) {
+						saveSyncBase(user.id, localData);
+					}
+
+					syncBaseRef.current = toSyncBaseRef(user.id, effectiveBase);
 				}
+
+				dispatch(syncFailed(kind));
 
 				dispatch(setHydrationStatus("local"));
 
 				const failures = (failedSync?.failures ?? 0) + 1;
 
-				failedSyncRef.current = { userId: user.id, since, failures };
+				failedSyncRef.current = { userId: user.id, failures };
 
 				retryTimeoutId = setTimeout(
 					() => void hydrateAuthenticatedUser(),
@@ -299,44 +372,220 @@ export function GameEffects() {
 	}, [status, user, dispatch]);
 
 	/**
-	 * Push authenticated changes to Supabase.
+	 * Subidas de la cuenta ya hidratada (D051).
 	 *
-	 * No push is allowed until the authenticated state has
-	 * finished hydrating.
+	 * Cada subida es una sincronización completa (leer → fusionar con la base
+	 * → subir si aporta algo), no un upsert a ciegas: otro dispositivo pudo
+	 * subir entre medias. Se agrupan (ver `SYNC_IDLE_MS`), se adelantan al
+	 * ocultar la app o al volver la red, y si fallan se reintentan con la
+	 * misma espera creciente que la hidratación. Nada se sube antes de
+	 * hidratar.
 	 */
 	useEffect(() => {
 		if (
 			status !== "authenticated" ||
-			!user ||
+			!userId ||
 			hydrationStatus !== "ready" ||
-			hydratedUserRef.current !== user.id
+			hydratedUserRef.current !== userId
 		) {
 			return;
 		}
 
-		clearTimeout(pushTimeoutRef.current);
+		const controller = new AbortController();
 
-		pushTimeoutRef.current = setTimeout(() => {
-			void pushLearningData(user.id, learningData);
-		}, 800);
+		let inFlight = false;
+
+		let rerunAfterFlight = false;
+
+		let failures = 0;
+
+		let idleTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+		let maxWaitTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+		let retryTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+		const clearTimers = () => {
+			clearTimeout(idleTimeoutId);
+			clearTimeout(maxWaitTimeoutId);
+			clearTimeout(retryTimeoutId);
+			idleTimeoutId = undefined;
+			maxWaitTimeoutId = undefined;
+			retryTimeoutId = undefined;
+		};
+
+		const runSync = async () => {
+			clearTimers();
+
+			if (inFlight) {
+				rerunAfterFlight = true;
+				return;
+			}
+
+			const syncBase = syncBaseRef.current;
+			const base = syncBase?.userId === userId ? syncBase.data : null;
+			const localAtStart = store.getState().game.learningData;
+
+			inFlight = true;
+
+			try {
+				const syncedData = await syncLearningData(
+					userId,
+					localAtStart,
+					base,
+					controller.signal,
+				);
+
+				if (controller.signal.aborted) return;
+
+				// Lo cambiado durante el vuelo gana (base = lo que se mandó).
+				const latestData = store.getState().game.learningData;
+
+				const adoptedData =
+					latestData === localAtStart
+						? syncedData
+						: mergeLearningData(syncedData, latestData, localAtStart);
+
+				saveSyncBase(userId, syncedData);
+				syncBaseRef.current = toSyncBaseRef(userId, syncedData);
+
+				// Sin delta, no se despacha: cada despacho re-dispara los
+				// efectos que miran `learningData` (logros, esta misma cola).
+				if (JSON.stringify(adoptedData) !== JSON.stringify(latestData)) {
+					saveLearningData(adoptedData);
+					dispatch(setLearningData(adoptedData));
+				}
+
+				failures = 0;
+
+				dispatch(syncSucceeded(new Date().toISOString()));
+
+				const pending = hasPendingChanges(adoptedData, syncedData);
+
+				dispatch(setHasPendingChanges(pending));
+
+				if (pending) schedule();
+			} catch (error) {
+				if (controller.signal.aborted) return;
+
+				const kind = isNetworkFailure(error) ? "network" : "server";
+
+				if (kind === "server") {
+					console.error("Failed to sync learning data:", error);
+				}
+
+				dispatch(syncFailed(kind));
+
+				failures += 1;
+
+				retryTimeoutId = setTimeout(
+					() => void runSync(),
+					SYNC_RETRY_DELAYS_MS[
+						Math.min(failures, SYNC_RETRY_DELAYS_MS.length) - 1
+					],
+				);
+			} finally {
+				inFlight = false;
+
+				if (rerunAfterFlight && !controller.signal.aborted) {
+					rerunAfterFlight = false;
+					void runSync();
+				}
+			}
+		};
+
+		function schedule() {
+			// Tras un fallo manda el reintento (y el evento `online`): no se
+			// martillea a la nube con cada calificación.
+			if (retryTimeoutId !== undefined) return;
+
+			clearTimeout(idleTimeoutId);
+			idleTimeoutId = setTimeout(() => void runSync(), SYNC_IDLE_MS);
+
+			if (maxWaitTimeoutId === undefined) {
+				maxWaitTimeoutId = setTimeout(() => void runSync(), SYNC_MAX_WAIT_MS);
+			}
+		}
+
+		/** La app pasa a segundo plano (o se cierra): se sube lo pendiente ya. */
+		const flushWhenHidden = () => {
+			if (
+				document.visibilityState === "hidden" &&
+				store.getState().sync.hasPendingChanges
+			) {
+				void runSync();
+			}
+		};
+
+		schedulerRef.current = { schedule, flush: () => void runSync() };
+
+		document.addEventListener("visibilitychange", flushWhenHidden);
+		window.addEventListener("pagehide", flushWhenHidden);
+
+		// Lo que quedara pendiente de antes (p. ej. lo jugado durante la
+		// hidratación) entra en la cola.
+		if (store.getState().sync.hasPendingChanges) schedule();
 
 		return () => {
-			clearTimeout(pushTimeoutRef.current);
+			controller.abort();
+
+			clearTimers();
+
+			schedulerRef.current = null;
+
+			document.removeEventListener("visibilitychange", flushWhenHidden);
+			window.removeEventListener("pagehide", flushWhenHidden);
 		};
-	}, [learningData, status, user, hydrationStatus]);
+	}, [status, userId, hydrationStatus, dispatch]);
+
+	/**
+	 * ¿Hay algo de la cuenta que la nube no tiene? Se recalcula con cada
+	 * cambio, también en `local` (sin subidas): es lo que dice a la UI que el
+	 * progreso está solo en este dispositivo y lo que protege el logout.
+	 */
+	useEffect(() => {
+		if (
+			status !== "authenticated" ||
+			!userId ||
+			(hydrationStatus !== "ready" && hydrationStatus !== "local")
+		) {
+			return;
+		}
+
+		const syncBase = syncBaseRef.current;
+
+		const pending =
+			syncBase?.userId === userId &&
+			JSON.stringify(learningData) !== syncBase.json;
+
+		if (pending !== store.getState().sync.hasPendingChanges) {
+			dispatch(setHasPendingChanges(pending));
+		}
+
+		if (pending) schedulerRef.current?.schedule();
+	}, [learningData, status, userId, hydrationStatus, dispatch]);
+
+	/** Alguien pidió sincronizar ya (volvió la red, o se va a cerrar sesión). */
+	useEffect(() => {
+		if (syncRequestId > 0) schedulerRef.current?.flush();
+	}, [syncRequestId]);
 
 	/**
 	 * Leaderboard: cada vez que el mejor tiempo de "Todo el mundo" mejora, se
-	 * sube (mejor esfuerzo, ver upsertLeaderboardEntry) — no espera al push
-	 * debounced de arriba porque esto no compite en frecuencia con el resto
-	 * de `learningData` (solo cambia al batir una marca).
+	 * sube (mejor esfuerzo, ver upsertLeaderboardEntry) — no espera a las
+	 * subidas agrupadas porque esto no compite en frecuencia con el resto de
+	 * `learningData` (solo cambia al batir una marca). Si falla (sin
+	 * conexión), se reintenta tras la siguiente sincronización buena
+	 * (`lastSyncedAt`).
 	 */
+	// biome-ignore lint/correctness/useExhaustiveDependencies: lastSyncedAt re-dispara el reintento de una marca que no se pudo subir
 	useEffect(() => {
 		if (
 			status !== "authenticated" ||
 			!user ||
 			hydrationStatus !== "ready" ||
-			hydratedUserRef.current !== user.id
+			hydratedUserRef.current !== user.id ||
+			connectivity === "offline"
 		) {
 			return;
 		}
@@ -357,22 +606,30 @@ export function GameEffects() {
 			"world",
 			learningData.profile.name,
 			worldBestMs,
-		);
+		).then((uploaded) => {
+			if (!uploaded && pushedWorldBestRef.current === worldBestMs) {
+				pushedWorldBestRef.current = undefined;
+			}
+		});
 	}, [
 		learningData.regionBestTimes.world,
 		learningData.profile.name,
 		status,
 		user,
 		hydrationStatus,
+		connectivity,
+		lastSyncedAt,
 	]);
 
 	/** Igual que el efecto de arriba, pero para el rush de Países (D033). Scope aparte ("countries:world"): la PK `(user_id, scope)` de `leaderboard_entries` ya lo soporta sin migración. */
+	// biome-ignore lint/correctness/useExhaustiveDependencies: lastSyncedAt re-dispara el reintento de una marca que no se pudo subir
 	useEffect(() => {
 		if (
 			status !== "authenticated" ||
 			!user ||
 			hydrationStatus !== "ready" ||
-			hydratedUserRef.current !== user.id
+			hydratedUserRef.current !== user.id ||
+			connectivity === "offline"
 		) {
 			return;
 		}
@@ -394,23 +651,23 @@ export function GameEffects() {
 			"countries:world",
 			learningData.profile.name,
 			countriesWorldBestMs,
-		);
+		).then((uploaded) => {
+			if (
+				!uploaded &&
+				pushedCountriesWorldBestRef.current === countriesWorldBestMs
+			) {
+				pushedCountriesWorldBestRef.current = undefined;
+			}
+		});
 	}, [
 		learningData.countriesGame.regionBestTimes.world,
 		learningData.profile.name,
 		status,
 		user,
 		hydrationStatus,
+		connectivity,
+		lastSyncedAt,
 	]);
-
-	/**
-	 * Cleanup pending push.
-	 */
-	useEffect(() => {
-		return () => {
-			clearTimeout(pushTimeoutRef.current);
-		};
-	}, []);
 
 	return null;
 }

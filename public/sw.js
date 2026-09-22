@@ -85,17 +85,28 @@ self.addEventListener("fetch", (event) => {
 		return;
 	}
 
+	// Otros orígenes (Supabase, avatares de dicebear, Google Fonts): directo a
+	// la red, sin pasar por aquí. Nunca se cacheaban, y responderles con la
+	// página offline cuando no hay red hacía que un GET a Supabase recibiera
+	// HTML con 200 en vez de un error de red: la app no podía saber que estaba
+	// sin conexión. La caché HTTP del navegador sigue aplicando (un avatar ya
+	// visto carga sin red).
+	if (new URL(request.url).origin !== self.location.origin) return;
+
 	event.respondWith(
 		caches.match(request).then((cached) => {
 			const network = fetch(request)
 				.then((response) => {
-					if (response.ok && request.url.startsWith(self.location.origin)) {
+					if (response.ok) {
 						const clone = response.clone();
 						caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
 					}
 					return response;
 				})
-				.catch(() => cached || caches.match(OFFLINE_URL));
+				// Un recurso que no está en caché y no llega (una bandera nunca
+				// vista, sin red) falla como fallo de red, no con el HTML de la
+				// app — que como imagen o script no sirve de nada.
+				.catch(() => cached || Response.error());
 			return cached || network;
 		}),
 	);

@@ -9,12 +9,62 @@ import {
 } from "./learning-storage";
 
 /**
- * Tope de `syncOnLogin`. El GET normal tarda menos de un segundo; 10 s dan
- * margen a una red lenta y a los reintentos propios de postgrest-js ante un
- * error de red (1 s + 2 s + 4 s). Pasado el tope, `GameEffects` sigue con los
- * datos locales, sin subir nada, y reintenta más tarde (D045).
+ * Tope de `syncLearningData`. El GET normal tarda menos de un segundo; 10 s
+ * dan margen a una red lenta y a los reintentos propios de postgrest-js ante
+ * un error de red (1 s + 2 s + 4 s). Pasado el tope, `GameEffects` sigue con
+ * los datos locales, sin subir nada, y reintenta más tarde (D045).
  */
 const SYNC_TIMEOUT_MS = 10_000;
+
+/**
+ * Fallo de una petición a la nube, con su causa ya clasificada (D050):
+ *
+ * - `network`: no hubo respuesta del servidor — sin red, `fetch` rechazado
+ *   (postgrest lo devuelve con `status` 0), o el tope de 10 s. Es "sin
+ *   conexión" aunque `navigator.onLine` diga lo contrario, que miente a
+ *   menudo (wifi sin salida a internet, portal cautivo).
+ * - `server`: el servidor respondió con un error (500, permisos, esquema).
+ *   Hay red; lo que falla es la sincronización.
+ */
+export class CloudRequestError extends Error {
+	readonly kind: "network" | "server";
+
+	constructor(kind: "network" | "server", message: string, cause?: unknown) {
+		super(message, { cause });
+		this.name = "CloudRequestError";
+		this.kind = kind;
+	}
+}
+
+/** ¿El fallo es falta de conexión (y no un error del servidor)? */
+export function isNetworkFailure(error: unknown): boolean {
+	if (error instanceof CloudRequestError) return error.kind === "network";
+
+	// Supabase Auth sin red devuelve `AuthRetryableFetchError`.
+	if (error instanceof Error && error.name === "AuthRetryableFetchError") {
+		return true;
+	}
+
+	return typeof navigator !== "undefined" && !navigator.onLine;
+}
+
+function toCloudRequestError(
+	error: { message: string },
+	status: number,
+	action: string,
+): CloudRequestError {
+	// Un `sw.js` anterior a D050 respondía a un GET cross-origin sin red con
+	// la página offline (HTML con 200): llega como error con `status` 200 y
+	// sin código de PostgREST. `navigator.onLine` falso lo desempata.
+	const isNetwork =
+		status === 0 || (typeof navigator !== "undefined" && !navigator.onLine);
+
+	return new CloudRequestError(
+		isNetwork ? "network" : "server",
+		`${action}: ${error.message}`,
+		error,
+	);
+}
 
 export async function fetchRemoteLearningData(
 	userId: string,
@@ -31,16 +81,23 @@ export async function fetchRemoteLearningData(
 		query = query.abortSignal(signal);
 	}
 
-	const { data, error } = await query.maybeSingle();
+	const { data, error, status } = await query.maybeSingle();
 
 	if (error) {
+		const cloudError = toCloudRequestError(
+			error,
+			status,
+			"Failed to fetch remote learning data",
+		);
+
 		// Abortada a propósito (timeout o cancelación): quien la abortó ya
-		// sabe por qué, y este log solo sería ruido.
-		if (!signal?.aborted) {
-			console.error("Failed to fetch remote learning data:", error);
+		// sabe por qué. Sin red tampoco se registra: es un estado esperado,
+		// que la UI ya comunica (D050).
+		if (!signal?.aborted && cloudError.kind === "server") {
+			console.error(cloudError.message, error);
 		}
 
-		throw error;
+		throw cloudError;
 	}
 
 	if (!data) {
@@ -94,14 +151,20 @@ export async function pushLearningData(
 		query = query.abortSignal(signal);
 	}
 
-	const { error } = await query;
+	const { error, status } = await query;
 
 	if (error) {
-		if (!signal?.aborted) {
-			console.error("Failed to push learning data:", error);
+		const cloudError = toCloudRequestError(
+			error,
+			status,
+			"Failed to push learning data",
+		);
+
+		if (!signal?.aborted && cloudError.kind === "server") {
+			console.error(cloudError.message, error);
 		}
 
-		throw error;
+		throw cloudError;
 	}
 }
 
@@ -121,35 +184,49 @@ function rejectOnAbort(signal: AbortSignal): Promise<never> {
 }
 
 /**
- * Initial synchronization when a guest becomes authenticated.
+ * Sincroniza la cuenta: lee la fila, la fusiona con lo local y sube el
+ * resultado si aporta algo. Se usa al hidratar (login, recarga) y para cada
+ * subida posterior (D051): subir sin leer antes pisaría lo que otro
+ * dispositivo subió mientras tanto.
  *
- * If the user has existing cloud data:
+ * - Cuenta sin progreso en la nube: lo local (el invitado) pasa a ser la
+ *   cuenta.
+ * - Cuenta con progreso: `mergeLearningData(remote, local, base)`. `base` es
+ *   la base de sincronización de este dispositivo (`getSyncBase`): con ella
+ *   ganan los cambios locales que la nube aún no tiene, también en los campos
+ *   sin marca de tiempo (D049). `null` = no se sabe qué cambió aquí (login de
+ *   invitado): esos campos ceden ante la nube (D020).
  *
- *     local + remote -> merge
- *
- * If the user does not have cloud data:
- *
- *     local -> Supabase
- *
- * The returned value is always the data that should become
- * the authenticated user's local/Redux state.
+ * Devuelve lo que queda en la nube tras la llamada — la nueva base.
  *
  * Se rinde a los `SYNC_TIMEOUT_MS` o cuando se aborta `signal` (el efecto
  * que la lanzó se limpió): rechaza, y lo que quedara en vuelo sale abortado,
  * así que una respuesta tardía ya no sube nada a la nube (D045).
  */
-export async function syncOnLogin(
+export async function syncLearningData(
 	userId: string,
 	localData: UserLearningData,
+	base: UserLearningData | null,
 	signal?: AbortSignal,
 ): Promise<UserLearningData> {
+	// Cuando el navegador dice "sin red", acierta: no se intenta. Si no, el GET
+	// fallaría igual, pero tras los reintentos de postgrest (1 + 2 + 4 s): abrir
+	// la app sin conexión dejaría ~7 s de skeleton. Al volver la red, el evento
+	// `online` dispara el reintento (D050).
+	if (typeof navigator !== "undefined" && !navigator.onLine) {
+		throw new CloudRequestError("network", "syncLearningData: sin conexión");
+	}
+
 	const controller = new AbortController();
 
 	const abortFromCaller = () => controller.abort(signal?.reason);
 
 	const timeoutId = setTimeout(() => {
 		controller.abort(
-			new Error(`syncOnLogin: sin respuesta en ${SYNC_TIMEOUT_MS} ms`),
+			new CloudRequestError(
+				"network",
+				`syncLearningData: sin respuesta en ${SYNC_TIMEOUT_MS} ms`,
+			),
 		);
 	}, SYNC_TIMEOUT_MS);
 
@@ -168,7 +245,7 @@ export async function syncOnLogin(
 		 * cuando ese `fetch` por fin salga lo hará ya abortado (no se envía).
 		 */
 		return await Promise.race([
-			runSyncOnLogin(userId, localData, controller.signal),
+			runSync(userId, localData, base, controller.signal),
 			rejectOnAbort(controller.signal),
 		]);
 	} finally {
@@ -178,9 +255,10 @@ export async function syncOnLogin(
 	}
 }
 
-async function runSyncOnLogin(
+async function runSync(
 	userId: string,
 	localData: UserLearningData,
+	base: UserLearningData | null,
 	signal: AbortSignal,
 ): Promise<UserLearningData> {
 	const remote = await fetchRemoteLearningData(userId, signal);
@@ -198,11 +276,10 @@ async function runSyncOnLogin(
 	}
 
 	/**
-	 * La cuenta ya tiene progreso: gana lo remoto campo a campo, salvo lo que
-	 * `mergeLearningData` sabe unir sin perder nada (candado diario, mejores
-	 * marcas, logros, estadísticas e historial).
+	 * La cuenta ya tiene progreso: cada campo con su regla de
+	 * `mergeLearningData`, que no pierde lo que este dispositivo cambió.
 	 */
-	const merged = mergeLearningData(remote, localData);
+	const merged = mergeLearningData(remote, localData, base);
 
 	/**
 	 * Si el merge aportó algo que no estaba en remoto, se sube de vuelta.
@@ -235,16 +312,24 @@ export interface LeaderboardEntry {
 export async function fetchLeaderboard(
 	scope: string,
 ): Promise<LeaderboardEntry[]> {
-	const { data, error } = await supabase
+	const { data, error, status } = await supabase
 		.from("leaderboard_entries")
 		.select("user_id, display_name, best_time_ms")
 		.eq("scope", scope)
 		.order("best_time_ms", { ascending: true });
 
 	if (error) {
-		console.error("Failed to fetch leaderboard:", error);
+		const cloudError = toCloudRequestError(
+			error,
+			status,
+			"Failed to fetch leaderboard",
+		);
 
-		throw error;
+		if (cloudError.kind === "server") {
+			console.error(cloudError.message, error);
+		}
+
+		throw cloudError;
 	}
 
 	return (data ?? []).map((row) => ({
@@ -259,15 +344,16 @@ export async function fetchLeaderboard(
  * hace falta un merge, cada mejora reemplaza la fila entera del usuario.
  * Es un "mejor esfuerzo": si falla (p. ej. la tabla todavía no existe en
  * Supabase, ver supabase/leaderboard.sql) no debe romper el juego, solo se
- * registra el error.
+ * registra el error. Devuelve si subió: una marca hecha sin conexión se
+ * reintenta después de la siguiente sincronización buena (D050).
  */
 export async function upsertLeaderboardEntry(
 	userId: string,
 	scope: string,
 	displayName: string,
 	bestTimeMs: number,
-): Promise<void> {
-	const { error } = await supabase.from("leaderboard_entries").upsert({
+): Promise<boolean> {
+	const { error, status } = await supabase.from("leaderboard_entries").upsert({
 		user_id: userId,
 		scope,
 		display_name: displayName,
@@ -276,6 +362,18 @@ export async function upsertLeaderboardEntry(
 	});
 
 	if (error) {
-		console.error("Failed to update leaderboard entry:", error);
+		const cloudError = toCloudRequestError(
+			error,
+			status,
+			"Failed to update leaderboard entry",
+		);
+
+		if (cloudError.kind === "server") {
+			console.error(cloudError.message, error);
+		}
+
+		return false;
 	}
+
+	return true;
 }
