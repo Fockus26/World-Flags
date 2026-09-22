@@ -136,3 +136,105 @@ ahora progreso de Capitales; nuevos: fila vieja sin la columna, posición de la
 clave, fusión sin mezclar juegos, juego desconocido conservado y resuelto. El
 de D056 con progreso en un solo juego ya recorre los tres. En el build, el
 `select` y el mapa de columnas llevan `capitals_game`.
+
+## D063 — Las capitales: archivo aparte, con fuente y fecha
+
+- **`src/data/capitals.ts`**, no un campo `capital` en `Country`. `Country` es
+  el catálogo que comparten los tres juegos (y viaja en `activeGame.countries`);
+  los alias y las notas son contenido solo de Capitales. Un futuro `aliases`
+  de nombres de país (fuera de alcance en Países) iría en `Country`: así no se
+  mezclan. Forma: `Record<código, Capital>`, con `Capital = { name,
+  accepted?, note? }` (`types/country.ts`).
+- **Cobertura por test, no por un `throw` al importar** como el de
+  `countries.ts`: `tests/unit/capitals.test.ts` exige una entrada por país del
+  catálogo y ni una más. Si faltara una en ejecución, `getCapital` devuelve
+  `undefined` y la sesión trata el país como fuera de catálogo (D040), nunca
+  una tarjeta sin respuesta.
+- **Fuentes** (consultadas el 2026-09-22; el detalle, las consultas para
+  reproducirlo y la tabla completa están en el anexo local
+  `context/plans/modo-capitales-capitales.md`):
+  - **Se muestra la forma de la UE**: *Libro de estilo interinstitucional*,
+    Anexo A5, versión en español actualizada el 16-09-2026, elaborada «en
+    consulta con la Real Academia Española» y el Ministerio de Exteriores
+    español. Donde la UE no da capital (Kosovo, Israel, Palestina, Santa
+    Sede), la de Wikidata.
+  - **Qué ciudad y desde cuándo**: Wikidata, P36 con sus fechas y roles, y sus
+    etiquetas y alias en español. En 176 de 197, UE y Wikidata escriben lo
+    mismo letra por letra; el resto son grafías o casos de D064.
+  - **Tercera referencia**: Wikipedia (en), «List of national capitals».
+  - No se pudo usar la lista de la RAE (403 de Cloudflare, no se forzó) ni el
+    World Factbook de la CIA (ya no existe).
+- Hallazgos que no se habrían acertado de memoria: **Guinea Ecuatorial cambió
+  de capital el 03-01-2026** (Malabo → Ciudad de la Paz, las tres fuentes);
+  Burundi es Guitega desde 2019. Indonesia tiene designada Nusantara sin
+  traslado oficial todavía: se revisa en cada PR que toque el archivo.
+
+## D064 — Capitales múltiples, disputadas y cambios recientes (decisión del dueño)
+
+Regla: vale toda ciudad que la UE (en su tabla o sus notas) o Wikidata (P36
+vigente) llaman capital de cualquier tipo. No valen las antiguas, las
+económicas ni las sedes que ninguna fuente llama capital; regla del dueño
+para estas: "si el país tiene otra ciudad como capital, esas no valen".
+
+| País | Se muestra | También vale | No vale |
+|---|---|---|---|
+| Bolivia | Sucre (constitucional) | La Paz (sede del Gobierno) | — |
+| Sudáfrica | Pretoria (administrativa) | Ciudad del Cabo, Bloemfontein, Tshwane | — |
+| Malasia | Kuala Lumpur | Putrajaya | — |
+| Benín | Porto Novo | Cotonú | — |
+| Sri Lanka | Sri Jayawardenapura Kotte | Colombo | — |
+| Esuatini | Babane | Mbabane, Lobamba | — |
+| Yemen | Saná | Adén | — |
+| Países Bajos | Ámsterdam | — | La Haya |
+| Chile | Santiago | Santiago de Chile | Valparaíso |
+| Costa de Marfil | Yamusukro | — | Abiyán |
+| Tanzania | Dodoma | — | Dar es-Salaam |
+| Montenegro | Podgorica | — | Cetiña |
+| Myanmar | Naipyidó | Naypyidaw, Nay Pyi Taw, Nepidó | Rangún |
+| Burundi | Guitega | Gitega | Buyumbura |
+| Guinea Ecuatorial | Ciudad de la Paz | — | Malabo (hasta enero de 2026) |
+| Indonesia | Yakarta | Jakarta | Nusantara |
+| Kazajistán | Astaná | — | Nur-Sultán |
+| **Israel** | Jerusalén, con nota neutra | — | Tel Aviv |
+| **Palestina** | **Jerusalén Este** | Ramala (sede administrativa), Jerusalén Oriental | — |
+
+Israel y Palestina: decisión del dueño sobre las tres opciones que se le presentaron — Israel, Jerusalén; Palestina, **Jerusalén Este** (la UE
+deja la casilla de Israel vacía a propósito y no lista Palestina; Wikidata da
+Jerusalén para Israel, y Jerusalén Este de iure y Ramala de facto para
+Palestina). Las notas que acompañan a cada caso al revelar son provisionales
+(`CONTENT_CHECKLIST.md` #22). Grafías donde UE y Wikidata difieren (Camberra y
+Canberra, Nueva Deli y Nueva Delhi, Hanoi y Hanói…): se muestra la de la UE,
+valen las dos.
+
+## D065 — Respuestas: alias por entrada; en difícil cuentan tildes y signos
+
+- `isAcceptedAnswer(answer, accepted, difficulty)` en `normalize-answer.ts`,
+  solo para Capitales. **`normalize` e `isCorrectAnswer` no cambian**: Banderas
+  y Países comparan igual que antes (lo comprueba un test).
+- **Regla del dueño:** en difícil (y por tanto en competitivo) los apóstrofos,
+  guiones y espacios cuentan igual que las tildes: "Saint John's",
+  "Port-au-Prince" y "Porto Novo" se escriben como son. En fácil se ignoran,
+  junto con las tildes, los puntos y las comas ("saint johns", "washington
+  dc"). En difícil, el apóstrofo tipográfico de la fuente (’) equivale al del
+  teclado ('), y varios espacios seguidos cuentan como uno (confirmado por el
+  dueño).
+- **Alias explícitos por entrada, sin reglas genéricas** de artículo ni de
+  "Ciudad de": "La Paz" es Bolivia y "Ciudad de la Paz" es Guinea Ecuatorial;
+  una regla genérica los confundiría. Política A (del dueño): solo español,
+  como los otros dos juegos — variantes documentadas por la UE o Wikidata,
+  formas corta o larga ("Washington", "Habana") y topónimos locales que
+  Wikidata registra como alias en español ("Phnom Penh", "Accra"). No valen
+  apodos, abreviaturas ni nombres anteriores.
+- Una variante que solo difiere en la tilde no se añade (la cubre "fácil"),
+  salvo tres grafías documentadas como distintas: Hanói, Uagadugú, Taipei.
+- Ignorar signos en el modo fácil de Banderas y Países sería cambiar juegos
+  cerrados: fuera de alcance (la auditoría del catálogo vio que "Guinea
+  Bisáu" falla).
+
+### Verificación (D063-D065)
+
+`tests/unit/capitals.test.ts`: cobertura 197/197, datos sin espacios
+sobrantes ni alias repetidos, cada decisión de la tabla de D064, la regla de
+signos en los dos modos y la guarda de Banderas/Países. `bun run test`: 80.
+Con la regla rota a propósito (difícil ignorando guiones), falla el test de
+signos.

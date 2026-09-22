@@ -31,6 +31,20 @@ export interface Country {
 	region: Region;
 }
 
+/**
+ * La capital de un país, para el modo Capitales (`data/capitals.ts`). Vive
+ * aparte de `Country` a propósito (D063): el catálogo lo comparten los tres
+ * juegos, y los alias y las notas son contenido solo de este.
+ */
+export interface Capital {
+	/** Lo que se muestra al revelar o al fallar. */
+	name: string;
+	/** Otras respuestas que también valen (otras capitales del país, variantes documentadas). */
+	accepted?: readonly string[];
+	/** Frase breve al revelar: capitales múltiples o disputadas, cambios recientes. */
+	note?: string;
+}
+
 export const GAME_MODES = ["competitive", "practice"] as const;
 export type GameMode = (typeof GAME_MODES)[number];
 export const DEFAULT_GAME_MODE: GameMode = "competitive";
