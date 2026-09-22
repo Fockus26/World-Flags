@@ -42,13 +42,9 @@ incluidos los códigos fuera del catálogo (D040).
 
 - **Sustituye a D046** (`applyReviewsSince` se elimina): lo que hacía queda
   incluido, sin la ventana de `since`.
-- **Cambia el login de invitado** (D046 lo había dejado fuera a propósito):
-  si un invitado revisó un país después que la cuenta, su revisión gana. Es la
-  misma regla que ya tenían con los invitados el candado diario, las mejores
-  marcas, los logros, las estadísticas y el historial. El caso habitual es la
-  misma persona que practica y luego crea o abre su cuenta. Alternativa (en
-  dos líneas): aplicar D048 solo cuando hay base de sincronización (D049), y
-  dejar que la cuenta gane en el login de invitado.
+- Solo entre datos de la misma cuenta. La primera versión también la aplicaba
+  al entrar un invitado en una cuenta con progreso; **el dueño lo cambió
+  (D056): lo del invitado se descarta entero**.
 
 ## D049 — Base de sincronización: qué cambió este dispositivo
 
@@ -59,13 +55,16 @@ sincronización**: lo último que este dispositivo sabe que está en la nube par
 esa cuenta (`getSyncBase`/`saveSyncBase`, clave propia en `localStorage`, con
 el `userId`; nunca se sube).
 
-`mergeLearningData(remote, local, base)` → `pickUnversioned` por campo:
+Para esos campos, cuando no hay fechas (datos anteriores a D055, o escritos
+por un cliente viejo), `mergeLearningData(remote, local, base)` decide:
 
 | Caso | Gana |
 |---|---|
-| Sin base (login de invitado, primer login en el dispositivo) | lo remoto (D020, sin cambios) |
 | `local` igual a la base (este dispositivo no lo tocó) | lo remoto — trae los cambios de otro dispositivo |
 | `local` distinto de la base (cambio de aquí aún no subido) | lo local |
+
+Con fechas en los dos lados, gana la más reciente (D055). Sin base (entra un
+invitado) no se fusiona nada (D056).
 
 - **La base es la cola persistida.** "Cambios pendientes" = datos locales
   distintos de la base. Los dos viven en `localStorage`, así que sobreviven a
@@ -79,24 +78,22 @@ el `userId`; nunca se sube).
   hidratados de la cuenta (antes no lo hacía, pero las acciones del juego ya los
   escribían; el logout los sigue borrando, D009).
 - **Cuenta que nunca pudo sincronizar aquí** (primer login con la red caída):
-  al primer fallo, lo local de ese momento se guarda como base provisional. Lo
-  que se juegue desde entonces es de la cuenta y gana al recuperarse, también
-  en perfil, configuración y notas; lo que traía el invitado sigue cediendo.
+  no hay base; se juega sobre los datos del invitado en `local`. Al
+  recuperarse, pasan a la cuenta solo si ésta no tiene progreso (D056). La
+  primera versión guardaba lo local como base provisional; se retiró con D056.
 - Idempotente con la misma base: `merge(merge(r, l, b), l, b)` =
   `merge(r, l, b)`. Contadores de `stats`, igual que siempre: `max` con el
   derivado del historial fusionado, nunca suma (D020). Un merge de tres vías
   con suma (`r + l − b`) sería exacto con dos dispositivos, pero rompe la
   idempotencia en cuanto un reintento repite la fusión con la misma base.
-- **Límite conocido:** si los dos dispositivos cambian **el mismo** campo sin
-  marca de tiempo (las notas del mismo continente, el nombre, la
-  configuración), gana el que sincroniza. En la prueba con dos dispositivos pasó
-  con la configuración: A, sin red, completó Norteamérica y la app la
-  deseleccionó sola; B había pasado a competitivo; ganó la de A.
-- **Alternativas descartadas:** marcas de tiempo por campo (necesitan una
-  columna nueva en Supabase → migración manual que bloquea el despliegue, y un
-  cliente viejo las ignoraría); log de operaciones reaplicado sobre la nube
+- **Mismo campo en los dos dispositivos:** con solo la base, ganaba el que
+  sincroniza (en la prueba pasó con la configuración). Desde D055 gana el
+  cambio más reciente; la base queda para datos sin fecha.
+- **Alternativa descartada:** log de operaciones reaplicado sobre la nube
   (preciso, pero cada acción del juego tendría que emitir operaciones y la nube
-  tendría que recordar cuáles aplicó para no duplicarlas).
+  tendría que recordar cuáles aplicó para no duplicarlas). Las marcas de tiempo
+  por campo se descartaron al principio por la migración; el dueño la aceptó
+  después → D055.
 - **Límite conocido (varias pestañas):** cada pestaña usa su base en memoria
   en sus sincronizaciones, pero `localStorage` es compartido; una recarga
   puede emparejar datos de una pestaña con la base de otra. Ya antes varias
@@ -234,10 +231,72 @@ imágenes rotas.
   worker simulado (no registra SW reales, ver arriba), la app manda las 197 a
   los ~5 s y no manda nada con "ahorro de datos".
 
+## D055 — Fecha del último cambio en perfil, configuración y notas
+
+Pedida por el dueño tras ver el límite de D049 ("gana el que sincroniza" en
+un mismo campo), aceptando la migración.
+
+- **Qué lleva fecha:** `fieldUpdatedAt.profile`, `fieldUpdatedAt.lastConfiguration`
+  y `regionGameScoresUpdatedAt` por continente, en los dos juegos (el de
+  Países dentro de `countriesGame`, proyectado por `toGameView`/`fromGameView`
+  como el resto, D029). La ponen las propias escrituras: `saveUserProfile`,
+  `saveLastConfiguration`, `updateLastConfiguration` y `registerRegionGame`.
+- **Regla (`pickLatest`):** fecha en los dos lados → gana la más reciente
+  (empate → lo remoto). Si falta en alguno → contra la base (D049). El
+  ganador se queda con su fecha. Idempotente con la misma base.
+- **Nube:** columna nueva `field_updated_at jsonb` con `profile`,
+  `lastConfiguration` y `regionGameScores` (Banderas). Las de Países viajan
+  dentro de `countries_game`, que ya es jsonb. Script:
+  `supabase/field-updated-at.sql` (local). **Hay que correrlo antes de
+  desplegar**: si falta la columna, el `select` falla y la app se queda en
+  `local` con "No se pudo sincronizar".
+- **Filas anteriores:** `{}` → sin fechas → deciden contra la base hasta el
+  siguiente cambio de cada campo. No hay que rellenar nada.
+- **Sigue perdiéndose uno:** con dos dispositivos que cambian las notas del
+  mismo continente, gana la lista más reciente y la otra se pierde (solo esa
+  media; sesiones, revisiones y estadísticas nunca). Mezclar las dos listas
+  exigiría guardar cada nota con su fecha, que cambia el formato de los datos
+  y rompería los clientes viejos en caché. Se descartó.
+- **Relojes:** la fecha es la del dispositivo. Un reloj muy desajustado puede
+  hacer ganar un cambio más viejo.
+- **Clientes viejos** (SW en caché): no mandan `field_updated_at`, así que el
+  upsert no la toca y la fecha queda vieja respecto a su cambio. Al
+  actualizarse, deja de pasar.
+
+## D056 — El invitado solo pasa a una cuenta sin progreso
+
+Decisión del dueño. Al entrar en una cuenta, lo jugado como invitado en este
+dispositivo:
+
+- **Pasa a la cuenta** si ésta no tiene progreso (`hasLearningProgress`
+  falso: recién registrada o sin jugar), como antes.
+- **Se descarta entero** si la cuenta ya tiene progreso: revisiones, notas,
+  candado diario, marcas, logros, estadísticas, historial, perfil y
+  configuración. Queda la nube tal cual y no se sube nada. Antes (D020) se
+  fusionaban candado, marcas, logros, estadísticas e historial, y la primera
+  versión de esta unidad añadía las revisiones (D048).
+- Lo jugado durante los segundos que tarda esa sincronización (aún con los
+  datos del invitado en pantalla) también se descarta.
+- Cómo se sabe que lo local es del invitado: no hay base de sincronización de
+  esa cuenta en el dispositivo (primer login aquí, o tras cerrar sesión). Con
+  base, son datos de la misma cuenta y se fusionan (D048/D049/D055).
+- Pura y probada: `planSync(remote, local, base)` en `learning-storage.ts`;
+  `syncLearningData` solo la ejecuta. `mergeLearningData` exige base.
+- **Primer login sin red** con una cuenta que ya tiene progreso: se juega en
+  `local` sobre los datos del invitado, y al recuperarse se descarta también
+  lo jugado en ese rato (era continuación del invitado). El aviso de "Sin
+  conexión" dice que se subirá: en este caso concreto no es así.
+
 ## Verificación
 
 - `bunx astro check` 0 errores · `bunx biome check ./src` limpio ·
   `bun run build` verde.
+- **D055/D056:** `bun run test` (39 en total). Al romper a propósito la regla
+  de fechas o la del invitado fallan 3. En navegador (build + mock): un
+  invitado con progreso entra en una cuenta con progreso → un GET y ningún
+  POST, nada del invitado en local ni en la nube. Configuración cambiada sin
+  red aquí y otra con fecha posterior en la nube → al volver gana la de la
+  nube en local, en pantalla y en la nube.
 - **`bun run test`** (nuevo, también en CI): 24 aserciones sobre la capa pura
   (`tests/unit/sync-merge.test.ts`) — D048, D049, offline en un dispositivo,
   dos dispositivos, login de invitado, idempotencia (y 10 recargas sin inflar

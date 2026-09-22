@@ -102,7 +102,7 @@ la comparación no dé siempre distinto.
 
 | Campo | Regla |
 |---|---|
-| `profile`, `countryHistory`, `regionGameScores`, `lastConfiguration` | gana lo remoto (sin cambios) — **actualizado en D048/D049** (`14-modo-offline.md`): `countryHistory` por la revisión más reciente; los otros tres contra la base de sincronización |
+| `profile`, `countryHistory`, `regionGameScores`, `lastConfiguration` | gana lo remoto (sin cambios) — **actualizado en D048/D049/D055** (`14-modo-offline.md`): `countryHistory` por la revisión más reciente; los otros tres por la fecha de su último cambio (o, sin fecha, contra la base de sincronización). Y el invitado que entra en una cuenta con progreso ya no se fusiona en nada: se descarta (D056) |
 | `regionBestTimes` | menor tiempo |
 | `lastPracticeByCountry` | fecha más reciente por país |
 | `achievements` | unión por id; `unlockedAt` **el más antiguo**; `seenAt` gana el no-null |
