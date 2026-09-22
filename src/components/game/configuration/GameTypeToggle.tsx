@@ -1,4 +1,4 @@
-import { Globe, TriangleFlag } from "iconoir-react";
+import { City, Globe, TriangleFlag } from "iconoir-react";
 import { useId } from "react";
 import { Fieldset } from "@/components/ui/Fieldset";
 import { GAME_TYPE_LABELS, GAME_TYPES, type GameType } from "@/types/country";
@@ -18,6 +18,7 @@ interface GameTypeToggleProps {
 const GAME_TYPE_ICONS: Record<GameType, typeof Globe> = {
 	countries: Globe,
 	flags: TriangleFlag,
+	capitals: City,
 };
 
 /**

@@ -110,6 +110,7 @@ export type SubGameKey = {
  */
 export const SUB_GAME_KEYS: Record<SubGameType, SubGameKey> = {
 	countries: "countriesGame",
+	capitals: "capitalsGame",
 };
 
 /** Los juegos con sub-objeto, en el orden de `GAME_TYPES`: fija el orden de sus claves en `UserLearningData`. */
@@ -125,6 +126,7 @@ export const DEFAULT_DATA: UserLearningData = {
 	lastConfiguration: null,
 	lastPracticeByCountry: {},
 	countriesGame: DEFAULT_GAME_PROGRESS,
+	capitalsGame: DEFAULT_GAME_PROGRESS,
 	achievements: {},
 	stats: DEFAULT_STATS,
 	sessionHistory: [],
@@ -173,7 +175,10 @@ function migrateConfiguration(
 		// Configuración guardada antes de que existiera el modo Países no trae
 		// `gameType`: se migra a "flags" (D030), no al default de un usuario
 		// nuevo ("countries") — quien ya jugaba no debe verse cambiado de golpe
-		// al juego que no eligió.
+		// al juego que no eligió. Un juego que este cliente no conoce (de una
+		// versión más nueva, llegado por la nube) se conserva tal cual: pisarlo
+		// aquí lo subiría a la nube. Se resuelve al leerlo, con
+		// `resolveGameType` (D062).
 		gameType: configuration.gameType ?? "flags",
 	};
 }

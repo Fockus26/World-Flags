@@ -41,37 +41,56 @@ export const GAME_MODE_LABELS: Record<GameMode, string> = {
 };
 
 /**
- * Qué se está aprendiendo: qué país pertenece a cada continente ("countries")
- * o qué bandera pertenece a cada país ("flags", el juego original). Este
- * orden es también el orden en que se muestran en el selector de la
- * configuración (D030): Países primero, porque aprender los países ayuda
- * luego a ubicar sus banderas.
+ * Qué se está aprendiendo: qué país pertenece a cada continente ("countries"),
+ * qué bandera pertenece a cada país ("flags", el juego original) o cuál es la
+ * capital de cada país ("capitals"). Este orden es también el orden en que se
+ * muestran en el selector de la configuración: Países primero (D030), porque
+ * aprender los países ayuda luego a ubicar sus banderas y sus capitales;
+ * Capitales al final para no mover lo que ya existía (D066).
  */
-export const GAME_TYPES = ["countries", "flags"] as const;
+export const GAME_TYPES = ["countries", "flags", "capitals"] as const;
 export type GameType = (typeof GAME_TYPES)[number];
 /** Un usuario nuevo arranca en Países (D030); uno con configuración vieja sin
  *  `gameType` se migra a "flags" en `migrateConfiguration`, no a este default. */
 export const DEFAULT_GAME_TYPE: GameType = "countries";
 
+export function isGameType(value: unknown): value is GameType {
+	return (GAME_TYPES as readonly unknown[]).includes(value);
+}
+
+/**
+ * El juego guardado en la configuración, o el de un usuario nuevo si este
+ * cliente no lo conoce (D062). La configuración puede traer, por la nube, el
+ * juego de una versión más nueva de la app: se conserva tal cual al guardar
+ * (como los códigos de país de D040) y solo se sustituye al leerlo, aquí.
+ */
+export function resolveGameType(value: unknown): GameType {
+	return isGameType(value) ? value : DEFAULT_GAME_TYPE;
+}
+
+/** ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #9 y #21). */
 export const GAME_TYPE_LABELS: Record<GameType, string> = {
 	countries: "Países",
 	flags: "Banderas",
+	capitals: "Capitales",
 };
 
 // Lo que cambia por juego en la UI vive en mapas como estos, no en ternarios
 // repartidos por los componentes (D061): con `Record`, TypeScript obliga a
 // rellenar un juego nuevo en todos ellos.
 
-/** Título de la pantalla de configuración. ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #9). */
+/** Título de la pantalla de configuración. ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #9 y #21). */
 export const GAME_TYPE_TITLES: Record<GameType, string> = {
 	countries: "Aprende los países del mundo",
 	flags: "Aprende las banderas del mundo",
+	capitals: "Aprende las capitales del mundo",
 };
 
 /** Qué se recorre en una partida, en plural ("Recorriste 45 países"). */
 export const GAME_TYPE_NOUNS: Record<GameType, string> = {
 	countries: "países",
 	flags: "banderas",
+	capitals: "capitales",
 };
 
 /**
@@ -82,6 +101,7 @@ export const GAME_TYPE_NOUNS: Record<GameType, string> = {
 export const LEADERBOARD_SCOPES: Record<GameType, string> = {
 	countries: "countries:world",
 	flags: "world",
+	capitals: "capitals:world",
 };
 
 /**

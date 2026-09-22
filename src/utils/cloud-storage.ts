@@ -18,6 +18,7 @@ import {
  */
 const SUB_GAME_COLUMNS = {
 	countries: "countries_game",
+	capitals: "capitals_game",
 } as const satisfies Record<SubGameType, string>;
 
 type SubGameColumn = (typeof SUB_GAME_COLUMNS)[SubGameType];
@@ -43,7 +44,7 @@ function learningDataSelect<Select extends string>(
 }
 
 const LEARNING_DATA_SELECT = learningDataSelect(
-	"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, countries_game, achievements, stats, session_history, daily_reminder, field_updated_at",
+	"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, countries_game, capitals_game, achievements, stats, session_history, daily_reminder, field_updated_at",
 );
 
 /**

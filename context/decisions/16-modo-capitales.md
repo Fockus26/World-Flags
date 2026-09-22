@@ -88,3 +88,51 @@ Capitales), y `migrateConfiguration` (`?? "flags"`, D030).
   `bunx astro check` da error.
 - `bunx astro check` 0 errores, `bunx biome check ./src` limpio,
   `bun run build` verde. Sin cambio visible: sin versión ni changelog (D060).
+
+## D062 — Un juego que este cliente no conoce, y los clientes viejos
+
+Con Capitales, `lastConfiguration.gameType` puede valer `"capitals"`, y por la
+nube eso llega también a clientes que no lo conocen.
+
+### Desde esta versión
+
+`migrateConfiguration` **conserva** un `gameType` desconocido (pisarlo al
+normalizar lo subiría a la nube y le cambiaría el juego al dispositivo que lo
+eligió) y se **resuelve al leerlo** con `resolveGameType` (`types/country.ts`)
+en el único sitio que lee el juego de la configuración, `Configuration.tsx`;
+todo lo demás (partida, práctica diaria, ranking) recibe el juego ya resuelto.
+Un juego desconocido cae en el de usuario nuevo (Países, D030). Es el patrón
+de D040 con los códigos de país: se conserva al guardar, se filtra al leer.
+`SessionRecord.gameType` puede traer también un juego desconocido: los logros
+lo comparan (`=== "flags"`, D036), nunca lo usan para indexar.
+
+### Los clientes de hoy (sin esta guarda)
+
+Una pestaña o PWA abierta desde antes de desplegar Capitales, con
+`gameType: "capitals"` recibido por la nube: el selector sin opción marcada,
+el título de Banderas, y `toGameView(…, "capitals")` cae en la rama de Países
+de la versión anterior. Su "Práctica diaria" enseñaría banderas y calificaría
+el SRS de **Países**. No pierde datos, pero los falsea. Solo pasa con dos
+dispositivos y uno sin actualizar; al recargar con red se carga la versión
+nueva y se arregla. **Mitigación (Fase 7, aprobada por el dueño):** cambiar
+los bytes de `public/sw.js` sin subir `CACHE_NAME`, para que esas pestañas
+vean "Actualizar" (D047/D050) sin volver a descargar las 197 banderas (D054).
+
+### Supabase
+
+Columna nueva `capitals_game jsonb not null default '{}'::jsonb`
+(`supabase/capitals-game.sql`, local). **Hay que correrla antes de desplegar**:
+si el `select` pide una columna que no existe, falla con error de servidor y
+toda cuenta autenticada se queda en `local` con "No se pudo sincronizar"
+(D044/D050). Los clientes viejos no la piden y, al subir, enumeran sus
+columnas: no la pisan (D028). El ranking usa `capitals:world` en
+`leaderboard_entries`, sin migración.
+
+### Verificación
+
+`bun run test`: 65. Los datos compartidos de todos los escenarios existentes
+(offline, dos dispositivos, invitado, idempotencia, diez recargas) llevan
+ahora progreso de Capitales; nuevos: fila vieja sin la columna, posición de la
+clave, fusión sin mezclar juegos, juego desconocido conservado y resuelto. El
+de D056 con progreso en un solo juego ya recorre los tres. En el build, el
+`select` y el mapa de columnas llevan `capitals_game`.

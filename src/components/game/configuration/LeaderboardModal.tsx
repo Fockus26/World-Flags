@@ -22,10 +22,11 @@ interface LeaderboardModalProps {
 
 const TOP_COUNT = 5;
 
-/** ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #10). */
+/** ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #10 y #21). */
 const LEADERBOARD_DESCRIPTIONS: Record<GameType, string> = {
 	countries: "Mejor tiempo en modo competitivo practicando todos los países.",
 	flags: "Mejor tiempo en modo competitivo practicando todas las banderas.",
+	capitals: "Mejor tiempo en modo competitivo practicando todas las capitales.",
 };
 
 function LeaderboardRow({
