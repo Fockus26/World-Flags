@@ -86,7 +86,9 @@ fix(sesion): asegura el foco del input al entrar a cualquier partida
 
 ### Pull requests
 
-1. Push your branch and open a PR against `main`. Fill in the template.
+1. Push your branch and open a PR against `main`. Fill in the template. If players will
+   notice the change, it bumps the version and adds a changelog entry (see
+   [Changelog and versioning](#changelog-and-versioning)).
 2. CI must be green (type-check and build; lint is being brought to green — see below).
 3. Add screenshots for any UI change: light and dark, mobile (320–375px) and desktop.
 4. Address review feedback with **new commits** on the same branch — don't force-push
@@ -95,6 +97,46 @@ fix(sesion): asegura el foco del input al entrar a cualquier partida
    write it as a Conventional Commit too.
 
 Never rewrite shared history (`push --force`, `reset --hard` on pushed branches).
+
+### Changelog and versioning
+
+[`CHANGELOG.md`](./CHANGELOG.md) is written by hand, in **Spanish**, for players — not
+generated from commits. The app shows the same text in its "Novedades" dialog, so every
+line is something a player notices. Rationale:
+[`context/decisions/15-changelog-y-versionado.md`](./context/decisions/15-changelog-y-versionado.md).
+
+**Every PR with a user-visible change bumps the version and adds its own entry, in the
+same PR.** Each merge to `main` is deployed, so each PR is a release: there is no
+"Unreleased" section.
+
+1. Bump `version` in `package.json` ([Semantic Versioning](https://semver.org/)):
+   - **MAJOR** — breaks compatibility with saved progress (something an older client
+     can't read, a leaderboard reset) or removes something players used.
+   - **MINOR** — new visible functionality (a game mode, an option, new achievements).
+   - **PATCH** — fixes and small adjustments with no new functionality.
+2. Add the entry at the top of `CHANGELOG.md`, dated the day you open the PR. For example:
+
+   ```md
+   ## [1.1.0] - 2026-10-02
+
+   ### Añadido
+
+   - Modo Capitales: ves un país y escribes su capital.
+
+   ### Corregido
+
+   - El temporizador ya no se congela al volver a la app.
+   ```
+
+   Sections (only the ones you need, in this order): `Añadido`, `Cambiado`, `Obsoleto`,
+   `Eliminado`, `Corregido`, `Seguridad`. Plain text only — no bold, code or links inside
+   an item (the dialog shows it as-is). Long items can wrap onto indented lines.
+3. PRs with no user-visible change (docs, tests, CI, refactors, tooling) don't bump the
+   version and don't add an entry.
+
+`bun run test` fails if the changelog doesn't follow this format or if its first entry
+isn't the version in `package.json`. If two open PRs claim the same version, whoever
+merges second renumbers theirs when updating from `main`.
 
 ---
 
@@ -106,7 +148,7 @@ Run these before opening a PR:
 bunx astro check         # type-check
 bunx biome check ./src   # lint + format (bun run lint applies safe fixes)
 bun run build            # production build
-bun run test             # unit tests of the sync/merge layer (tests/unit)
+bun run test             # unit tests (sync/merge layer, changelog format) in tests/unit
 bun run test:e2e         # Playwright, with the dev server running
 ```
 
