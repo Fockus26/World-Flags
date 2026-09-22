@@ -57,7 +57,7 @@ bun install
 bun run build          # sí puedes correr esto
 bunx astro check       # typecheck — sí
 bunx biome check ./src # lint — sí (hoy src/ trae errores previos; en CI no bloquea)
-bun run test           # aserciones de la capa pura de sync/merge (tests/unit) — sí
+bun run test           # capa pura de sync/merge y formato del CHANGELOG (tests/unit) — sí
 bun run test:e2e       # Playwright (necesita el server corriendo)
 ```
 
@@ -78,13 +78,21 @@ Todo cambio llega a `main` **por Pull Request**. `main` está protegida.
 ```
 git switch main && git pull  →  git switch -c <tipo>/<descripcion>
    →  implementar  →  [skill a11y]  →  [skill seo si aplica]
-   →  bunx astro check + bunx biome check ./src + bun run build
+   →  si quien juega lo nota: versión en package.json + entrada en CHANGELOG.md
+   →  bunx astro check + bunx biome check ./src + bun run test + bun run build
    →  actualizar context/ (local)  →  commit(s) Conventional Commits en la rama
    →  git push -u origin <rama>  →  gh pr create (rellena la plantilla)
    →  PAUSA: el dueño revisa el PR y lo mergea en GitHub (squash)
 ```
 
 - Base siempre `main`. Una unidad = una rama = un PR.
+- **Changelog y versión (D057–D060):** cada PR con un cambio que nota quien juega sube
+  `version` en `package.json` (MAJOR rompe progreso guardado o quita algo · MINOR función
+  nueva · PATCH arreglos) y añade su entrada arriba de `CHANGELOG.md`, en español y en
+  lenguaje de jugador, texto plano. Es lo que muestra el modal "Novedades": solo cambios
+  reales, nada inventado. Sin sección "Sin publicar" (cada merge se despliega). Docs, tests,
+  CI o refactors no suben versión. `bun run test` falla si el formato no cuadra o la
+  primera entrada no es la versión de `package.json`. Detalle en `CONTRIBUTING.md`.
 - En **tu rama** puedes commitear y hacer push sin pedir permiso: la aprobación del
   dueño es la revisión del PR. `git add` solo de los archivos de la unidad, nunca `-A` a ciegas.
 - **Nunca** hagas push a `main`, **nunca** ejecutes `gh pr merge` ni actives auto-merge.

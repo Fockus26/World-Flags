@@ -47,6 +47,8 @@ leaderboard, streaks, achievements and daily reminders.
 ### App
 
 - 📱 Installable PWA with offline support and an "update available" prompt
+- 📰 In-app "what's new" dialog that reads [`CHANGELOG.md`](./CHANGELOG.md) (in Spanish),
+  with the running version in the settings dialog
 - 🎨 Light, dark or system theme
 - ♿ Built to WCAG 2.1 AA: full keyboard support, visible focus, no state conveyed by
   color only, usable down to 320px
@@ -95,7 +97,7 @@ what works without it and how to request access.
 | `bun run preview` | Preview the production build |
 | `bunx astro check` | Type-check |
 | `bunx biome check ./src` | Lint and format check |
-| `bun run test` | Unit tests of the progress merge/sync layer (`tests/unit`) |
+| `bun run test` | Unit tests of the progress merge/sync layer and the changelog format (`tests/unit`) |
 | `bun run test:e2e` | Playwright end-to-end tests (needs the dev server running) |
 
 > **Service worker tip:** the SW caches aggressively. If you don't see your changes in dev,
