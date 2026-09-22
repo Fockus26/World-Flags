@@ -57,6 +57,7 @@ bun install
 bun run build          # sí puedes correr esto
 bunx astro check       # typecheck — sí
 bunx biome check ./src # lint — sí (hoy src/ trae errores previos; en CI no bloquea)
+bun run test           # aserciones de la capa pura de sync/merge (tests/unit) — sí
 bun run test:e2e       # Playwright (necesita el server corriendo)
 ```
 

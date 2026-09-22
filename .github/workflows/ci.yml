@@ -35,5 +35,8 @@ jobs:
       - name: Lint
         run: bunx biome check ./src
 
+      - name: Unit tests
+        run: bun run test
+
       - name: Build
         run: bun run build

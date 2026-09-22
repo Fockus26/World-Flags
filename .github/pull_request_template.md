@@ -22,6 +22,7 @@
 
 - [ ] `bunx astro check` passes
 - [ ] `bunx biome check ./src` passes
+- [ ] `bun run test` passes
 - [ ] `bun run build` passes
 - [ ] UI changes meet WCAG 2.1 AA (keyboard, visible focus, 4.5:1 contrast, no state conveyed by color only, no horizontal scroll at 320px)
 - [ ] No magic color/spacing/radius values — only design tokens

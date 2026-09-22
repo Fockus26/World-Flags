@@ -97,7 +97,8 @@ El track por fases aplicaría a partir de un rediseño mayor o modos de juego nu
   no al producto.
 - Las 197 banderas están autohospedadas en `public/flags/{code}.svg` (~3.1 MB,
   descargadas una vez de `flagcdn.com`) y se sirven desde el propio origen, así
-  que `sw.js` ya las cachea igual que el resto de assets same-origin — la
-  primera vez que aparece una bandera pide red y de ahí en más sale de caché,
-  incluso offline. Los avatares siguen viniendo de `dicebear` (CDN externo,
+  que `sw.js` las cachea igual que el resto de assets same-origin. Además,
+  unos segundos después de cargar, la app le pide al SW que precargue las que
+  falten (~3,1 MB una vez; no con "ahorro de datos" ni en 2G, D054): sin red
+  se puede practicar cualquier continente. Los avatares siguen viniendo de `dicebear` (CDN externo,
   mismo riesgo offline que antes).

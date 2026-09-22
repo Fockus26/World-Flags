@@ -10,9 +10,38 @@ self.addEventListener("install", (event) => {
 	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL)));
 });
 
+// Solo banderas propias: el mensaje viene de la página, pero se valida igual.
+const FLAG_URL_PATTERN = /^\/flags\/[a-z0-9-]+\.svg$/;
+
+// Precarga de banderas (D054): la app manda la lista del catálogo y aquí se
+// descargan una a una las que falten en caché. Idempotente: en cada carga
+// solo se piden las que no están. Si una falla (sin red), se para y la
+// próxima carga sigue donde quedó.
+async function precacheFlags(urls) {
+	const cache = await caches.open(CACHE_NAME);
+
+	for (const url of urls) {
+		if (await cache.match(url)) continue;
+
+		try {
+			await cache.add(url);
+		} catch {
+			return;
+		}
+	}
+}
+
 self.addEventListener("message", (event) => {
 	if (event.data?.type === "SKIP_WAITING") {
 		self.skipWaiting();
+	}
+
+	if (event.data?.type === "PRECACHE_FLAGS" && Array.isArray(event.data.urls)) {
+		const urls = event.data.urls.filter(
+			(url) => typeof url === "string" && FLAG_URL_PATTERN.test(url),
+		);
+
+		event.waitUntil(precacheFlags(urls));
 	}
 });
 
@@ -85,17 +114,28 @@ self.addEventListener("fetch", (event) => {
 		return;
 	}
 
+	// Otros orígenes (Supabase, avatares de dicebear, Google Fonts): directo a
+	// la red, sin pasar por aquí. Nunca se cacheaban, y responderles con la
+	// página offline cuando no hay red hacía que un GET a Supabase recibiera
+	// HTML con 200 en vez de un error de red: la app no podía saber que estaba
+	// sin conexión. La caché HTTP del navegador sigue aplicando (un avatar ya
+	// visto carga sin red).
+	if (new URL(request.url).origin !== self.location.origin) return;
+
 	event.respondWith(
 		caches.match(request).then((cached) => {
 			const network = fetch(request)
 				.then((response) => {
-					if (response.ok && request.url.startsWith(self.location.origin)) {
+					if (response.ok) {
 						const clone = response.clone();
 						caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
 					}
 					return response;
 				})
-				.catch(() => cached || caches.match(OFFLINE_URL));
+				// Un recurso que no está en caché y no llega (una bandera nunca
+				// vista, sin red) falla como fallo de red, no con el HTML de la
+				// app — que como imagen o script no sirve de nada.
+				.catch(() => cached || Response.error());
 			return cached || network;
 		}),
 	);

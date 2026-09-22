@@ -3,8 +3,13 @@ import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Modal } from "@/components/ui/Modal";
 import { useAuth } from "@/hooks/useAuth";
+import { useSyncStatus } from "@/hooks/useSyncStatus";
 import type { GameType } from "@/types/country";
-import { fetchLeaderboard, type LeaderboardEntry } from "@/utils/cloud-storage";
+import {
+	fetchLeaderboard,
+	isNetworkFailure,
+	type LeaderboardEntry,
+} from "@/utils/cloud-storage";
 import { formatElapsedTime } from "@/utils/learning-storage";
 import { GameTypeToggle } from "./GameTypeToggle";
 
@@ -51,9 +56,12 @@ export function LeaderboardModal({
 	defaultGameType,
 }: LeaderboardModalProps) {
 	const { user, status } = useAuth();
+	const { isOnline } = useSyncStatus();
 	const [gameType, setGameType] = useState<GameType>(defaultGameType);
 	const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	/** El ranking es público y vive solo en la nube: sin conexión no hay nada que mostrar (D052). */
+	const [isOffline, setIsOffline] = useState(false);
 
 	// Cada vez que se abre el modal, arranca en el juego activo en ese
 	// momento en la configuración — no se queda pegado a lo último que se
@@ -68,6 +76,11 @@ export function LeaderboardModal({
 		let cancelled = false;
 		setEntries(null);
 		setError(null);
+		setIsOffline(!isOnline);
+
+		// Sin conexión ni se intenta; al volver, este efecto se repite solo
+		// (`isOnline` en las dependencias) y el ranking aparece.
+		if (!isOnline) return;
 
 		// Scope aparte para Países (D033): la PK (user_id, scope) de
 		// `leaderboard_entries` ya lo soporta sin migración.
@@ -77,15 +90,20 @@ export function LeaderboardModal({
 			.then((result) => {
 				if (!cancelled) setEntries(result);
 			})
-			.catch(() => {
-				if (!cancelled)
+			.catch((fetchError: unknown) => {
+				if (cancelled) return;
+
+				if (isNetworkFailure(fetchError)) {
+					setIsOffline(true);
+				} else {
 					setError("No se pudo cargar el ranking. Intenta de nuevo más tarde.");
+				}
 			});
 
 		return () => {
 			cancelled = true;
 		};
-	}, [isOpen, gameType]);
+	}, [isOpen, gameType, isOnline]);
 
 	const myIndex =
 		entries?.findIndex((entry) => entry.userId === user?.id) ?? -1;
@@ -133,7 +151,17 @@ export function LeaderboardModal({
 				</FeedbackMessage>
 			)}
 
-			{!error && entries === null && (
+			{!error && isOffline && (
+				<p className="flex items-start gap-2 text-[0.85rem] text-text-placeholder">
+					<span aria-hidden="true">📡</span>
+					<span>
+						Sin conexión: el ranking necesita internet. Aparecerá aquí en cuanto
+						vuelvas a estar en línea.
+					</span>
+				</p>
+			)}
+
+			{!error && !isOffline && entries === null && (
 				<p className="text-[0.85rem] text-text-placeholder">Cargando…</p>
 			)}
 

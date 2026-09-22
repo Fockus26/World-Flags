@@ -1,12 +1,27 @@
-import { type SubmitEvent, useState } from "react";
+import { type SubmitEvent, useEffect, useState } from "react";
 import { AutoHeight } from "@/components/ui/AutoHeight";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/hooks/useAuth";
+import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { EmailConfirmationPending } from "./EmailConfirmationPending";
 
 type AuthMode = "signin" | "signup";
+
+/**
+ * Cerrar sesión con progreso sin subir (D053):
+ *
+ * - `saving`: hay conexión; se pide sincronizar ya y, en cuanto no queda
+ *   nada pendiente, se cierra la sesión sola.
+ * - `confirm`: no se pudo subir (sin red, error del servidor o tarda
+ *   demasiado). Cerrar sesión borra los datos de la cuenta de este
+ *   dispositivo (D009), así que se avisa y se pide confirmación.
+ */
+type SignOutStep = "idle" | "saving" | "confirm";
+
+/** Algo más que el tope de la sincronización (10 s, D045): si no terminó, no va a terminar. */
+const SIGN_OUT_SAVE_TIMEOUT_MS = 12_000;
 
 export function AuthSection() {
 	const {
@@ -17,6 +32,55 @@ export function AuthSection() {
 		signInWithGoogle,
 		signOut,
 	} = useAuth();
+
+	const { isOnline, hasPendingChanges, hasServerError, requestSync } =
+		useSyncStatus();
+
+	const [signOutStep, setSignOutStep] = useState<SignOutStep>("idle");
+
+	function handleSignOut() {
+		if (signOutStep === "saving") return;
+
+		if (!hasPendingChanges || signOutStep === "confirm") {
+			void signOut();
+			return;
+		}
+
+		if (isOnline && !hasServerError) {
+			setSignOutStep("saving");
+			requestSync();
+		} else {
+			setSignOutStep("confirm");
+		}
+	}
+
+	useEffect(() => {
+		if (signOutStep !== "saving") return;
+
+		// Subido: ya no hay nada que perder.
+		if (!hasPendingChanges) {
+			setSignOutStep("idle");
+			void signOut();
+			return;
+		}
+
+		// Falló la subida mientras se esperaba.
+		if (!isOnline || hasServerError) {
+			setSignOutStep("confirm");
+		}
+	}, [signOutStep, hasPendingChanges, isOnline, hasServerError, signOut]);
+
+	// Aparte, para que otros renders no reinicien la espera.
+	useEffect(() => {
+		if (signOutStep !== "saving") return;
+
+		const timeoutId = setTimeout(
+			() => setSignOutStep("confirm"),
+			SIGN_OUT_SAVE_TIMEOUT_MS,
+		);
+
+		return () => clearTimeout(timeoutId);
+	}, [signOutStep]);
 
 	const [mode, setMode] = useState<AuthMode>("signin");
 	const [email, setEmail] = useState("");
@@ -85,9 +149,53 @@ export function AuthSection() {
 					Sesión iniciada como <strong>{user?.email}</strong>
 				</p>
 
-				<Button color="danger" type="button" onClick={() => signOut()}>
-					Cerrar sesión
-				</Button>
+				{signOutStep === "saving" && (
+					<p
+						id="sign-out-status"
+						role="status"
+						className="m-0 text-[0.8rem] text-text-placeholder"
+					>
+						Guardando tu progreso en tu cuenta antes de cerrar sesión…
+					</p>
+				)}
+
+				{signOutStep === "confirm" && (
+					<FeedbackMessage variant="danger" size="sm" role="alert">
+						<span id="sign-out-status">
+							Tienes progreso que aún no está en tu cuenta. Si cierras sesión
+							ahora, se perderá. Con conexión se guarda solo en unos segundos.
+						</span>
+					</FeedbackMessage>
+				)}
+
+				{/* El botón de cerrar sesión no se desmonta ni se deshabilita al
+				    pasar por los avisos: así el foco de teclado no se pierde. */}
+				<div className="flex gap-2">
+					{signOutStep === "confirm" && (
+						<Button
+							color="neutral"
+							variant="soft"
+							type="button"
+							onClick={() => setSignOutStep("idle")}
+						>
+							Cancelar
+						</Button>
+					)}
+					<Button
+						color="danger"
+						type="button"
+						onClick={handleSignOut}
+						aria-describedby={
+							signOutStep === "idle" ? undefined : "sign-out-status"
+						}
+					>
+						{signOutStep === "saving"
+							? "Guardando…"
+							: signOutStep === "confirm"
+								? "Cerrar sesión igualmente"
+								: "Cerrar sesión"}
+					</Button>
+				</div>
 			</div>
 		);
 	}
@@ -109,6 +217,21 @@ export function AuthSection() {
 			<p className="m-0 text-text-placeholder text-[0.8rem]">
 				Estás en modo invitado. Tu progreso se guarda solo en este dispositivo.
 			</p>
+
+			{/* Sin red no hay login posible (D052): se dice antes de que lo
+			    intenten, y los botones esperan a la conexión. */}
+			{!isOnline && (
+				<p
+					id="auth-offline-note"
+					className="m-0 flex items-start gap-2 text-[0.8rem] text-surface-soft"
+				>
+					<span aria-hidden="true">📡</span>
+					<span>
+						Sin conexión: para iniciar sesión o crear una cuenta necesitas
+						internet.
+					</span>
+				</p>
+			)}
 
 			<div className="mb-1 flex" role="tablist" aria-label="Tipo de acceso">
 				{(["signin", "signup"] as const).map((item) => (
@@ -171,7 +294,11 @@ export function AuthSection() {
 						{error}
 					</FeedbackMessage>
 				)}
-				<Button type="submit" disabled={isSubmitting}>
+				<Button
+					type="submit"
+					disabled={isSubmitting || !isOnline}
+					aria-describedby={isOnline ? undefined : "auth-offline-note"}
+				>
 					{isSubmitting
 						? "Un momento…"
 						: mode === "signin"
@@ -189,6 +316,8 @@ export function AuthSection() {
 				variant="text"
 				color="neutral"
 				type="button"
+				disabled={!isOnline}
+				aria-describedby={isOnline ? undefined : "auth-offline-note"}
 				onClick={() => signInWithGoogle()}
 			>
 				Continuar con Google

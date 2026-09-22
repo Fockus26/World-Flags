@@ -12,6 +12,7 @@
 		"astro": "astro",
 		"format": "biome format ./src --write",
 		"lint": "biome check ./src --write",
+		"test": "bun test ./tests/unit",
 		"test:e2e": "playwright test"
 	},
 	"dependencies": {
