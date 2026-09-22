@@ -243,13 +243,13 @@ export function GameEffects() {
 			 * Base de sincronización de la cuenta en este dispositivo (D049):
 			 * contra ella se sabe qué cambió aquí y no está en la nube. `null`
 			 * en el primer login en este dispositivo (y tras un logout): lo
-			 * local es del invitado y, en lo que no tiene marca de tiempo,
-			 * cede ante la cuenta (D020).
+			 * local es del invitado, que solo pasa a la cuenta si la cuenta no
+			 * tiene progreso; si lo tiene, se descarta (D056).
 			 */
 			const base = getSyncBase(user.id);
 
 			try {
-				const syncedData = await syncLearningData(
+				const { data: syncedData, discardedLocal } = await syncLearningData(
 					user.id,
 					localData,
 					base,
@@ -264,11 +264,13 @@ export function GameEffects() {
 				 * Lo jugado mientras la sincronización estaba en vuelo ya está
 				 * en `localStorage` pero no en `syncedData`: reemplazar sin más
 				 * lo borraría. Se fusiona con lo que se mandó como base: gana
-				 * lo que cambió durante el vuelo.
+				 * lo que cambió durante el vuelo. Salvo si lo local se descartó
+				 * (era del invitado): lo jugado en vuelo también lo es.
 				 */
 				const latestLocalData = getLearningData();
 
 				const authenticatedData =
+					discardedLocal ||
 					JSON.stringify(latestLocalData) === JSON.stringify(localData)
 						? syncedData
 						: mergeLearningData(syncedData, latestLocalData, localData);
@@ -316,18 +318,12 @@ export function GameEffects() {
 					dispatch(setLearningData(localData));
 
 					/**
-					 * Si la cuenta nunca sincronizó en este dispositivo, lo local
-					 * de este momento hace de base: lo que se juegue desde ahora
-					 * es de la cuenta y ganará al recuperarse, también en perfil,
-					 * configuración y notas, aunque se recargue sin conexión.
+					 * Sin base (la cuenta nunca sincronizó en este dispositivo)
+					 * lo local es del invitado: al recuperarse, pasa a la cuenta
+					 * solo si ésta no tiene progreso (D056). Con base, lo que se
+					 * juegue ahora es de la cuenta y quedará pendiente de subir.
 					 */
-					const effectiveBase = base ?? localData;
-
-					if (!base) {
-						saveSyncBase(user.id, localData);
-					}
-
-					syncBaseRef.current = toSyncBaseRef(user.id, effectiveBase);
+					syncBaseRef.current = base ? toSyncBaseRef(user.id, base) : null;
 				}
 
 				dispatch(syncFailed(kind));
@@ -429,7 +425,7 @@ export function GameEffects() {
 			inFlight = true;
 
 			try {
-				const syncedData = await syncLearningData(
+				const { data: syncedData } = await syncLearningData(
 					userId,
 					localAtStart,
 					base,

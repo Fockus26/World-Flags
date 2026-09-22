@@ -1,10 +1,13 @@
 /**
- * Aserciones de la capa pura de sincronización (`mergeLearningData` y la base
- * de sincronización). Se corren con `bun run test` (runner de Bun con la API de
- * `node:test`). Cubren los invariantes que protegen el progreso:
+ * Aserciones de la capa pura de sincronización (`mergeLearningData`,
+ * `planSync` y la base de sincronización). Se corren con `bun run test`
+ * (runner de Bun con la API de `node:test`). Cubren los invariantes que
+ * protegen el progreso:
  *
  * - D048: `countryHistory` por la revisión más reciente de cada país.
- * - D049: perfil, configuración y notas por continente contra la base.
+ * - D055: perfil, configuración y notas por continente por la fecha de su
+ *   último cambio; sin fecha (datos viejos), contra la base (D049).
+ * - D056: el invitado solo pasa a una cuenta sin progreso.
  * - D020: contadores por `max`, nunca suma; idempotencia del merge.
  * - D017/D021: un logro nunca se pierde, ni un id desconocido.
  */
@@ -17,14 +20,18 @@ import {
 	clearLearningData,
 	createDefaultLearningData,
 	createSessionRecord,
+	fromGameView,
 	getSyncBase,
 	hasPendingChanges,
 	mergeLearningData,
+	normalizeLearningData,
+	planSync,
 	registerRegionGame,
 	registerSessionOutcome,
 	saveSyncBase,
 	saveUserProfile,
 	sealAchievements,
+	toGameView,
 	updateLastConfiguration,
 } from "@/utils/learning-storage";
 import { calculateNextReview } from "@/utils/spaced-repetition";
@@ -60,12 +67,14 @@ const DAY_1 = new Date("2026-09-01T10:00:00.000Z");
 const DAY_2 = new Date("2026-09-02T10:00:00.000Z");
 const DAY_3 = new Date("2026-09-03T10:00:00.000Z");
 
-/** Revisa `code` en el juego indicado con la nota dada, en el instante `at`. */
+const at = (day: Date) => day.toISOString();
+
+/** Revisa `code` en el juego indicado con la nota dada, en el instante `day`. */
 function review(
 	data: UserLearningData,
 	code: string,
 	grade: "again" | "good" | "easy",
-	at: Date,
+	day: Date,
 	game: "flags" | "countries" = "flags",
 ): UserLearningData {
 	const history =
@@ -74,7 +83,7 @@ function review(
 	const next = {
 		...history,
 		[code]: {
-			review: calculateNextReview(history[code]?.review ?? null, grade, at),
+			review: calculateNextReview(history[code]?.review ?? null, grade, day),
 		},
 	};
 
@@ -109,12 +118,16 @@ function sharedBase(): UserLearningData {
 	data = review(data, "de", "good", DAY_1);
 	data = review(data, "jp", "good", DAY_1);
 	data = review(data, "br", "good", DAY_1, "countries");
-	data = registerRegionGame(data, "europe", 7);
-	data = registerRegionGame(data, "asia", 6);
+	data = registerRegionGame(data, "europe", 7, at(DAY_1));
+	data = registerRegionGame(data, "asia", 6, at(DAY_1));
 	data = registerSessionOutcome(data, session(DAY_1, 7, 10));
-	data = saveUserProfile(data, { ...data.profile, name: "Alejandro" });
-	data = updateLastConfiguration(data, { mode: "practice" });
-	data = sealAchievements(data, ["primera_sesion"], DAY_1.toISOString());
+	data = saveUserProfile(
+		data,
+		{ ...data.profile, name: "Alejandro" },
+		at(DAY_1),
+	);
+	data = updateLastConfiguration(data, { mode: "practice" }, at(DAY_1));
+	data = sealAchievements(data, ["primera_sesion"], at(DAY_1));
 
 	return data;
 }
@@ -124,10 +137,20 @@ function playOfflineEurope(data: UserLearningData): UserLearningData {
 	let next = review(data, "fr", "again", DAY_2);
 	next = review(next, "es", "good", DAY_2);
 	next = review(next, "br", "easy", DAY_2, "countries");
-	next = registerRegionGame(next, "europe", 9);
+	next = registerRegionGame(next, "europe", 9, at(DAY_2));
 	next = registerSessionOutcome(next, session(DAY_2, 9, 10));
-	next = saveUserProfile(next, { ...next.profile, name: "Ale" });
+	next = saveUserProfile(next, { ...next.profile, name: "Ale" }, at(DAY_2));
 	return next;
+}
+
+/** Datos escritos antes de D055: sin ninguna fecha de campo. */
+function withoutFieldDates(data: UserLearningData): UserLearningData {
+	return {
+		...data,
+		fieldUpdatedAt: { profile: null, lastConfiguration: null },
+		regionGameScoresUpdatedAt: {},
+		countriesGame: { ...data.countriesGame, regionGameScoresUpdatedAt: {} },
+	};
 }
 
 function assertSameJson(actual: unknown, expected: unknown, message?: string) {
@@ -142,14 +165,8 @@ describe("countryHistory: gana la revisión más reciente por país (D048)", () 
 
 		const merged = mergeLearningData(remote, local, base);
 
-		assert.equal(
-			merged.countryHistory.fr?.review?.lastReviewedAt,
-			DAY_2.toISOString(),
-		);
-		assert.equal(
-			merged.countryHistory.de?.review?.lastReviewedAt,
-			DAY_3.toISOString(),
-		);
+		assert.equal(merged.countryHistory.fr?.review?.lastReviewedAt, at(DAY_2));
+		assert.equal(merged.countryHistory.de?.review?.lastReviewedAt, at(DAY_3));
 	});
 
 	test("unión de países: los que solo existen en un lado se conservan", () => {
@@ -171,7 +188,7 @@ describe("countryHistory: gana la revisión más reciente por país (D048)", () 
 
 		assert.equal(
 			merged.countriesGame.countryHistory.br?.review?.lastReviewedAt,
-			DAY_2.toISOString(),
+			at(DAY_2),
 		);
 		// Sin mezclar juegos: Banderas no gana "br".
 		assert.equal(merged.countryHistory.br, undefined);
@@ -226,6 +243,7 @@ describe("offline en un dispositivo: practicar → recargar → volver", () => {
 		const base = sharedBase();
 
 		assertSameJson(mergeLearningData(base, base, base), base);
+		assert.equal(planSync(base, base, base).push, false);
 	});
 });
 
@@ -235,18 +253,18 @@ describe("dos dispositivos con cambios distintos", () => {
 
 		// Dispositivo B (con red): Asia, otra configuración, un logro, Japón.
 		let remote = review(base, "jp", "easy", DAY_3);
-		remote = registerRegionGame(remote, "asia", 10);
-		remote = updateLastConfiguration(remote, { mode: "competitive" });
+		remote = registerRegionGame(remote, "asia", 10, at(DAY_3));
+		remote = updateLastConfiguration(
+			remote,
+			{ mode: "competitive" },
+			at(DAY_3),
+		);
 		remote = registerSessionOutcome(remote, session(DAY_3, 10, 10));
-		remote = sealAchievements(remote, ["sesion_perfecta"], DAY_3.toISOString());
+		remote = sealAchievements(remote, ["sesion_perfecta"], at(DAY_3));
 
 		// Dispositivo A (este, sin red): Europa y un nombre nuevo.
 		let local = playOfflineEurope(base);
-		local = sealAchievements(
-			local,
-			["logro_de_una_version_nueva"],
-			DAY_2.toISOString(),
-		);
+		local = sealAchievements(local, ["logro_de_una_version_nueva"], at(DAY_2));
 
 		return { base, remote, local };
 	}
@@ -257,24 +275,21 @@ describe("dos dispositivos con cambios distintos", () => {
 		const merged = mergeLearningData(remote, local, base);
 
 		// Revisiones de los dos, cada una la más reciente de su país.
-		assert.equal(
-			merged.countryHistory.fr?.review?.lastReviewedAt,
-			DAY_2.toISOString(),
-		);
-		assert.equal(
-			merged.countryHistory.es?.review?.lastReviewedAt,
-			DAY_2.toISOString(),
-		);
-		assert.equal(
-			merged.countryHistory.jp?.review?.lastReviewedAt,
-			DAY_3.toISOString(),
-		);
-		// Europa la cambió A, Asia la cambió B.
+		assert.equal(merged.countryHistory.fr?.review?.lastReviewedAt, at(DAY_2));
+		assert.equal(merged.countryHistory.es?.review?.lastReviewedAt, at(DAY_2));
+		assert.equal(merged.countryHistory.jp?.review?.lastReviewedAt, at(DAY_3));
+		// Europa la cambió A, Asia la cambió B; cada una con su fecha.
 		assert.deepEqual(merged.regionGameScores.europe, [7, 9]);
 		assert.deepEqual(merged.regionGameScores.asia, [6, 10]);
+		assert.equal(merged.regionGameScoresUpdatedAt.europe, at(DAY_2));
+		assert.equal(merged.regionGameScoresUpdatedAt.asia, at(DAY_3));
 		// Perfil lo cambió A; configuración la cambió B.
 		assert.equal(merged.profile.name, "Ale");
 		assert.equal(merged.lastConfiguration?.mode, "competitive");
+		assert.deepEqual(merged.fieldUpdatedAt, {
+			profile: at(DAY_2),
+			lastConfiguration: at(DAY_3),
+		});
 		// Logros de los dos, incluido un id que este cliente no conoce (D021).
 		assert.ok(merged.achievements.primera_sesion);
 		assert.ok(merged.achievements.sesion_perfecta);
@@ -285,62 +300,192 @@ describe("dos dispositivos con cambios distintos", () => {
 		assert.equal(merged.stats.perfectSessions, 1);
 	});
 
-	test("el orden de llegada no cambia el resultado de los datos con marca de tiempo", () => {
+	test("el orden de llegada no cambia el resultado", () => {
 		const { base, remote, local } = scenario();
 
 		const aFirst = mergeLearningData(remote, local, base);
 		// B sincroniza después contra lo que subió A (su base sigue siendo la común).
 		const bAfter = mergeLearningData(aFirst, remote, base);
 
-		assertSameJson(bAfter.countryHistory, aFirst.countryHistory);
-		assertSameJson(bAfter.sessionHistory, aFirst.sessionHistory);
-		assertSameJson(bAfter.achievements, aFirst.achievements);
-		assert.deepEqual(bAfter.regionGameScores, aFirst.regionGameScores);
-		assert.equal(bAfter.profile.name, "Ale");
-		assert.equal(bAfter.lastConfiguration?.mode, "competitive");
+		assertSameJson(bAfter, aFirst);
+	});
+});
+
+describe("mismo campo en los dos dispositivos: gana el cambio más reciente (D055)", () => {
+	test("notas del mismo continente: la lista más nueva, venga de donde venga", () => {
+		const base = sharedBase();
+		const earlier = registerRegionGame(base, "europe", 9, at(DAY_2));
+		const later = registerRegionGame(base, "europe", 4, at(DAY_3));
+
+		// La nube tiene el cambio más nuevo: gana aunque lo local también cambió.
+		assert.deepEqual(
+			mergeLearningData(later, earlier, base).regionGameScores.europe,
+			[7, 4],
+		);
+		// Y al revés: lo local es más nuevo que la nube.
+		assert.deepEqual(
+			mergeLearningData(earlier, later, base).regionGameScores.europe,
+			[7, 4],
+		);
 	});
 
-	test("límite conocido: si los dos cambian el mismo continente, gana el que sincroniza", () => {
+	test("nombre y configuración: el más reciente", () => {
 		const base = sharedBase();
-		const remote = registerRegionGame(base, "europe", 4);
-		const local = registerRegionGame(base, "europe", 9);
+		let remote = saveUserProfile(
+			base,
+			{ ...base.profile, name: "Nube" },
+			at(DAY_3),
+		);
+		remote = updateLastConfiguration(
+			remote,
+			{ mode: "competitive" },
+			at(DAY_2),
+		);
+		let local = saveUserProfile(
+			base,
+			{ ...base.profile, name: "Local" },
+			at(DAY_2),
+		);
+		local = updateLastConfiguration(local, { order: "random" }, at(DAY_3));
+
+		const merged = mergeLearningData(remote, local, base);
+
+		assert.equal(merged.profile.name, "Nube");
+		assert.equal(merged.lastConfiguration?.order, "random");
+		assert.equal(merged.lastConfiguration?.mode, "practice");
+	});
+
+	test("las fechas de Países viajan con Países (toGameView/fromGameView)", () => {
+		const base = sharedBase();
+		const view = registerRegionGame(
+			toGameView(base, "countries"),
+			"africa",
+			8,
+			at(DAY_2),
+		);
+		const local = fromGameView(base, view, "countries");
+
+		assert.deepEqual(local.countriesGame.regionGameScores.africa, [8]);
+		assert.equal(
+			local.countriesGame.regionGameScoresUpdatedAt.africa,
+			at(DAY_2),
+		);
+		// Banderas no se entera.
+		assert.equal(local.regionGameScores.africa, undefined);
+		assertSameJson(
+			local.regionGameScoresUpdatedAt,
+			base.regionGameScoresUpdatedAt,
+		);
+
+		const merged = mergeLearningData(base, local, base);
+
+		assert.deepEqual(merged.countriesGame.regionGameScores.africa, [8]);
+	});
+});
+
+describe("datos anteriores a las fechas (D055): se decide contra la base (D049)", () => {
+	test("sin fechas, un cambio local respecto a la base gana; si no, la nube", () => {
+		const base = withoutFieldDates(sharedBase());
+		const remote = withoutFieldDates({
+			...updateLastConfiguration(base, { mode: "competitive" }),
+		});
+		const local = withoutFieldDates(playOfflineEurope(base));
 
 		const merged = mergeLearningData(remote, local, base);
 
 		assert.deepEqual(merged.regionGameScores.europe, [7, 9]);
+		assert.equal(merged.profile.name, "Ale");
+		assert.equal(merged.lastConfiguration?.mode, "competitive");
+	});
+
+	test("un lado con fecha y el otro sin ella: también contra la base", () => {
+		const base = withoutFieldDates(sharedBase());
+		const remote = base;
+		const local = playOfflineEurope(base);
+
+		const merged = mergeLearningData(remote, local, base);
+
+		assert.equal(merged.profile.name, "Ale");
+		assert.equal(merged.fieldUpdatedAt.profile, at(DAY_2));
+	});
+
+	test("una fila vieja se normaliza sin fechas", () => {
+		const { fieldUpdatedAt, regionGameScoresUpdatedAt, ...old } = sharedBase();
+		const normalized = normalizeLearningData({
+			...old,
+			countriesGame: {
+				countryHistory: {},
+				regionGameScores: {},
+				regionBestTimes: {},
+				lastPracticeByCountry: {},
+			} as unknown as UserLearningData["countriesGame"],
+		});
+
+		assert.deepEqual(normalized.fieldUpdatedAt, {
+			profile: null,
+			lastConfiguration: null,
+		});
+		assert.deepEqual(normalized.regionGameScoresUpdatedAt, {});
+		assert.deepEqual(normalized.countriesGame.regionGameScoresUpdatedAt, {});
+		assert.ok(fieldUpdatedAt && regionGameScoresUpdatedAt);
 	});
 });
 
-describe("sin base (login de invitado): D020 en lo que no tiene marca de tiempo", () => {
-	test("perfil, configuración y notas: gana lo remoto", () => {
-		const account = sharedBase();
+describe("invitado que entra en una cuenta (D056, planSync)", () => {
+	function guestData(): UserLearningData {
 		let guest = createDefaultLearningData();
-		guest = saveUserProfile(guest, { ...guest.profile, name: "Invitado" });
-		guest = registerRegionGame(guest, "europe", 3);
-		guest = updateLastConfiguration(guest, { mode: "competitive" });
+		guest = review(guest, "fr", "again", DAY_3);
+		guest = registerRegionGame(guest, "europe", 3, at(DAY_3));
+		guest = registerSessionOutcome(guest, session(DAY_3, 3, 10));
+		guest = sealAchievements(guest, ["primera_sesion_invitado"], at(DAY_3));
+		return guest;
+	}
 
-		const merged = mergeLearningData(account, guest);
+	test("cuenta con progreso: lo del invitado se descarta entero y no se sube nada", () => {
+		const account = sharedBase();
 
-		assert.equal(merged.profile.name, "Alejandro");
-		assert.deepEqual(merged.regionGameScores.europe, [7]);
-		assert.equal(merged.lastConfiguration?.mode, "practice");
+		const plan = planSync(account, guestData(), null);
+
+		assert.equal(plan.discardedLocal, true);
+		assert.equal(plan.push, false);
+		assertSameJson(plan.data, account);
 	});
 
-	test("revisiones: gana la más reciente, igual que el resto de campos fusionables", () => {
-		const account = sharedBase();
-		const guest = review(createDefaultLearningData(), "fr", "again", DAY_2);
+	test("cuenta sin progreso: lo del invitado pasa a ser la cuenta", () => {
+		const guest = guestData();
 
-		const merged = mergeLearningData(account, guest);
+		const plan = planSync(createDefaultLearningData(), guest, null);
 
-		assert.equal(merged.countryHistory.fr?.review?.repetitions, 0);
-		assert.ok(merged.countryHistory.de?.review);
+		assert.equal(plan.discardedLocal, false);
+		assert.equal(plan.push, true);
+		assertSameJson(plan.data, guest);
+	});
+
+	test("cuenta sin fila en la nube: lo mismo, pasa a ser la cuenta", () => {
+		const guest = guestData();
+
+		const plan = planSync(null, guest, null);
+
+		assert.equal(plan.push, true);
+		assertSameJson(plan.data, guest);
+	});
+
+	test("con base (datos de esta misma cuenta): se fusiona y se sube si aporta", () => {
+		const base = sharedBase();
+		const local = playOfflineEurope(base);
+
+		const plan = planSync(base, local, base);
+
+		assert.equal(plan.discardedLocal, false);
+		assert.equal(plan.push, true);
+		assertSameJson(plan.data, local);
 	});
 });
 
 describe("idempotencia: merge(merge(r, l, b), l, b) === merge(r, l, b)", () => {
 	const cases: [
 		string,
-		() => [UserLearningData, UserLearningData, UserLearningData | null],
+		() => [UserLearningData, UserLearningData, UserLearningData],
 	][] = [
 		[
 			"offline, un dispositivo",
@@ -353,16 +498,27 @@ describe("idempotencia: merge(merge(r, l, b), l, b) === merge(r, l, b)", () => {
 			"dos dispositivos",
 			() => {
 				const base = sharedBase();
-				let remote = registerRegionGame(base, "asia", 10);
+				let remote = registerRegionGame(base, "asia", 10, at(DAY_3));
 				remote = registerSessionOutcome(remote, session(DAY_3, 10, 10));
 				return [remote, playOfflineEurope(base), base];
 			},
 		],
 		[
-			"login de invitado (sin base)",
+			"mismo continente en los dos",
 			() => {
-				const guest = playOfflineEurope(createDefaultLearningData());
-				return [sharedBase(), guest, null];
+				const base = sharedBase();
+				return [
+					registerRegionGame(base, "europe", 4, at(DAY_3)),
+					registerRegionGame(base, "europe", 9, at(DAY_2)),
+					base,
+				];
+			},
+		],
+		[
+			"datos sin fechas (anteriores a D055)",
+			() => {
+				const base = withoutFieldDates(sharedBase());
+				return [base, withoutFieldDates(playOfflineEurope(base)), base];
 			},
 		],
 	];
@@ -391,10 +547,12 @@ describe("idempotencia: merge(merge(r, l, b), l, b) === merge(r, l, b)", () => {
 	}
 });
 
-describe("comparación de campos sin marca de tiempo", () => {
+describe("comparación de campos sin fecha", () => {
 	test("la misma configuración con las claves en otro orden no cuenta como cambio", () => {
-		const base = sharedBase();
-		const remote = updateLastConfiguration(base, { mode: "competitive" });
+		const base = withoutFieldDates(sharedBase());
+		const remote = withoutFieldDates(
+			updateLastConfiguration(base, { mode: "competitive" }),
+		);
 		const reordered = Object.fromEntries(
 			Object.entries(base.lastConfiguration ?? {}).reverse(),
 		) as unknown as GameConfiguration;

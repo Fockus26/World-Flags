@@ -127,6 +127,22 @@ export interface GameProgress {
 	regionGameScores: RegionGameScores;
 	regionBestTimes: RegionBestTimes;
 	lastPracticeByCountry: LastPracticeByCountry;
+	/**
+	 * Cuándo cambió por última vez (ISO) la lista de notas de cada continente
+	 * (D055): con dos dispositivos, gana la lista más reciente. Ausente en
+	 * datos anteriores a esta versión.
+	 */
+	regionGameScoresUpdatedAt: Partial<Record<Region, string>>;
+}
+
+/**
+ * Cuándo cambió por última vez (ISO) cada campo que, si no, no tendría fecha
+ * (D055). `null` = desde antes de esta versión: la fusión cae a la base de
+ * sincronización (D049).
+ */
+export interface FieldUpdatedAt {
+	profile: string | null;
+	lastConfiguration: string | null;
 }
 
 /**
@@ -155,4 +171,8 @@ export interface UserLearningData {
 	stats: UserStats;
 	sessionHistory: SessionRecord[];
 	dailyReminder: DailyReminderPreference;
+	/** Fechas de perfil y configuración (D055). */
+	fieldUpdatedAt: FieldUpdatedAt;
+	/** Fechas de las notas por continente de Banderas (D055); las de Países van en `countriesGame`. */
+	regionGameScoresUpdatedAt: Partial<Record<Region, string>>;
 }

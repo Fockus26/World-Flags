@@ -13,6 +13,7 @@ import {
 import type {
 	CountriesLearningHistory,
 	DailyReminderPreference,
+	FieldUpdatedAt,
 	GameProgress,
 	LastPracticeByCountry,
 	RegionBestTimes,
@@ -41,9 +42,9 @@ export const MAX_REGION_GAMES = 3;
 /**
  * Cuántas sesiones se conservan. Cada subida a Supabase lleva la fila entera
  * (agrupadas desde D051, pero enteras), así que el historial no puede crecer
- * sin límite: 25 registros son ~6,5 KB sobre una fila que ya ronda los 33 KB. Los logros
- * que miran sesiones concretas solo necesitan las últimas; los agregados ya
- * viven en `stats`.
+ * sin límite: 25 registros son ~6,5 KB sobre una fila que ya ronda los 33 KB.
+ * Los logros que miran sesiones concretas solo necesitan las últimas; los
+ * agregados ya viven en `stats`.
  */
 export const MAX_SESSION_HISTORY = 25;
 
@@ -72,6 +73,12 @@ export const DEFAULT_GAME_PROGRESS: GameProgress = {
 	regionGameScores: {},
 	regionBestTimes: {},
 	lastPracticeByCountry: {},
+	regionGameScoresUpdatedAt: {},
+};
+
+export const DEFAULT_FIELD_UPDATED_AT: FieldUpdatedAt = {
+	profile: null,
+	lastConfiguration: null,
 };
 
 export const DEFAULT_DAILY_REMINDER: DailyReminderPreference = {
@@ -92,6 +99,8 @@ export const DEFAULT_DATA: UserLearningData = {
 	stats: DEFAULT_STATS,
 	sessionHistory: [],
 	dailyReminder: DEFAULT_DAILY_REMINDER,
+	fieldUpdatedAt: DEFAULT_FIELD_UPDATED_AT,
+	regionGameScoresUpdatedAt: {},
 };
 
 function migrateCountryHistory(
@@ -236,6 +245,17 @@ function migrateGameProgress(
 		regionGameScores: progress?.regionGameScores ?? {},
 		regionBestTimes: progress?.regionBestTimes ?? {},
 		lastPracticeByCountry: progress?.lastPracticeByCountry ?? {},
+		regionGameScoresUpdatedAt: progress?.regionGameScoresUpdatedAt ?? {},
+	};
+}
+
+/** Datos anteriores a D055: sin fechas (`null`), la fusión usa la base. */
+function migrateFieldUpdatedAt(
+	fieldUpdatedAt: Partial<FieldUpdatedAt> | undefined,
+): FieldUpdatedAt {
+	return {
+		profile: fieldUpdatedAt?.profile ?? null,
+		lastConfiguration: fieldUpdatedAt?.lastConfiguration ?? null,
 	};
 }
 
@@ -297,6 +317,8 @@ export function normalizeLearningData(
 			MAX_SESSION_HISTORY,
 		),
 		dailyReminder: migrateDailyReminder(parsedData.dailyReminder),
+		fieldUpdatedAt: migrateFieldUpdatedAt(parsedData.fieldUpdatedAt),
+		regionGameScoresUpdatedAt: parsedData.regionGameScoresUpdatedAt ?? {},
 	};
 }
 
@@ -345,6 +367,7 @@ export function hasLearningProgress(data: UserLearningData): boolean {
 			regionGameScores: data.regionGameScores,
 			regionBestTimes: data.regionBestTimes,
 			lastPracticeByCountry: data.lastPracticeByCountry,
+			regionGameScoresUpdatedAt: data.regionGameScoresUpdatedAt,
 		}) ||
 		hasGameProgress(data.countriesGame) ||
 		hasAchievements ||
@@ -383,6 +406,7 @@ export function toGameView(
 		regionGameScores: data.countriesGame.regionGameScores,
 		regionBestTimes: data.countriesGame.regionBestTimes,
 		lastPracticeByCountry: data.countriesGame.lastPracticeByCountry,
+		regionGameScoresUpdatedAt: data.countriesGame.regionGameScoresUpdatedAt,
 	};
 }
 
@@ -416,11 +440,13 @@ export function fromGameView(
 		regionGameScores: original.regionGameScores,
 		regionBestTimes: original.regionBestTimes,
 		lastPracticeByCountry: original.lastPracticeByCountry,
+		regionGameScoresUpdatedAt: original.regionGameScoresUpdatedAt,
 		countriesGame: {
 			countryHistory: view.countryHistory,
 			regionGameScores: view.regionGameScores,
 			regionBestTimes: view.regionBestTimes,
 			lastPracticeByCountry: view.lastPracticeByCountry,
+			regionGameScoresUpdatedAt: view.regionGameScoresUpdatedAt,
 		},
 	};
 
@@ -478,10 +504,12 @@ export function saveDailyReminderAnswer(
 export function saveUserProfile(
 	currentData: UserLearningData,
 	profile: UserProfile,
+	updatedAt: string = new Date().toISOString(),
 ): UserLearningData {
 	const updatedData: UserLearningData = {
 		...currentData,
 		profile,
+		fieldUpdatedAt: { ...currentData.fieldUpdatedAt, profile: updatedAt },
 	};
 
 	saveLearningData(updatedData);
@@ -492,10 +520,15 @@ export function saveUserProfile(
 export function saveLastConfiguration(
 	currentData: UserLearningData,
 	configuration: GameConfiguration,
+	updatedAt: string = new Date().toISOString(),
 ): UserLearningData {
 	const updatedData: UserLearningData = {
 		...currentData,
 		lastConfiguration: configuration,
+		fieldUpdatedAt: {
+			...currentData.fieldUpdatedAt,
+			lastConfiguration: updatedAt,
+		},
 	};
 
 	saveLearningData(updatedData);
@@ -506,9 +539,14 @@ export function saveLastConfiguration(
 export function updateLastConfiguration(
 	currentData: UserLearningData,
 	partial: Partial<GameConfiguration>,
+	updatedAt: string = new Date().toISOString(),
 ): UserLearningData {
 	const updatedData: UserLearningData = {
 		...currentData,
+		fieldUpdatedAt: {
+			...currentData.fieldUpdatedAt,
+			lastConfiguration: updatedAt,
+		},
 		lastConfiguration: {
 			scope: currentData.lastConfiguration?.scope ?? DEFAULT_SCOPE,
 			order: currentData.lastConfiguration?.order ?? "alphabetical",
@@ -560,6 +598,7 @@ export function registerRegionGame(
 	currentData: UserLearningData,
 	region: Region,
 	score: number,
+	updatedAt: string = new Date().toISOString(),
 ): UserLearningData {
 	const previousScores = currentData.regionGameScores[region] ?? [];
 
@@ -570,6 +609,12 @@ export function registerRegionGame(
 		regionGameScores: {
 			...currentData.regionGameScores,
 			[region]: regionScores,
+		},
+		// Sobre la vista de Países (`toGameView`) esto es la fecha de Países:
+		// `fromGameView` la devuelve a `countriesGame`.
+		regionGameScoresUpdatedAt: {
+			...currentData.regionGameScoresUpdatedAt,
+			[region]: updatedAt,
 		},
 	};
 
@@ -868,72 +913,114 @@ function isSameValue(a: unknown, b: unknown): boolean {
 	);
 }
 
-/**
- * Campos sin marca de tiempo (perfil, última configuración, las tres últimas
- * notas de un continente): no hay forma de saber cuál de los dos lados es más
- * nuevo mirando solo el valor. La referencia es `base`, lo último que este
- * dispositivo sabe que está en la nube (D049):
- *
- * - Sin `base` (login de invitado, o primera vez en este dispositivo): gana
- *   lo remoto, como siempre (D020).
- * - `local` igual a `base`: este dispositivo no lo tocó → gana lo remoto (que
- *   puede traer el cambio de otro dispositivo).
- * - `local` distinto de `base`: lo cambió este dispositivo y aún no está en la
- *   nube → gana lo local.
- *
- * Idempotente: repetir la fusión con el mismo `local` y `base` da lo mismo.
- */
-function pickUnversioned<T>(remote: T, local: T, base: { value: T } | null): T {
-	if (!base || isSameValue(local, base.value)) return remote;
-
-	return local;
+/** Un valor con la fecha (ISO) de su último cambio; `null` = sin fecha (anterior a D055). */
+interface Stamped<T> {
+	value: T;
+	updatedAt: string | null;
 }
 
-/** `pickUnversioned` por continente. Devuelve `remote` tal cual si no cambia nada. */
-function mergeRegionGameScores(
-	remote: RegionGameScores,
-	local: RegionGameScores,
-	base: RegionGameScores | null,
-): RegionGameScores {
-	if (!base) return remote;
-
-	let merged = remote;
-
-	for (const region of Object.keys(local) as Region[]) {
-		const scores = pickUnversioned(remote[region], local[region], {
-			value: base[region],
-		});
-
-		if (scores === remote[region] || scores === undefined) continue;
-
-		if (merged === remote) merged = { ...remote };
-		merged[region] = scores;
+/**
+ * Perfil, última configuración y las tres últimas notas de un continente: el
+ * valor no dice cuándo cambió, así que cada uno lleva al lado la fecha de su
+ * último cambio (D055):
+ *
+ * - Fecha en los dos lados: gana la más reciente (empate → lo remoto).
+ * - Falta alguna (datos anteriores a D055, o escritos por un cliente viejo):
+ *   se decide contra `base`, lo último que este dispositivo sabe que está en la
+ *   nube (D049). `local` distinto de la base es un cambio de aquí aún no subido
+ *   y gana; si no, gana lo remoto (puede traer el cambio de otro dispositivo).
+ *
+ * Devuelve el ganador con su fecha. Idempotente: repetir la fusión con el mismo
+ * `local` y `base` da lo mismo.
+ */
+function pickLatest<T>(
+	remote: Stamped<T>,
+	local: Stamped<T>,
+	base: T,
+): Stamped<T> {
+	if (remote.updatedAt !== null && local.updatedAt !== null) {
+		return local.updatedAt > remote.updatedAt ? local : remote;
 	}
 
-	return merged;
+	return isSameValue(local.value, base) ? remote : local;
+}
+
+interface RegionScoresWithDates {
+	scores: RegionGameScores;
+	updatedAt: Partial<Record<Region, string>>;
+}
+
+/** `pickLatest` por continente. Devuelve lo remoto tal cual si no cambia nada. */
+function mergeRegionGameScores(
+	remote: RegionScoresWithDates,
+	local: RegionScoresWithDates,
+	base: RegionGameScores,
+): RegionScoresWithDates {
+	let scores = remote.scores;
+	let updatedAt = remote.updatedAt;
+
+	for (const region of Object.keys(local.scores) as Region[]) {
+		const remoteSide = {
+			value: remote.scores[region],
+			updatedAt: remote.updatedAt[region] ?? null,
+		};
+
+		const winner = pickLatest(
+			remoteSide,
+			{
+				value: local.scores[region],
+				updatedAt: local.updatedAt[region] ?? null,
+			},
+			base[region],
+		);
+
+		if (winner === remoteSide || winner.value === undefined) continue;
+
+		if (scores === remote.scores) scores = { ...remote.scores };
+		if (updatedAt === remote.updatedAt) updatedAt = { ...remote.updatedAt };
+
+		scores[region] = winner.value;
+
+		if (winner.updatedAt === null) {
+			delete updatedAt[region];
+		} else {
+			updatedAt[region] = winner.updatedAt;
+		}
+	}
+
+	return { scores, updatedAt };
 }
 
 /**
  * Fusiona el progreso de un juego (Banderas o Países): `countryHistory` por la
- * revisión más reciente de cada país, `regionGameScores` contra `base`, y
- * `regionBestTimes`/`lastPracticeByCountry` con las mismas reglas que el resto
- * de `mergeLearningData`.
+ * revisión más reciente de cada país, `regionGameScores` por la fecha de cada
+ * continente (D055), y `regionBestTimes`/`lastPracticeByCountry` con las
+ * mismas reglas que el resto de `mergeLearningData`.
  */
 function mergeGameProgress(
 	remote: GameProgress,
 	local: GameProgress,
-	base: GameProgress | null,
+	base: GameProgress,
 ): GameProgress {
+	const regionScores = mergeRegionGameScores(
+		{
+			scores: remote.regionGameScores,
+			updatedAt: remote.regionGameScoresUpdatedAt,
+		},
+		{
+			scores: local.regionGameScores,
+			updatedAt: local.regionGameScoresUpdatedAt,
+		},
+		base.regionGameScores,
+	);
+
+	// Mismo orden de claves que `migrateGameProgress` (ver `mergeLearningData`).
 	return {
 		countryHistory: mergeCountryHistory(
 			remote.countryHistory,
 			local.countryHistory,
 		),
-		regionGameScores: mergeRegionGameScores(
-			remote.regionGameScores,
-			local.regionGameScores,
-			base?.regionGameScores ?? null,
-		),
+		regionGameScores: regionScores.scores,
 		regionBestTimes: mergeRegionBestTimes(
 			remote.regionBestTimes,
 			local.regionBestTimes,
@@ -942,6 +1029,7 @@ function mergeGameProgress(
 			remote.lastPracticeByCountry,
 			local.lastPracticeByCountry,
 		),
+		regionGameScoresUpdatedAt: regionScores.updatedAt,
 	};
 }
 
@@ -976,10 +1064,9 @@ function mergeDailyReminder(
  * Campo por campo, explícito — nada de spread ciego:
  *
  * - `countryHistory`: por país, la revisión SRS más reciente (D048).
- * - `profile`, `lastConfiguration`, `regionGameScores` (por continente): no
- *   tienen marca de tiempo; gana lo local solo si este dispositivo lo cambió
- *   respecto a `base`, lo último que sabe que está en la nube. Sin `base`,
- *   gana lo remoto (D049).
+ * - `profile`, `lastConfiguration`, `regionGameScores` (por continente): gana
+ *   el cambio más reciente según `fieldUpdatedAt`/`regionGameScoresUpdatedAt`
+ *   (D055); sin fecha, contra `base` (D049).
  * - `regionBestTimes`: por continente, el menor tiempo (la mejor marca).
  * - `lastPracticeByCountry`: por país, la fecha más reciente, para que una
  *   jornada en curso local sobreviva a un login con datos remotos viejos.
@@ -991,11 +1078,14 @@ function mergeDailyReminder(
  * Idempotente con el mismo `base`: `merge(merge(r, l, b), l, b)` es
  * `merge(r, l, b)`. Es lo que impide que los contadores o las notas se
  * inflen en cada recarga o en cada reintento.
+ *
+ * Solo para datos de esta misma cuenta (`base` obligatoria). Los del invitado
+ * que entra en una cuenta no se fusionan nunca: ver `planSync` (D056).
  */
 export function mergeLearningData(
 	remote: UserLearningData,
 	local: UserLearningData,
-	base: UserLearningData | null = null,
+	base: UserLearningData,
 ): UserLearningData {
 	const lastPracticeByCountry = mergeLastPracticeByCountry(
 		remote.lastPracticeByCountry,
@@ -1012,36 +1102,54 @@ export function mergeLearningData(
 		local.sessionHistory,
 	);
 
+	const profile = pickLatest(
+		{ value: remote.profile, updatedAt: remote.fieldUpdatedAt.profile },
+		{ value: local.profile, updatedAt: local.fieldUpdatedAt.profile },
+		base.profile,
+	);
+
+	const lastConfiguration = pickLatest(
+		{
+			value: remote.lastConfiguration,
+			updatedAt: remote.fieldUpdatedAt.lastConfiguration,
+		},
+		{
+			value: local.lastConfiguration,
+			updatedAt: local.fieldUpdatedAt.lastConfiguration,
+		},
+		base.lastConfiguration,
+	);
+
+	const regionScores = mergeRegionGameScores(
+		{
+			scores: remote.regionGameScores,
+			updatedAt: remote.regionGameScoresUpdatedAt,
+		},
+		{
+			scores: local.regionGameScores,
+			updatedAt: local.regionGameScoresUpdatedAt,
+		},
+		base.regionGameScores,
+	);
+
 	// El orden de las claves replica el de `normalizeLearningData` a propósito:
 	// `syncLearningData` compara `JSON.stringify(merged)` con el del remoto para
 	// decidir si re-subir, y un orden distinto haría que siempre parecieran
 	// diferentes (un push de más en cada sincronización).
 	return {
-		profile: pickUnversioned(
-			remote.profile,
-			local.profile,
-			base && { value: base.profile },
-		),
+		profile: profile.value,
 		countryHistory: mergeCountryHistory(
 			remote.countryHistory,
 			local.countryHistory,
 		),
-		regionGameScores: mergeRegionGameScores(
-			remote.regionGameScores,
-			local.regionGameScores,
-			base?.regionGameScores ?? null,
-		),
+		regionGameScores: regionScores.scores,
 		regionBestTimes,
-		lastConfiguration: pickUnversioned(
-			remote.lastConfiguration,
-			local.lastConfiguration,
-			base && { value: base.lastConfiguration },
-		),
+		lastConfiguration: lastConfiguration.value,
 		lastPracticeByCountry,
 		countriesGame: mergeGameProgress(
 			remote.countriesGame,
 			local.countriesGame,
-			base?.countriesGame ?? null,
+			base.countriesGame,
 		),
 		achievements: mergeAchievements(remote.achievements, local.achievements),
 		stats: mergeStats(remote.stats, local.stats, sessionHistory),
@@ -1050,6 +1158,57 @@ export function mergeLearningData(
 			remote.dailyReminder,
 			local.dailyReminder,
 		),
+		fieldUpdatedAt: {
+			profile: profile.updatedAt,
+			lastConfiguration: lastConfiguration.updatedAt,
+		},
+		regionGameScoresUpdatedAt: regionScores.updatedAt,
+	};
+}
+
+/** Qué hacer con una sincronización, dada la fila de la nube (`planSync`). */
+export interface SyncPlan {
+	/** Lo que queda como datos de la cuenta (y en la nube, tras subir si toca). */
+	data: UserLearningData;
+	/** ¿Hay que subir `data`? */
+	push: boolean;
+	/** Se descartó lo local: era del invitado y la cuenta ya tenía progreso (D056). */
+	discardedLocal: boolean;
+}
+
+/**
+ * La decisión de cada sincronización, pura:
+ *
+ * - **La cuenta no tiene progreso en la nube** (recién creada o sin jugar): lo
+ *   local — el invitado que acaba de entrar — pasa a ser la cuenta.
+ * - **La cuenta ya tiene progreso y no hay base** (`base` `null`: lo local no
+ *   es de esta cuenta, es del invitado que acaba de entrar): lo del invitado
+ *   **se descarta entero** y queda la nube tal cual (D056, decisión del dueño).
+ * - **La cuenta ya tiene progreso y hay base** (datos de esta misma cuenta en
+ *   este dispositivo): `mergeLearningData`, y se sube si aporta algo.
+ */
+export function planSync(
+	remote: UserLearningData | null,
+	local: UserLearningData,
+	base: UserLearningData | null,
+): SyncPlan {
+	if (!remote || !hasLearningProgress(remote)) {
+		return { data: local, push: true, discardedLocal: false };
+	}
+
+	if (!base) {
+		return { data: remote, push: false, discardedLocal: true };
+	}
+
+	const merged = mergeLearningData(remote, local, base);
+
+	// Se compara el objeto ENTERO, no campo por campo: antes había que
+	// acordarse de añadir cada campo nuevo a esta condición, y olvidarlo
+	// fallaba en silencio (el merge se quedaba en este dispositivo).
+	return {
+		data: merged,
+		push: JSON.stringify(merged) !== JSON.stringify(remote),
+		discardedLocal: false,
 	};
 }
 
@@ -1062,11 +1221,11 @@ interface StoredSyncBase {
 
 /**
  * La base de sincronización de `userId`: lo último que este dispositivo sabe
- * que está en la nube para esa cuenta — o, si la cuenta aún no ha podido
- * sincronizar nunca aquí, los datos locales del momento del primer intento
- * (D049). Contra ella se decide qué cambió este dispositivo: `local` distinto
- * de la base = cambios pendientes de subir, que ganan en `mergeLearningData`
- * aunque la app se haya cerrado o recargado sin conexión.
+ * que está en la nube para esa cuenta (D049). Contra ella se decide qué cambió
+ * este dispositivo: `local` distinto de la base = cambios pendientes de subir,
+ * que se conservan en `mergeLearningData` aunque la app se haya cerrado o
+ * recargado sin conexión. Sin base (primer login aquí), lo local es del
+ * invitado (`planSync`, D056).
  *
  * Vive en su propia clave, fuera de `UserLearningData` (como el id de
  * dispositivo): es de este dispositivo y nunca se sube.

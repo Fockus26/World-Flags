@@ -2,11 +2,7 @@ import { supabase } from "@/lib/supabase";
 
 import type { UserLearningData } from "@/types/progress";
 
-import {
-	hasLearningProgress,
-	mergeLearningData,
-	normalizeLearningData,
-} from "./learning-storage";
+import { normalizeLearningData, planSync } from "./learning-storage";
 
 /**
  * Tope de `syncLearningData`. El GET normal tarda menos de un segundo; 10 s
@@ -73,7 +69,7 @@ export async function fetchRemoteLearningData(
 	let query = supabase
 		.from("user_learning_data")
 		.select(
-			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, countries_game, achievements, stats, session_history, daily_reminder",
+			"profile, country_history, region_game_scores, region_best_times, last_configuration, last_practice_by_country, countries_game, achievements, stats, session_history, daily_reminder, field_updated_at",
 		)
 		.eq("user_id", userId);
 
@@ -123,6 +119,14 @@ export async function fetchRemoteLearningData(
 		stats: data.stats ?? undefined,
 		sessionHistory: data.session_history ?? [],
 		dailyReminder: data.daily_reminder ?? {},
+		// Una sola columna (D055) con las fechas de perfil, configuración y
+		// notas por continente de Banderas; las de Países viajan dentro de
+		// `countries_game`.
+		fieldUpdatedAt: {
+			profile: data.field_updated_at?.profile ?? null,
+			lastConfiguration: data.field_updated_at?.lastConfiguration ?? null,
+		},
+		regionGameScoresUpdatedAt: data.field_updated_at?.regionGameScores ?? {},
 	});
 }
 
@@ -144,6 +148,11 @@ export async function pushLearningData(
 		stats: data.stats,
 		session_history: data.sessionHistory,
 		daily_reminder: data.dailyReminder,
+		field_updated_at: {
+			profile: data.fieldUpdatedAt.profile,
+			lastConfiguration: data.fieldUpdatedAt.lastConfiguration,
+			regionGameScores: data.regionGameScoresUpdatedAt,
+		},
 		updated_at: new Date().toISOString(),
 	});
 
@@ -189,15 +198,13 @@ function rejectOnAbort(signal: AbortSignal): Promise<never> {
  * subida posterior (D051): subir sin leer antes pisaría lo que otro
  * dispositivo subió mientras tanto.
  *
- * - Cuenta sin progreso en la nube: lo local (el invitado) pasa a ser la
- *   cuenta.
- * - Cuenta con progreso: `mergeLearningData(remote, local, base)`. `base` es
- *   la base de sincronización de este dispositivo (`getSyncBase`): con ella
- *   ganan los cambios locales que la nube aún no tiene, también en los campos
- *   sin marca de tiempo (D049). `null` = no se sabe qué cambió aquí (login de
- *   invitado): esos campos ceden ante la nube (D020).
+ * Qué se hace lo decide `planSync` (pura): cuenta sin progreso → lo local pasa
+ * a ser la cuenta; cuenta con progreso y sin `base` (entra un invitado) → lo
+ * local se descarta (D056); con `base` (la base de sincronización de este
+ * dispositivo, `getSyncBase`) → `mergeLearningData`.
  *
- * Devuelve lo que queda en la nube tras la llamada — la nueva base.
+ * Devuelve lo que queda en la nube tras la llamada — la nueva base — y si se
+ * descartó lo local.
  *
  * Se rinde a los `SYNC_TIMEOUT_MS` o cuando se aborta `signal` (el efecto
  * que la lanzó se limpió): rechaza, y lo que quedara en vuelo sale abortado,
@@ -208,7 +215,7 @@ export async function syncLearningData(
 	localData: UserLearningData,
 	base: UserLearningData | null,
 	signal?: AbortSignal,
-): Promise<UserLearningData> {
+): Promise<SyncResult> {
 	// Cuando el navegador dice "sin red", acierta: no se intenta. Si no, el GET
 	// fallaría igual, pero tras los reintentos de postgrest (1 + 2 + 4 s): abrir
 	// la app sin conexión dejaría ~7 s de skeleton. Al volver la red, el evento
@@ -255,45 +262,29 @@ export async function syncLearningData(
 	}
 }
 
+/** Resultado de `syncLearningData`. */
+export interface SyncResult {
+	/** Lo que queda en la nube: los datos de la cuenta y la nueva base. */
+	data: UserLearningData;
+	/** Lo local era del invitado y la cuenta ya tenía progreso: se descartó (D056). */
+	discardedLocal: boolean;
+}
+
 async function runSync(
 	userId: string,
 	localData: UserLearningData,
 	base: UserLearningData | null,
 	signal: AbortSignal,
-): Promise<UserLearningData> {
+): Promise<SyncResult> {
 	const remote = await fetchRemoteLearningData(userId, signal);
 
-	/**
-	 * No existe información para este usuario.
-	 *
-	 * El progreso del invitado se convierte en el
-	 * progreso inicial de la cuenta.
-	 */
-	if (!remote || !hasLearningProgress(remote)) {
-		await pushLearningData(userId, localData, signal);
+	const plan = planSync(remote, localData, base);
 
-		return localData;
+	if (plan.push) {
+		await pushLearningData(userId, plan.data, signal);
 	}
 
-	/**
-	 * La cuenta ya tiene progreso: cada campo con su regla de
-	 * `mergeLearningData`, que no pierde lo que este dispositivo cambió.
-	 */
-	const merged = mergeLearningData(remote, localData, base);
-
-	/**
-	 * Si el merge aportó algo que no estaba en remoto, se sube de vuelta.
-	 *
-	 * Se compara el objeto ENTERO, no campo por campo: antes había que
-	 * acordarse de añadir cada campo nuevo también a esta condición, y
-	 * olvidarlo fallaba en silencio — el merge se quedaba en este dispositivo
-	 * y se perdía en el siguiente.
-	 */
-	if (JSON.stringify(merged) !== JSON.stringify(remote)) {
-		await pushLearningData(userId, merged, signal);
-	}
-
-	return merged;
+	return { data: plan.data, discardedLocal: plan.discardedLocal };
 }
 
 export interface LeaderboardEntry {
