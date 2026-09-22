@@ -1,5 +1,23 @@
+import {
+	type AuthError,
+	isAuthRetryableFetchError,
+} from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/store/hooks";
+
+/**
+ * Sin red, Supabase Auth devuelve un "Failed to fetch" en inglés: se cambia
+ * por un mensaje que diga lo que pasa (D052). Copy provisional
+ * (`context/CONTENT_CHECKLIST.md`). El resto de errores, tal cual.
+ */
+export const AUTH_OFFLINE_MESSAGE =
+	"Sin conexión. Inténtalo de nuevo cuando vuelvas a estar en línea.";
+
+function toAuthErrorMessage(error: AuthError): string {
+	return isAuthRetryableFetchError(error)
+		? AUTH_OFFLINE_MESSAGE
+		: error.message;
+}
 
 export function useAuth() {
 	const user = useAppSelector((state) => state.auth.user);
@@ -43,7 +61,7 @@ export function useAuth() {
 
 		if (error) {
 			return {
-				error: error.message,
+				error: toAuthErrorMessage(error),
 				needsEmailConfirmation: false,
 			};
 		}
@@ -70,7 +88,7 @@ export function useAuth() {
 		});
 
 		return {
-			error: error?.message ?? null,
+			error: error ? toAuthErrorMessage(error) : null,
 		};
 	};
 
@@ -81,7 +99,7 @@ export function useAuth() {
 		});
 
 		return {
-			error: error?.message ?? null,
+			error: error ? toAuthErrorMessage(error) : null,
 		};
 	};
 

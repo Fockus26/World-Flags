@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { motionVariants } from "@/styles/animations";
 import { getCurrentStreak } from "@/utils/learning-storage";
 
@@ -47,25 +48,38 @@ function truncateName(name: string): string {
  * El avatar viene de dicebear (CDN externo): aunque los datos ya estén, la
  * imagen tarda en llegar, o no llega sin red. Mientras tanto se ve el
  * skeleton (que, como todos, espera `SKELETON_DELAY_MS` antes de verse: un
- * avatar en caché no parpadea); si falla, queda un disco quieto en vez de un
- * hueco. `UserSummary` le pone `key={src}` para que un avatar nuevo vuelva a
- * empezar en "cargando".
+ * avatar en caché no parpadea); si falla, la inicial del nombre en vez de un
+ * hueco. `UserSummary` le pone `key` con `src` para que un avatar nuevo vuelva
+ * a empezar en "cargando".
  *
  * El skeleton se quita, no queda debajo: los avatares de dicebear tienen
  * fondo transparente y el brillo se vería a través de la imagen.
+ *
+ * Sin conexión (D052): un avatar ya visto sale de la caché HTTP del navegador
+ * (dicebear lo sirve con `max-age` de ~1 año); si no está, en vez del disco
+ * vacío se ve la inicial del nombre. Decorativa: el nombre ya va en el
+ * `aria-label` del botón.
  */
-function AvatarImage({ src }: { src: string }) {
+function AvatarImage({ src, name }: { src: string; name: string }) {
 	const [status, setStatus] = useState<"loading" | "loaded" | "error">(
 		"loading",
 	);
 
+	const initial = [...name.trim()][0]?.toUpperCase() ?? "";
+
 	return (
 		<span className={`relative ${AVATAR_BOX_CLASS}`}>
-			{status !== "loaded" && (
-				<Skeleton
-					className="absolute inset-0 rounded-full"
-					animated={status === "loading"}
-				/>
+			{status === "loading" && (
+				<Skeleton className="absolute inset-0 rounded-full" />
+			)}
+
+			{status === "error" && (
+				<span
+					className="absolute inset-0 grid place-items-center rounded-full bg-primary-soft text-xl font-black text-surface-soft sm:text-2xl"
+					aria-hidden="true"
+				>
+					{initial}
+				</span>
 			)}
 
 			<img
@@ -94,6 +108,9 @@ export function UserSummary({
 	isLoading = false,
 	className,
 }: UserSummaryProps) {
+	// Al volver la red, un avatar que no cargó se vuelve a pedir (el `key`
+	// remonta la imagen: el navegador no reintenta un `src` fallido solo).
+	const { isOnline } = useSyncStatus();
 	const currentStreak = getCurrentStreak(activeDays);
 	const streakLabel =
 		currentStreak === 1 ? "1 día seguido" : `${currentStreak} días seguidos`;
@@ -117,7 +134,11 @@ export function UserSummary({
 				{isLoading ? (
 					<Skeleton className={AVATAR_BOX_CLASS} />
 				) : (
-					<AvatarImage key={avatarUrl} src={avatarUrl} />
+					<AvatarImage
+						key={`${avatarUrl}|${isOnline}`}
+						src={avatarUrl}
+						name={name}
+					/>
 				)}
 
 				<span className="flex min-w-0 flex-1 flex-col gap-1 py-1 sm:py-2.5">
