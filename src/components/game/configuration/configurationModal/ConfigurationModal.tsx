@@ -1,7 +1,9 @@
 import { Tabs } from "@heroui/react";
 import { useCallback, useRef, useState } from "react";
+import { ReleaseNotesModal } from "@/components/app/ReleaseNotesModal";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { APP_VERSION } from "@/data/changelog";
 import type {
 	Difficulty,
 	GameMode,
@@ -49,6 +51,7 @@ export function ConfigurationModal({
 }: ConfigurationModalProps) {
 	const [activeTab, setActiveTab] = useState<ConfigurationModalTab>("account");
 	const [panelsHeight, setPanelsHeight] = useState<number>();
+	const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
 
 	// Se lee dentro del callback de más abajo para saber si el panel que se
 	// acaba de (re)montar es el que está activo — un `useState` normal
@@ -193,6 +196,28 @@ export function ConfigurationModal({
 					</Tabs.Panel>
 				</div>
 			</Tabs>
+
+			{/* Versión y novedades (D059): aquí y no como cuarto icono junto a
+			    🏅 🏆 📍, cuya fila a 320 px va justa. Fuera de las pestañas, así
+			    se ve en las dos y no entra en la medición de alto de arriba.
+			    ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #20). */}
+			<footer className="mt-4 flex items-center justify-between gap-3 border-t border-surface-border pt-3">
+				<p className="text-xs">Versión {APP_VERSION}</p>
+				<Button
+					variant="text"
+					color="neutral"
+					type="button"
+					fullWidth={false}
+					onClick={() => setIsReleaseNotesOpen(true)}
+				>
+					Novedades
+				</Button>
+			</footer>
+
+			<ReleaseNotesModal
+				isOpen={isReleaseNotesOpen}
+				onClose={() => setIsReleaseNotesOpen(false)}
+			/>
 		</Modal>
 	);
 }

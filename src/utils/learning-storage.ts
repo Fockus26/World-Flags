@@ -486,6 +486,37 @@ export function getOrCreateDeviceId(): string {
 	}
 }
 
+const SEEN_RELEASE_STORAGE_KEY = "world-flags-seen-release";
+
+/**
+ * Última versión de la app cuyas novedades ya se ofrecieron en ESTE
+ * dispositivo (D058). Por dispositivo, como el id de arriba, y no en
+ * `UserLearningData`: lo que se anuncia es el bundle que acaba de llegar a
+ * este navegador, que no es el mismo momento en cada dispositivo (el service
+ * worker de cada uno puede seguir sirviendo uno anterior). Sincronizado, verlo
+ * en el móvil lo daría por visto en un portátil que todavía no se actualizó;
+ * además costaría una columna nueva y reglas de fusión, y el invitado no lo
+ * tendría. `null` si nunca se guardó o no se puede leer.
+ */
+export function getSeenReleaseVersion(): string | null {
+	if (typeof window === "undefined") return null;
+
+	try {
+		return window.localStorage.getItem(SEEN_RELEASE_STORAGE_KEY);
+	} catch {
+		return null;
+	}
+}
+
+export function saveSeenReleaseVersion(version: string): void {
+	try {
+		window.localStorage.setItem(SEEN_RELEASE_STORAGE_KEY, version);
+	} catch {
+		// Sin acceso a localStorage el aviso volverá a salir en la próxima
+		// carga: molesto, pero no pierde nada.
+	}
+}
+
 export function saveDailyReminderAnswer(
 	currentData: UserLearningData,
 	optedIn: boolean,

@@ -1,5 +1,11 @@
 import { Button as HeroButton } from "@heroui/react";
-import type { CSSProperties, MouseEvent, ReactNode, Ref } from "react";
+import type {
+	CSSProperties,
+	FocusEvent,
+	MouseEvent,
+	ReactNode,
+	Ref,
+} from "react";
 
 type ButtonColor =
 	| "primary"
@@ -20,6 +26,8 @@ export interface ButtonProps {
 	style?: CSSProperties;
 	children?: ReactNode;
 	onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+	/** `event.relatedTarget` = de dónde viene el foco. */
+	onFocus?: (event: FocusEvent<Element>) => void;
 	"aria-label"?: string;
 	"aria-describedby"?: string;
 	ref?: Ref<HTMLButtonElement>;
