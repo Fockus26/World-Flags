@@ -16,7 +16,8 @@
   `DEFAULT_DATA` + fallback en `getLearningData()`, (3) `saveX()` dedicada,
   (4) el hook despacha `setLearningData(updatedData)`. Si debe sincronizar con la
   nube: añadir columna en Supabase, mapearla en `cloud-storage.ts` fetch/push, y
-  decidir si va en el merge de `syncOnLogin`.
+  darle su regla en `mergeLearningData` (que usa `syncLearningData`; ver
+  D048–D051 en `14-modo-offline.md`).
 
 ## Hallazgo abierto relacionado
 

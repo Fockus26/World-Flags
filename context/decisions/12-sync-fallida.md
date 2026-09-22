@@ -88,6 +88,12 @@ fusionar) y **solo bloquear el push** (sin tope ni reintentos).
 
 ## D046 — Al recuperarse, las revisiones del rato `local` ganan por país
 
+> **Sustituida por D048/D049** (`14-modo-offline.md`): `mergeLearningData` ya
+> fusiona `countryHistory` por la revisión más reciente de cada país, siempre,
+> y la base de sincronización cubre perfil, configuración y notas.
+> `applyReviewsSince` se eliminó. `syncOnLogin` pasó a llamarse
+> `syncLearningData` (D051).
+
 `mergeLearningData` da la razón a la nube en `countryHistory` (D020). Sin más,
 las revisiones SRS hechas en `local` se perderían al recuperarse la
 sincronización. Hoy a quien usa un solo dispositivo eso no le pasa: el push

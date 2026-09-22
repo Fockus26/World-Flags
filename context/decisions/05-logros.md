@@ -102,7 +102,7 @@ la comparación no dé siempre distinto.
 
 | Campo | Regla |
 |---|---|
-| `profile`, `countryHistory`, `regionGameScores`, `lastConfiguration` | gana lo remoto (sin cambios) |
+| `profile`, `countryHistory`, `regionGameScores`, `lastConfiguration` | gana lo remoto (sin cambios) — **actualizado en D048/D049** (`14-modo-offline.md`): `countryHistory` por la revisión más reciente; los otros tres contra la base de sincronización |
 | `regionBestTimes` | menor tiempo |
 | `lastPracticeByCountry` | fecha más reciente por país |
 | `achievements` | unión por id; `unlockedAt` **el más antiguo**; `seenAt` gana el no-null |

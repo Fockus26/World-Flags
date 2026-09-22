@@ -106,6 +106,7 @@ Run these before opening a PR:
 bunx astro check         # type-check
 bunx biome check ./src   # lint + format (bun run lint applies safe fixes)
 bun run build            # production build
+bun run test             # unit tests of the sync/merge layer (tests/unit)
 bun run test:e2e         # Playwright, with the dev server running
 ```
 
