@@ -31,6 +31,12 @@ interface ConfigurationModalProps {
 	onTimerEnabledChange: (enabled: boolean) => void;
 	difficulty: Difficulty;
 	onDifficultyChange: (difficulty: Difficulty) => void;
+	/**
+	 * Reabre la partida guiada (D071). Este modal **no** se cierra: el recorrido
+	 * se monta encima, como "Novedades", para que al cerrarlo el foco vuelva al
+	 * botón que lo abrió.
+	 */
+	onOpenTutorial: () => void;
 }
 
 export function ConfigurationModal({
@@ -48,6 +54,7 @@ export function ConfigurationModal({
 	onTimerEnabledChange,
 	difficulty,
 	onDifficultyChange,
+	onOpenTutorial,
 }: ConfigurationModalProps) {
 	const [activeTab, setActiveTab] = useState<ConfigurationModalTab>("account");
 	const [panelsHeight, setPanelsHeight] = useState<number>();
@@ -197,21 +204,35 @@ export function ConfigurationModal({
 				</div>
 			</Tabs>
 
-			{/* Versión y novedades (D059): aquí y no como cuarto icono junto a
-			    🏅 🏆 📍, cuya fila a 320 px va justa. Fuera de las pestañas, así
-			    se ve en las dos y no entra en la medición de alto de arriba.
-			    ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #20). */}
-			<footer className="mt-4 flex items-center justify-between gap-3 border-t border-surface-border pt-3">
+			{/* Versión, tutorial y novedades (D059, D071): aquí y no como cuarto
+			    icono junto a 🏅 🏆 📍, cuya fila a 320 px ya va justa. Fuera de
+			    las pestañas, así se ve en las dos y no entra en la medición de
+			    alto de arriba. `flex-wrap`: con tres cosas en vez de dos, en las
+			    pantallas más estrechas los botones bajan a su propia línea en
+			    lugar de empujar.
+			    ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #20 y #25). */}
+			<footer className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-surface-border pt-3">
 				<p className="text-xs">Versión {APP_VERSION}</p>
-				<Button
-					variant="text"
-					color="neutral"
-					type="button"
-					fullWidth={false}
-					onClick={() => setIsReleaseNotesOpen(true)}
-				>
-					Novedades
-				</Button>
+				<div className="flex items-center gap-1">
+					<Button
+						variant="text"
+						color="neutral"
+						type="button"
+						fullWidth={false}
+						onClick={onOpenTutorial}
+					>
+						Cómo se juega
+					</Button>
+					<Button
+						variant="text"
+						color="neutral"
+						type="button"
+						fullWidth={false}
+						onClick={() => setIsReleaseNotesOpen(true)}
+					>
+						Novedades
+					</Button>
+				</div>
 			</footer>
 
 			<ReleaseNotesModal

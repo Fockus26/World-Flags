@@ -4,6 +4,7 @@ import authReducer from "./slices/authSlice";
 import gameReducer from "./slices/gameSlice";
 import syncReducer from "./slices/syncSlice";
 import themeReducer from "./slices/themeSlice";
+import tutorialReducer from "./slices/tutorialSlice";
 
 export const store = configureStore({
 	reducer: {
@@ -15,6 +16,9 @@ export const store = configureStore({
 		achievementToasts: achievementToastsReducer,
 		// Efímero: conexión y estado de la sincronización (D050).
 		sync: syncReducer,
+		// Efímero: la partida guiada en pantalla (D071). Lo único persistido
+		// del tutorial es su marca de "visto", en `localStorage`.
+		tutorial: tutorialReducer,
 	},
 });
 
