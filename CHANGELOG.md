@@ -9,6 +9,19 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [1.2.0] - 2026-09-23
+
+### Añadido
+
+- La primera vez que abres la app te ofrece una partida guiada: te cuenta los
+  tres juegos, los modos Práctica y Competitivo, el orden, la dificultad y el
+  temporizador, y te deja jugar un ejemplo de Norteamérica con tres países.
+- La partida de ejemplo no cuenta para nada: ni tu progreso, ni tu racha, ni
+  tus mejores tiempos, ni el ranking. Puedes fallarla entera.
+- Puedes saltarla cuando quieras, y volver a verla siempre que te apetezca
+  desde "Cómo se juega", abajo del todo en Perfil y configuración.
+- Si ya tenías progreso guardado, la partida guiada no te aparece sola.
+
 ## [1.1.0] - 2026-09-23
 
 ### Añadido
