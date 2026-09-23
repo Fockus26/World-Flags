@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { PageFlip } from "@/components/app/PageFlip";
 import { SystemSnackbars } from "@/components/app/SystemSnackbars";
-import { Button } from "@/components/ui/Button";
 import { useGame } from "@/hooks/useGame";
 import { AchievementToasts } from "./AchievementToasts";
 import { Configuration } from "./configuration/Configuration";
@@ -14,25 +13,6 @@ import { Session } from "./session/Session";
 // "results" no gira: entra de abajo hacia arriba (ver FlagGameContent). Solo
 // las vistas que sí participan del giro 3D viven en este tipo.
 type FlipViewKey = "session" | "dailyPractice" | "configuration";
-
-/**
- * TEMPORAL — Fase 2 de `context/plans/modo-capitales.md`, se sustituye en la
- * Fase 5 por la sesión generalizada. Sin esto, una partida de Capitales caería
- * en `Session` (Banderas), que califica el progreso de Banderas. No llega a
- * producción: el modo se despliega entero con su PR.
- */
-function CapitalsPlaceholder({ onExit }: { onExit: () => void }) {
-	return (
-		<section className="flex w-[min(100%,58rem)] flex-col items-center gap-4 rounded-lg border border-surface-border bg-surface p-[0.85rem] text-center min-[44rem]:rounded-2xl">
-			<p className="m-0 font-extrabold text-surface-soft">
-				Capitales — en construcción
-			</p>
-			<Button type="button" color="neutral" onClick={onExit}>
-				Salir
-			</Button>
-		</section>
-	);
-}
 
 function FlagGameContent() {
 	const {
@@ -78,9 +58,7 @@ function FlagGameContent() {
 					}
 					return <CountriesPractice key={activeGame.id} />;
 				}
-				if (activeGame?.configuration.gameType === "capitals") {
-					return <CapitalsPlaceholder key={activeGame.id} onExit={exitGame} />;
-				}
+				// Banderas y Capitales: la misma sesión con otra tarjeta (D068).
 				return <Session key={activeGame?.id} />;
 			case "dailyPractice":
 				return dailyPracticeQueue ? (

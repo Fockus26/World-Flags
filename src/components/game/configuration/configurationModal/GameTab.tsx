@@ -60,7 +60,8 @@ export function GameTab({
 				legend={
 					<span className="inline-flex items-center gap-2">
 						Modo de juego
-						<HelpHint label="Competitivo: contrarreloj, guarda tu mejor tiempo; fallar penaliza. Práctica: sin cronómetro, calificas cada bandera para repasarla." />
+						{/* ⚠️ Copy provisional — `CONTENT_CHECKLIST.md` #21 ("cada respuesta": vale para los tres juegos). */}
+						<HelpHint label="Competitivo: contrarreloj, guarda tu mejor tiempo; fallar penaliza. Práctica: sin cronómetro, calificas cada respuesta para repasarla." />
 					</span>
 				}
 			>

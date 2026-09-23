@@ -10,12 +10,16 @@ import {
 	type Region,
 } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
-import { isCorrectAnswer } from "@/utils/normalize-answer";
+import { toGameView } from "@/utils/learning-storage";
 import { getScopeLabel } from "@/utils/practice-scope";
 import { calculateScore } from "@/utils/score";
 import { AnswerForm } from "./AnswerForm";
-import { FlagDisplay } from "./FlagDisplay";
 import { Header } from "./Header";
+import {
+	type CardGameType,
+	isCardGameType,
+	SESSION_CARDS,
+} from "./session-cards";
 
 const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 	"1": "again",
@@ -45,6 +49,14 @@ export function Session() {
 	} = useGame();
 
 	const countries = activeGame?.countries ?? [];
+	// `FlagGame` solo monta `Session` para los juegos de tarjeta (Países tiene
+	// los suyos); el "flags" de respaldo es solo para que el tipo cierre.
+	const configuredGameType = activeGame?.configuration.gameType;
+	const gameType: CardGameType =
+		configuredGameType !== undefined && isCardGameType(configuredGameType)
+			? configuredGameType
+			: "flags";
+	const card = SESSION_CARDS[gameType];
 	const timerDuration =
 		activeGame?.configuration.timerDuration ?? DEFAULT_TIMER_DURATION;
 	const isPracticeMode = activeGame?.configuration.mode === "practice";
@@ -86,12 +98,10 @@ export function Session() {
 
 	const practiceQueue = usePracticeQueue({
 		initialCodes: countries.map((country) => country.code),
-		countryHistory: learningData.countryHistory,
+		// El historial del juego en curso: cada juego repasa lo suyo (D061).
+		countryHistory: toGameView(learningData, gameType).countryHistory,
 		onGrade: (code, grade, isFirstAttempt) =>
-			// `Session` es solo Banderas: el modo Países tiene sus propios
-			// componentes de sesión (`session/countries/`, Fase 4/5 de
-			// `context/plans/modo-paises.md`).
-			gradeCountryReview(code, grade, "flags", isFirstAttempt),
+			gradeCountryReview(code, grade, gameType, isFirstAttempt),
 		onFinish: () => {
 			const regionBreakdown: Partial<
 				Record<Region, { correct: number; total: number }>
@@ -110,7 +120,7 @@ export function Session() {
 
 			finishGame({
 				mode: "practice",
-				gameType: "flags",
+				gameType,
 				score: calculateScore(correctAnswers, countries.length),
 				correctAnswers,
 				skippedAnswers: skippedAnswersRef.current,
@@ -244,10 +254,10 @@ export function Session() {
 
 			finishGame({
 				mode: "competitive",
-				gameType: "flags",
-				// El rush de Banderas siempre recorre el alcance completo (no
-				// tiene botón "Rendirme"): a diferencia del de Países, `completed`
-				// nunca es `false` aquí.
+				gameType,
+				// El rush de Banderas y el de Capitales recorren siempre el
+				// alcance completo (no tienen botón "Rendirme"): a diferencia del
+				// de Países, `completed` nunca es `false` aquí.
 				completed: true,
 				scope: configuration.scope,
 				totalCountries: countries.length,
@@ -293,14 +303,14 @@ export function Session() {
 			return;
 		}
 		cardStepRef.current = "answered";
-		const isCorrect = isCorrectAnswer(
+		const isCorrect = card.isCorrect(
 			answer,
-			currentCountry.name,
+			currentCountry,
 			configuration.difficulty,
 		);
 
 		if (configuration.mode === "competitive") {
-			attemptCountry(currentCountry.code, isCorrect, "flags");
+			attemptCountry(currentCountry.code, isCorrect, gameType);
 			// En competitivo cada bandera aparece una sola vez (avanza por
 			// índice), así que el guard de `recordFirstAttempt` nunca salta.
 			recordFirstAttempt(currentCountry.code, isCorrect);
@@ -363,7 +373,7 @@ export function Session() {
 		skippedAnswersRef.current += 1;
 
 		if (configuration.mode === "competitive") {
-			attemptCountry(currentCountry.code, false, "flags");
+			attemptCountry(currentCountry.code, false, gameType);
 			recordFirstAttempt(currentCountry.code, false);
 			if (startTimeRef.current !== null) {
 				startTimeRef.current -= RUSH_SKIP_PENALTY_MS;
@@ -402,9 +412,12 @@ export function Session() {
 				/>
 
 				<div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-[0.65rem] min-[30rem]:gap-[clamp(0.75rem,2vh,1.5rem)]">
-					<FlagDisplay countryCode={currentCountry.code} />
+					{card.renderStimulus(currentCountry)}
 					<AnswerForm
-						countryName={currentCountry.name}
+						countryName={card.getAnswer(currentCountry)}
+						label={card.getQuestion(currentCountry)}
+						placeholder={card.placeholder}
+						answerNote={card.renderAnswerNote?.(currentCountry)}
 						answer={answer}
 						onAnswerChange={setAnswer}
 						answerStatus={answerStatus}

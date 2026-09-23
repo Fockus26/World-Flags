@@ -31,6 +31,12 @@ interface AnswerFormProps {
 	placeholder?: string;
 	/** Se añade tras el nombre en el aviso de acierto (p. ej. " con 2 pistas" en la práctica de Países). */
 	correctSuffix?: ReactNode;
+	/**
+	 * Va dentro del aviso de acierto o fallo, debajo de la respuesta (en
+	 * Capitales: otras respuestas que valen y la nota). Dentro y no al lado para
+	 * que el lector de pantalla lo anuncie con el aviso.
+	 */
+	answerNote?: ReactNode;
 	/** Expone el input real al padre — lo necesita el modo Países como origen de la animación de "vuelo" hacia el tablero. */
 	inputRef?: RefObject<HTMLInputElement | null>;
 }
@@ -48,6 +54,7 @@ export function AnswerForm({
 	label = "¿Qué país representa esta bandera?",
 	placeholder = "Escribe el nombre del país",
 	correctSuffix,
+	answerNote,
 	inputRef,
 }: AnswerFormProps) {
 	const isAnswerChecked = answerStatus !== "idle";
@@ -92,12 +99,14 @@ export function AnswerForm({
 					<FeedbackMessage key="correct" variant="success" role="status">
 						Correcto: <strong className="text-inherit">{countryName}</strong>
 						{correctSuffix}
+						{answerNote}
 					</FeedbackMessage>
 				)}
 
 				{answerStatus === "incorrect" && (
 					<FeedbackMessage key="incorrect" variant="danger" role="alert">
 						La respuesta correcta es <strong>{countryName}</strong>
+						{answerNote}
 					</FeedbackMessage>
 				)}
 			</AnimatePresence>
