@@ -1,6 +1,6 @@
 import { test, type Page } from "@playwright/test";
 
-const BASE = 'http://localhost:4321';
+const BASE = process.env.BASE_URL ?? 'http://localhost:4321';
 
 async function waitForHydration(page: Page) {
   for (let attempt = 0; attempt < 6; attempt++) {
@@ -44,7 +44,11 @@ async function reset(page: Page) {
   // Países. Se fuerza el selector a Banderas una sola vez acá, en vez de
   // tocar cada prueba, para conservar exactamente el comportamiento que ya
   // verificaban.
-  await page.getByText('Banderas', { exact: true }).first().click().catch(() => {});
+  // D066 (modo Capitales): el selector pinta a la vez el desplegable de móvil
+  // (oculto a este ancho, con un `<option>Banderas</option>`) y las
+  // pastillas; sin `visible` el primer "Banderas" era la opción oculta y el
+  // clic esperaba hasta agotar el tiempo de la prueba.
+  await page.getByText('Banderas', { exact: true }).filter({ visible: true }).first().click().catch(() => {});
 }
 
 async function openConfig(page: Page) {
