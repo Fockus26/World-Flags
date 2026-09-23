@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { PageFlip } from "@/components/app/PageFlip";
 import { SystemSnackbars } from "@/components/app/SystemSnackbars";
 import { useGame } from "@/hooks/useGame";
+import { useTutorial } from "@/hooks/useTutorial";
 import { AchievementToasts } from "./AchievementToasts";
 import { Configuration } from "./configuration/Configuration";
 import { Results } from "./Results";
@@ -9,12 +10,20 @@ import { CountriesPractice } from "./session/countries/CountriesPractice";
 import { CountriesRush } from "./session/countries/CountriesRush";
 import { DailyPractice } from "./session/DailyPractice";
 import { Session } from "./session/Session";
+import { Tutorial } from "./tutorial/Tutorial";
 
 // "results" no gira: entra de abajo hacia arriba (ver FlagGameContent). Solo
 // las vistas que sí participan del giro 3D viven en este tipo.
 type FlipViewKey = "session" | "dailyPractice" | "configuration";
 
 function FlagGameContent() {
+	// El objeto entero, no solo lo desestructurado: `CountriesPractice` recibe
+	// de dónde sale la partida y a dónde va su resultado como prop obligatoria
+	// (D072), y `useGame()` cumple ese contrato tal cual, sin adaptador. Lo que
+	// la partida guiada del tutorial le pasa en su lugar es un sandbox que no
+	// escribe en ningún sitio.
+	const game = useGame();
+
 	const {
 		activeGame,
 		lastResult,
@@ -23,7 +32,7 @@ function FlagGameContent() {
 		exitDailyPractice,
 		finishDailyPractice,
 		restartGame,
-	} = useGame();
+	} = game;
 
 	const liveFlipKey: FlipViewKey = activeGame
 		? "session"
@@ -56,7 +65,7 @@ function FlagGameContent() {
 					if (activeGame.configuration.mode === "competitive") {
 						return <CountriesRush key={activeGame.id} />;
 					}
-					return <CountriesPractice key={activeGame.id} />;
+					return <CountriesPractice key={activeGame.id} runtime={game} />;
 				}
 				// Banderas y Capitales: la misma sesión con otra tarjeta (D068).
 				return <Session key={activeGame?.id} />;
@@ -105,16 +114,35 @@ function FlagGameContent() {
 }
 
 export default function FlagGame() {
+	const tutorial = useTutorial();
+
 	return (
 		<main
 			id="main-content"
 			className="relative grid h-dvh w-full place-items-center overflow-hidden p-[0.4rem] sm:p-[clamp(0.5rem,2vh,1.5rem)]"
 		>
-			<FlagGameContent />
+			{/* Con el recorrido abierto, todo lo de debajo queda `inert`: el
+			    diálogo de HeroUI ya atrapa el foco, pero `inert` además lo saca
+			    del árbol de accesibilidad y del orden de tabulación, que es el
+			    patrón que ya siguen `AutoHeight` y el propio `FlagGameContent`
+			    cuando tapa el giro con los resultados. */}
+			<div
+				className="grid h-full w-full place-items-center"
+				inert={tutorial.isOpen}
+				aria-hidden={tutorial.isOpen || undefined}
+			>
+				<FlagGameContent />
+			</div>
+
 			{/* Fuera de `FlagGameContent`: tiene que verse en cualquier vista
 			    (sesión, práctica diaria, resultados...), no solo en una. */}
 			<AchievementToasts />
 			<SystemSnackbars />
+
+			{/* Montado solo mientras está abierto, para que cada apertura
+			    arranque el recorrido desde el primer paso y con una partida de
+			    ejemplo nueva. */}
+			{tutorial.isOpen && <Tutorial onClose={tutorial.close} />}
 		</main>
 	);
 }

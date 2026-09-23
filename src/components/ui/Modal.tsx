@@ -11,6 +11,14 @@ interface ModalProps {
 	ariaLabelledby?: string;
 	ariaDescribedby?: string;
 	size?: "xs" | "sm" | "md" | "lg";
+	/**
+	 * ¿Se cierra al hacer clic fuera? Por defecto sí, como hasta ahora — los
+	 * consumidores que ya existían no cambian. En `false` solo desaparece ese
+	 * cierre accidental: **Escape sigue cerrando** (HeroUI lo controla con
+	 * `isKeyboardDismissDisabled`, que no se toca). Lo usa la partida guiada,
+	 * donde un clic fuera perdería el recorrido a medias.
+	 */
+	isDismissable?: boolean;
 	/** @deprecated HeroUI dimensiona el diálogo solo; se ignora. */
 	animateHeight?: boolean;
 }
@@ -37,6 +45,7 @@ export function Modal({
 	ariaLabelledby,
 	ariaDescribedby,
 	size = "md",
+	isDismissable = true,
 }: ModalProps) {
 	return (
 		<ModalBackdrop
@@ -44,7 +53,7 @@ export function Modal({
 			onOpenChange={(open) => {
 				if (!open) onClose();
 			}}
-			isDismissable
+			isDismissable={isDismissable}
 			variant="blur"
 		>
 			<ModalContainer size={size} placement="center">

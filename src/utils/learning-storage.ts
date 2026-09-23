@@ -596,6 +596,49 @@ export function saveSeenReleaseVersion(version: string): void {
 	}
 }
 
+const TUTORIAL_SEEN_STORAGE_KEY = "world-flags-tutorial-seen";
+
+/**
+ * ¿Ya se ofreció la partida guiada en ESTE dispositivo (D071)?
+ *
+ * Por dispositivo, como la versión vista de arriba, y **no** en
+ * `UserLearningData`: esa estructura se sincroniza entera por cuenta, así que
+ * meterlo ahí costaría una columna nueva en Supabase (con su SQL corrido a
+ * mano antes de desplegar, que es lo que bloqueó los dos últimos despliegues),
+ * sus reglas de fusión, y el invitado —que es justo quien más va a ver el
+ * tutorial— no tiene cuenta que sincronizar.
+ *
+ * Lo que de verdad evita repetirlo no es esta marca, sino la puerta de
+ * `shouldOfferTutorial`: con progreso ya guardado no se ofrece, venga de donde
+ * venga. Así que en el segundo dispositivo de una cuenta que ya jugó tampoco
+ * se ofrece, aunque la marca no haya viajado. El caso que queda —misma
+ * persona, cero progreso, otro dispositivo— vuelve a verlo, y es inofensivo:
+ * todavía no ha jugado. Y al contrario que si viviera en el blob, sobrevive
+ * intacta a que un invitado entre en una cuenta (D056 puede descartar su
+ * progreso entero, y con él la marca).
+ *
+ * `false` si nunca se guardó o no se puede leer.
+ */
+export function getTutorialSeen(): boolean {
+	if (typeof window === "undefined") return false;
+
+	try {
+		return window.localStorage.getItem(TUTORIAL_SEEN_STORAGE_KEY) === "true";
+	} catch {
+		return false;
+	}
+}
+
+/** Se marca al cerrar el recorrido, tanto si se completó como si se saltó. */
+export function saveTutorialSeen(): void {
+	try {
+		window.localStorage.setItem(TUTORIAL_SEEN_STORAGE_KEY, "true");
+	} catch {
+		// Sin acceso a localStorage el tutorial volverá a ofrecerse en la
+		// próxima carga: molesto, pero no pierde nada.
+	}
+}
+
 export function saveDailyReminderAnswer(
 	currentData: UserLearningData,
 	optedIn: boolean,

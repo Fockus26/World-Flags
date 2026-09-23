@@ -12,6 +12,7 @@ import { useAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
 import { useGame } from "@/hooks/useGame";
 import { useHydration } from "@/hooks/useHydration";
+import { useTutorial } from "@/hooks/useTutorial";
 import { motionVariants } from "@/styles/animations";
 import {
 	DEFAULT_DIFFICULTY,
@@ -69,6 +70,7 @@ export function Configuration() {
 	// Mientras sea `true`, `learningData` es `DEFAULT_DATA`, no el del usuario:
 	// todo lo que sale de ahí se pinta como skeleton (D042).
 	const { isInitialLoad } = useHydration();
+	const tutorial = useTutorial();
 
 	const accountLabel =
 		status === "authenticated" ? (user?.email ?? "Cuenta") : "Invitado";
@@ -414,6 +416,12 @@ export function Configuration() {
 				}
 				difficulty={difficulty}
 				onDifficultyChange={(value) => updateSettings({ difficulty: value })}
+				// Este modal se queda abierto por debajo, como ya hace
+				// "Novedades" (D059): así, al cerrar el recorrido, React Aria
+				// devuelve el foco al botón "Cómo se juega" que lo abrió (WCAG
+				// 2.4.3). Cerrándolo antes, ese botón ya no existiría al volver y
+				// el foco caería en `<body>`.
+				onOpenTutorial={tutorial.open}
 			/>
 
 			<CountryPickerModal
