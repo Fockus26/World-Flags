@@ -11,11 +11,18 @@
  * - D020: contadores por `max`, nunca suma; idempotencia del merge.
  * - D017/D021: un logro nunca se pierde, ni un id desconocido.
  * - D061: el registro de juegos (cada juego se lee y se escribe en su sitio).
+ * - D062: un juego que este cliente no conoce se conserva y se resuelve al leer.
  */
 import assert from "node:assert/strict";
 import { beforeEach, describe, test } from "node:test";
 
-import { GAME_TYPES, type GameConfiguration } from "@/types/country";
+import {
+	GAME_TYPES,
+	type GameConfiguration,
+	type GameType,
+	isGameType,
+	resolveGameType,
+} from "@/types/country";
 import type { UserLearningData } from "@/types/progress";
 import {
 	clearLearningData,
@@ -78,24 +85,28 @@ function review(
 	code: string,
 	grade: "again" | "good" | "easy",
 	day: Date,
-	game: "flags" | "countries" = "flags",
+	game: GameType = "flags",
 ): UserLearningData {
-	const history =
-		game === "flags" ? data.countryHistory : data.countriesGame.countryHistory;
+	const view = toGameView(data, game);
+	const history = view.countryHistory;
 
-	const next = {
-		...history,
-		[code]: {
-			review: calculateNextReview(history[code]?.review ?? null, grade, day),
+	return fromGameView(
+		data,
+		{
+			...view,
+			countryHistory: {
+				...history,
+				[code]: {
+					review: calculateNextReview(
+						history[code]?.review ?? null,
+						grade,
+						day,
+					),
+				},
+			},
 		},
-	};
-
-	return game === "flags"
-		? { ...data, countryHistory: next }
-		: {
-				...data,
-				countriesGame: { ...data.countriesGame, countryHistory: next },
-			};
+		game,
+	);
 }
 
 function session(finishedAt: Date, correct: number, total: number) {
@@ -121,6 +132,7 @@ function sharedBase(): UserLearningData {
 	data = review(data, "de", "good", DAY_1);
 	data = review(data, "jp", "good", DAY_1);
 	data = review(data, "br", "good", DAY_1, "countries");
+	data = review(data, "pe", "good", DAY_1, "capitals");
 	data = registerRegionGame(data, "europe", 7, at(DAY_1));
 	data = registerRegionGame(data, "asia", 6, at(DAY_1));
 	data = registerSessionOutcome(data, session(DAY_1, 7, 10));
@@ -140,6 +152,7 @@ function playOfflineEurope(data: UserLearningData): UserLearningData {
 	let next = review(data, "fr", "again", DAY_2);
 	next = review(next, "es", "good", DAY_2);
 	next = review(next, "br", "easy", DAY_2, "countries");
+	next = review(next, "pe", "again", DAY_2, "capitals");
 	next = registerRegionGame(next, "europe", 9, at(DAY_2));
 	next = registerSessionOutcome(next, session(DAY_2, 9, 10));
 	next = saveUserProfile(next, { ...next.profile, name: "Ale" }, at(DAY_2));
@@ -153,6 +166,7 @@ function withoutFieldDates(data: UserLearningData): UserLearningData {
 		fieldUpdatedAt: { profile: null, lastConfiguration: null },
 		regionGameScoresUpdatedAt: {},
 		countriesGame: { ...data.countriesGame, regionGameScoresUpdatedAt: {} },
+		capitalsGame: { ...data.capitalsGame, regionGameScoresUpdatedAt: {} },
 	};
 }
 
@@ -686,5 +700,65 @@ describe("registro de juegos (D061)", () => {
 				gameType,
 			);
 		}
+	});
+});
+
+describe("Capitales en el modelo de datos (D061, D062)", () => {
+	test("una fila sin capitales (vieja, o con la columna recién creada) da un progreso vacío válido", () => {
+		for (const capitalsGame of [undefined, {}]) {
+			const data = normalizeLearningData({
+				countriesGame: sharedBase().countriesGame,
+				capitalsGame: capitalsGame as never,
+			});
+
+			assert.deepEqual(data.capitalsGame, {
+				countryHistory: {},
+				regionGameScores: {},
+				regionBestTimes: {},
+				lastPracticeByCountry: {},
+				regionGameScoresUpdatedAt: {},
+			});
+		}
+	});
+
+	test("va justo después de Países en la fila (orden de claves)", () => {
+		const keys = Object.keys(normalizeLearningData({}));
+
+		assert.equal(
+			keys.indexOf("capitalsGame"),
+			keys.indexOf("countriesGame") + 1,
+		);
+	});
+
+	test("se fusiona por la revisión más reciente, sin mezclarse con los otros juegos (D048)", () => {
+		const base = sharedBase();
+		const local = review(base, "cl", "good", DAY_2, "capitals");
+
+		const merged = mergeLearningData(base, local, base);
+
+		assert.ok(merged.capitalsGame.countryHistory.cl);
+		assert.equal(merged.countriesGame.countryHistory.cl, undefined);
+		assert.equal(merged.countryHistory.cl, undefined);
+	});
+
+	test("un juego que este cliente no conoce se conserva en la configuración", () => {
+		const data = normalizeLearningData({
+			lastConfiguration: {
+				...sharedBase().lastConfiguration,
+				gameType: "geografia",
+			} as never,
+		});
+
+		assert.equal(data.lastConfiguration?.gameType, "geografia");
+		assert.equal(isGameType("geografia"), false);
+		assert.equal(resolveGameType("geografia"), "countries");
+	});
+
+	test("resolveGameType deja pasar los juegos conocidos y sin configuración da el de usuario nuevo", () => {
+		for (const gameType of GAME_TYPES) {
+			assert.equal(resolveGameType(gameType), gameType);
+		}
+
+		assert.equal(resolveGameType(undefined), "countries");
 	});
 });

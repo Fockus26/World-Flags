@@ -5,8 +5,8 @@
 
 ## Resumen
 
-App web / PWA para aprender las 197 banderas del mundo con repetición espaciada
-(SM2, estilo Anki). Convierte el estudio de banderas en un hábito sostenible:
+App web / PWA para aprender los países, las banderas y las capitales del mundo (tres juegos) con repetición espaciada
+(SM2, estilo Anki). Convierte el estudio de geografía en un hábito sostenible:
 prioriza lo que el usuario olvida y espacia lo que ya domina.
 
 ## Tipo de proyecto
@@ -15,7 +15,7 @@ Juego / app instalable (PWA). No es landing ni sitio de contenido.
 
 ## Negocio
 
-- **Qué hace:** entrena el reconocimiento de banderas por país.
+- **Qué hace:** entrena tres cosas, cada una con su progreso: qué países hay en cada continente (Países), qué bandera es de cada país (Banderas) y cuál es la capital de cada país (Capitales).
 - **Qué debe lograr:** que el usuario vuelva a practicar día tras día (retención).
 - **Acción principal:** empezar y completar una sesión de práctica.
 

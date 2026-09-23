@@ -1,6 +1,7 @@
-import { Globe, TriangleFlag } from "iconoir-react";
+import { City, Globe, TriangleFlag } from "iconoir-react";
 import { useId } from "react";
 import { Fieldset } from "@/components/ui/Fieldset";
+import { Select } from "@/components/ui/Select";
 import { GAME_TYPE_LABELS, GAME_TYPES, type GameType } from "@/types/country";
 
 interface GameTypeToggleProps {
@@ -18,22 +19,40 @@ interface GameTypeToggleProps {
 const GAME_TYPE_ICONS: Record<GameType, typeof Globe> = {
 	countries: Globe,
 	flags: TriangleFlag,
+	capitals: City,
 };
 
+const OPTIONS = GAME_TYPES.map((gameType) => ({
+	value: gameType,
+	label: GAME_TYPE_LABELS[gameType],
+}));
+
 /**
- * Selector Países/Banderas (D030: Países primero). Extraído de la
- * `Configuration` de la Fase 2 para reutilizarlo también en
- * `LeaderboardModal` (Fase 4) sin duplicar el patrón `Fieldset` + segmentado.
+ * Selector de juego (D030: Países primero; Capitales al final, D066).
+ * Extraído de la `Configuration` de la Fase 2 del modo Países para
+ * reutilizarlo también en `LeaderboardModal` sin duplicar el patrón
+ * `Fieldset` + segmentado.
  *
- * Segmentado con píldora deslizante e icono — propuesta "B" del canvas de
- * diseño (`context/plans/design-canvas/`), elegida por el dueño sin la
- * tarjeta de vista previa: el título de abajo (`Aprende los países/las
- * banderas del mundo`) ya dice qué modo está activo, repetirlo en una
- * tarjeta era redundante. No reutiliza `OptionTile` a propósito: ese
- * componente es la base de otros selectores del kit (tema, dificultad,
- * modo de juego en `GameTab`) y cambiar su estilo de "caja con borde" a
- * "píldora deslizante" habría afectado a todos ellos por un pedido que
- * era solo de este selector.
+ * **Dos formas según el ancho, elegidas por el dueño sobre el canvas de
+ * diseño (D066).** Con tres juegos el segmentado no cabe a 320 px: quedan
+ * ~90 px por opción y "Capitales" en `text-xs` ya los ocupa casi enteros, así
+ * que con el espaciado de texto de WCAG 1.4.12 se sale. Por debajo de
+ * `min-[30rem]` va el `Select` de HeroUI (`ui/Select`: teclado, `role="listbox"`
+ * y cierre al hacer clic fuera ya resueltos por React Aria); a partir de ahí,
+ * el segmentado con píldora deslizante e icono — la propuesta "B" del canvas
+ * (`context/plans/design-canvas/`) que el dueño ya había elegido. Se pintan
+ * los dos y CSS oculta el que no toca: `display: none` también lo saca del
+ * orden de tabulación y del árbol de accesibilidad, y en un sitio estático
+ * decidirlo en JS con `matchMedia` desajustaría la hidratación.
+ *
+ * El texto de la opción marcada usa `--btn-contained-fg` (el mismo token que
+ * el texto de un botón relleno), no `--accent-foreground`: ese daba 4,34:1
+ * sobre el morado y fallaba AA, un hallazgo ya reportado dos veces.
+ *
+ * No reutiliza `OptionTile` a propósito: ese componente es la base de otros
+ * selectores del kit (tema, dificultad, modo de juego en `GameTab`) y cambiar
+ * su estilo de "caja con borde" a "píldora deslizante" habría afectado a
+ * todos ellos por un pedido que era solo de este selector.
  *
  * El `name` del grupo de radios se genera con `useId()` en vez de recibirlo
  * como prop: `Configuration` vive dentro de `PageFlip`, que — por un bug
@@ -61,16 +80,33 @@ export function GameTypeToggle({
 
 	return (
 		<Fieldset legend={legend} hideLegend={hideLegend} className={className}>
-			<div className="relative flex rounded-[var(--radius)] border border-[var(--border)] bg-[var(--default)] p-1">
+			{/* Móvil. En la carga inicial todavía no hay nada elegido (D042). */}
+			<Select
+				className="min-[30rem]:hidden"
+				aria-label={legend}
+				options={OPTIONS}
+				value={isLoading ? "" : value}
+				// Solo se lee mientras carga, que es cuando no hay juego elegido
+				// todavía; sin él, HeroUI pone "Select an item" en inglés.
+				// ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #21).
+				placeholder="Elige un juego"
+				onChange={(selected) => onChange(selected as GameType)}
+			/>
+
+			<div className="relative hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--default)] p-1 min-[30rem]:flex">
 				{!isLoading && (
 					<div
 						aria-hidden="true"
-						className="absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] transition-transform duration-200 ease-in-out"
+						// El ancho sale del hueco real: el 100% menos el `p-1` de los dos
+						// lados, repartido entre los juegos que haya. El desplazamiento va
+						// en múltiplos de ese ancho, así que no hay que sumarle el padding.
+						// En alto contraste el navegador pintaría la píldora del color
+						// del fondo y no se vería cuál está elegida: ahí va en los
+						// colores de sistema de "seleccionado" (Highlight/HighlightText).
+						className="absolute inset-y-1 left-1 rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] transition-transform duration-200 ease-in-out forced-color-adjust-none forced-colors:bg-[Highlight]"
 						style={{
-							transform:
-								selectedIndex === 1
-									? "translateX(calc(100% + 0.5rem))"
-									: "translateX(0)",
+							width: `calc((100% - 0.5rem) / ${GAME_TYPES.length})`,
+							transform: `translateX(${selectedIndex * 100}%)`,
 						}}
 					/>
 				)}
@@ -82,14 +118,25 @@ export function GameTypeToggle({
 					return (
 						<label
 							key={type}
-							className="
+							// El color del texto sale del estado de React y no de
+							// `has-checked:` como antes. Medido en el navegador: al
+							// cargar la página, Chrome no vuelve a calcular el estilo
+							// de la etiqueta cuando React marca su radio por código
+							// (sigue con el color normal ≥4,5 s, hasta que algo fuerza
+							// un recálculo). Con la regla sin aplicar, el texto de la
+							// opción marcada quedaba sobre el morado a 3,62:1 en claro
+							// y 2,44:1 en oscuro — el fallo de contraste que ya se
+							// había reportado dos veces. El texto va en
+							// `--btn-contained-fg` (el de los botones rellenos): 4,66:1
+							// en claro y 6,64:1 en oscuro.
+							className={`
 								relative z-10 flex flex-1 cursor-pointer items-center justify-center gap-1.5
-								rounded-[calc(var(--radius)-2px)] py-2 text-[var(--default-foreground)]
+								min-h-11 rounded-[calc(var(--radius)-2px)] py-2
 								transition-colors duration-150 ease-in-out
-								has-checked:text-[var(--accent-foreground)]
 								has-focus-visible:outline has-focus-visible:outline-2 has-focus-visible:outline-offset-2
 								has-focus-visible:outline-[var(--focus)]
-							"
+								${checked ? "text-[var(--btn-contained-fg)] forced-color-adjust-none forced-colors:text-[HighlightText]" : "text-[var(--default-foreground)]"}
+							`}
 						>
 							<input
 								type="radio"

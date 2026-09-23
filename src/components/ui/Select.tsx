@@ -10,6 +10,8 @@ interface SelectProps {
 	value: string;
 	onChange: (value: string) => void;
 	label?: string;
+	/** Qué se lee cuando `value` no es ninguna opción. Sin esto, HeroUI pone su texto en inglés. */
+	placeholder?: string;
 	"aria-label"?: string;
 	id?: string;
 	className?: string;
@@ -25,6 +27,7 @@ export function Select({
 	value,
 	onChange,
 	label,
+	placeholder,
 	"aria-label": ariaLabel,
 	id,
 	className,
@@ -32,6 +35,7 @@ export function Select({
 	return (
 		<HeroSelect
 			id={id}
+			placeholder={placeholder}
 			selectedKey={value}
 			onSelectionChange={(key) => onChange(String(key))}
 			aria-label={label ? undefined : ariaLabel}
@@ -51,8 +55,12 @@ export function Select({
 							key={option.value}
 							id={option.value}
 							textValue={option.label}
+							// 44 px: objetivo táctil mínimo del kit en móvil.
+							className="min-h-11"
 						>
 							{option.label}
+							{/* La marca de la opción elegida: sin ella solo se distinguía con el foco del teclado. */}
+							<ListBox.ItemIndicator />
 						</ListBox.Item>
 					))}
 				</ListBox>

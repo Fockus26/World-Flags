@@ -15,7 +15,7 @@ leaderboard, streaks, achievements and daily reminders.
 
 ## ✨ Features
 
-### Two games
+### Three games
 
 - **🗺️ Countries** — learn which countries belong to each continent. Countries fly into
   their slot on a board as you name them. Practice mode shows a fill-in-the-blank card
@@ -23,14 +23,18 @@ leaderboard, streaks, achievements and daily reminders.
   option that reveals what you missed.
 - **🏳️ Flags** — see a flag, type the country. Easy or hard difficulty (hard requires
   correct accents), alphabetical or random order.
+- **🏛️ Capitals** — see a country, type its capital. Countries with more than one
+  capital accept all of them, and the answer shows the alternatives and a short note
+  when needed. Hard difficulty and rush count accents, hyphens and apostrophes.
 
 ### Two modes for each game
 
 - **Practice** — no pressure, optional per-card timer, graded with the SM-2 spaced
   repetition algorithm. Cards you miss come back later in the same session. Each country
   can be practiced once per calendar day.
-- **Competitive ("rush")** — the whole session is a stopwatch (in Flags, wrong answers and
-  skips add a time penalty). Best times are saved per continent and for the whole world.
+- **Competitive ("rush")** — the whole session is a stopwatch (in Flags and Capitals,
+  wrong answers and skips add a time penalty). Best times are saved per continent and
+  for the whole world.
 
 ### Learning & progress
 
@@ -141,12 +145,10 @@ Deeper dives:
 
 ## 🗺️ Roadmap
 
-1. **🏛️ Capitals mode** — see a country, name its capital. Practice, rush and daily
-   practice, like the existing games.
-2. **📍 Map mode** — locate each country on a world map that fills in as you go, with a
+1. **📍 Map mode** — locate each country on a world map that fills in as you go, with a
    keyboard-accessible alternative to clicking.
-3. **🎨 Redesign** — a full visual pass over the app, built on the existing design tokens.
-4. **💰 Monetization** — evaluate ads and alternatives (ad-free premium, donations)
+2. **🎨 Redesign** — a full visual pass over the app, built on the existing design tokens.
+3. **💰 Monetization** — evaluate ads and alternatives (ad-free premium, donations)
    without hurting the learning experience.
 
 The detailed task list lives in [`TODO.md`](./TODO.md).

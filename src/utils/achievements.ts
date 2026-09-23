@@ -1,5 +1,10 @@
 import { countries } from "@/data/countries";
-import { type GameType, REGIONS, type Region } from "@/types/country";
+import {
+	GAME_TYPES,
+	type GameType,
+	REGIONS,
+	type Region,
+} from "@/types/country";
 import type { UserLearningData } from "@/types/progress";
 import {
 	countLearnedCountries,
@@ -73,10 +78,10 @@ export interface AchievementDefinition {
 	category: AchievementCategory;
 	/**
 	 * Juego al que pertenece, para separarlos en el modal de logros (feedback
-	 * del dueño). Ausente = compartido entre Países y Banderas: hoy son los que
-	 * leen `stats.*` (constancia, precisión agregada) o cruzan ambos juegos a
-	 * propósito (`primero_los_paises`, `coleccionista`) — se muestran siempre,
-	 * en los dos modos.
+	 * del dueño). Ausente = compartido entre los juegos: hoy son los que leen
+	 * `stats.*` (constancia, precisión agregada) o cruzan juegos a propósito
+	 * (`primero_los_paises`, `tres_en_uno`, `coleccionista`) — se muestran
+	 * siempre, en todos los juegos.
 	 */
 	gameType?: GameType;
 	evaluate: (
@@ -130,6 +135,17 @@ function hasRegionLearnedInBothGames(data: UserLearningData): boolean {
 			countLearnedInRegions(data, "countries", [region]) >= target
 		);
 	});
+}
+
+/** Para "tres_en_uno": algún continente completo en los tres juegos a la vez. */
+function hasRegionLearnedInAllGames(data: UserLearningData): boolean {
+	return REGIONS.some((region) =>
+		GAME_TYPES.every(
+			(gameType) =>
+				countLearnedInRegions(data, gameType, [region]) >=
+				REGION_COUNTRY_COUNTS[region],
+		),
+	);
 }
 
 function regionsTotal(regions: readonly Region[]): number {
@@ -380,7 +396,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		id: "cinco_veces_impecable",
 		name: "Cinco veces impecable",
 		// 🔸 umbral a confirmar
-		description: "Completa 5 sesiones sin fallar una sola bandera",
+		description: "Completa 5 sesiones sin un solo fallo",
 		emoji: "✨",
 		category: "precision",
 		evaluate: (data) => ({ current: data.stats.perfectSessions, target: 5 }),
@@ -389,7 +405,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		id: "pulso_firme",
 		name: "Pulso firme",
 		// 🔸 umbral a confirmar
-		description: "Acierta 500 banderas en total",
+		description: "Acierta 500 respuestas en total",
 		emoji: "🎖️",
 		category: "precision",
 		evaluate: (data) => ({ current: data.stats.totalCorrect, target: 500 }),
@@ -514,6 +530,62 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		emoji: "🔗",
 		category: "meta",
 		evaluate: (data) => flag(hasRegionLearnedInBothGames(data)),
+	},
+
+	// ── Modo Capitales (D070) — leen `capitalsGame`, espejo de los de Países.
+	//    Todos retroactivos. ⚠️ Nombres y textos provisionales
+	//    (`CONTENT_CHECKLIST.md` #23). ──
+	{
+		id: "capitales_de_europa",
+		name: "Capitales de Europa",
+		description: `Aprende las ${REGION_COUNTRY_COUNTS.europe} capitales de Europa`,
+		emoji: "🏙️",
+		category: "continentes",
+		gameType: "capitals",
+		evaluate: (data) => ({
+			current: countLearnedInRegions(data, "capitals", ["europe"]),
+			target: REGION_COUNTRY_COUNTS.europe,
+		}),
+	},
+	{
+		id: "primer_rush_de_capitales",
+		name: "Contrarreloj de capitales",
+		description: "Termina un rush de capitales (cualquier alcance)",
+		emoji: "🗼",
+		category: "velocidad",
+		gameType: "capitals",
+		// El historial se recorta; los mejores tiempos no. Con cualquiera de
+		// los dos vale, así un rush viejo sigue contando.
+		evaluate: (data) =>
+			flag(
+				data.sessionHistory.some(
+					(session) =>
+						session.mode === "competitive" && session.gameType === "capitals",
+				) ||
+					Object.keys(getGameProgress(data, "capitals").regionBestTimes)
+						.length > 0,
+			),
+	},
+	{
+		id: "capitales_del_mundo",
+		name: "La vuelta a las capitales",
+		description: 'Completa el rush de capitales de "Todo el mundo"',
+		emoji: "🛰️",
+		category: "velocidad",
+		gameType: "capitals",
+		evaluate: (data) =>
+			flag(
+				getGameProgress(data, "capitals").regionBestTimes.world !== undefined,
+			),
+	},
+	{
+		id: "tres_en_uno",
+		name: "Tres en uno",
+		description:
+			"Aprende un continente completo en Países, en Banderas y en Capitales",
+		emoji: "🔺",
+		category: "meta",
+		evaluate: (data) => flag(hasRegionLearnedInAllGames(data)),
 	},
 
 	// ── Meta — lee el propio conjunto de desbloqueados, de ahí el punto fijo ──

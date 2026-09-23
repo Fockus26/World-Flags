@@ -6,22 +6,23 @@
 
 ## Roadmap
 
-### 1. Modo de juego: Capitales
+### 1. Modo de juego: Capitales — hecho (1.1.0, `feat/modo-capitales`)
 
 Se muestra un país y se responde su capital. Debe encajar en el flujo existente igual
 que Países: alcance, práctica / competitivo, práctica diaria, SRS, logros y ranking.
 
-- [ ] Dataset de capitales en `src/data/` — fuente con licencia clara, y decidir casos
+- [x] Dataset de capitales en `src/data/` — fuente con licencia clara, y decidir casos
       especiales (países con varias capitales, nombres alternativos, tildes en modo difícil)
-- [ ] Nuevo `GameType` + etiqueta, y su lugar en el selector de juego
-- [ ] Sesión de práctica (con SRS y reencolado de fallos)
-- [ ] Rush cronometrado + mejores tiempos por continente / mundo
-- [ ] Práctica diaria de capitales
-- [ ] Persistencia y sync del progreso nuevo (local + Supabase)
-- [ ] Scope propio en el ranking (como `countries:world`)
-- [ ] Logros de capitales
-- [ ] Copy provisional marcado para aprobación del dueño
-- [ ] a11y + e2e del flujo completo
+- [x] Nuevo `GameType` + etiqueta, y su lugar en el selector de juego
+- [x] Sesión de práctica (con SRS y reencolado de fallos)
+- [x] Rush cronometrado + mejores tiempos por continente / mundo
+- [x] Práctica diaria de capitales
+- [x] Persistencia y sync del progreso nuevo (local + Supabase)
+- [x] Scope propio en el ranking (como `countries:world`)
+- [x] Logros de capitales
+- [x] Copy provisional marcado para aprobación del dueño
+- [x] a11y del flujo completo (axe-core limpio en claro y oscuro)
+- [ ] e2e propios de Capitales (la suite de `e2e/` sigue cubriendo solo Banderas)
 
 ### 2. Modo de juego: Mapa
 

@@ -58,6 +58,7 @@ function FlagGameContent() {
 					}
 					return <CountriesPractice key={activeGame.id} />;
 				}
+				// Banderas y Capitales: la misma sesión con otra tarjeta (D068).
 				return <Session key={activeGame?.id} />;
 			case "dailyPractice":
 				return dailyPracticeQueue ? (

@@ -1,18 +1,17 @@
 import { motion } from "framer-motion";
 import { motionVariants } from "@/styles/animations";
+import { StimulusFrame } from "./StimulusFrame";
 
 export function FlagDisplay({ countryCode }: { countryCode: string }) {
 	return (
-		<div
+		<StimulusFrame
 			className="
-				mt-[0.6rem] grid min-h-0 place-items-center
-				overflow-hidden rounded-lg
 				p-2
 				bg-[linear-gradient(45deg,var(--color-surface-hover)_25%,transparent_25%),linear-gradient(-45deg,var(--color-surface-hover)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,var(--color-surface-hover)_75%),linear-gradient(-45deg,transparent_75%,var(--color-surface-hover)_75%)]
 				bg-position-[0_0,0_0.75rem,0.75rem_-0.75rem,-0.75rem_0]
 				bg-size-[1.5rem_1.5rem]
-				min-[30rem]:mt-[0.65rem] min-[30rem]:p-[0.65rem]
-				min-[43rem]:mt-[clamp(0.75rem,2vh,1.5rem)] min-[43rem]:p-[clamp(0.75rem,2vh,1.5rem)]
+				min-[30rem]:p-[0.65rem]
+				min-[43rem]:p-[clamp(0.75rem,2vh,1.5rem)]
 			"
 		>
 			<motion.img
@@ -24,6 +23,6 @@ export function FlagDisplay({ countryCode }: { countryCode: string }) {
 				initial={false}
 				animate="visible"
 			/>
-		</div>
+		</StimulusFrame>
 	);
 }

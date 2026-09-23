@@ -118,7 +118,8 @@ function PracticeResults({
 				<strong>
 					{result.correctAnswers} de {result.totalCountries}
 				</strong>{" "}
-				banderas a la primera, equivalente al {percentage}%.
+				{GAME_TYPE_NOUNS[result.gameType]} a la primera, equivalente al{" "}
+				{percentage}%.
 			</p>
 		</>
 	);

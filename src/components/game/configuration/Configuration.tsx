@@ -16,10 +16,10 @@ import { motionVariants } from "@/styles/animations";
 import {
 	DEFAULT_DIFFICULTY,
 	DEFAULT_GAME_MODE,
-	DEFAULT_GAME_TYPE,
 	DEFAULT_SCOPE,
 	DEFAULT_TIMER_DURATION,
 	GAME_TYPE_TITLES,
+	resolveGameType,
 } from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
 import { isCatalogCountryCode } from "@/utils/country-catalog";
@@ -82,9 +82,11 @@ export function Configuration() {
 	const mode = learningData.lastConfiguration?.mode ?? DEFAULT_GAME_MODE;
 	// Sin config guardada (usuario nuevo): arranca en Países (D030). Con
 	// config vieja sin `gameType`, `migrateConfiguration` ya la migró a
-	// "flags" — este fallback solo cubre el caso de "nunca hubo config".
-	const gameType =
-		learningData.lastConfiguration?.gameType ?? DEFAULT_GAME_TYPE;
+	// "flags". Un juego que este cliente no conoce (de una versión más nueva,
+	// llegado por la nube) también cae al de usuario nuevo, pero solo aquí,
+	// al leerlo: lo guardado no se toca (D062). Es el único sitio que lee el
+	// juego de la configuración; todo lo demás lo recibe ya resuelto.
+	const gameType = resolveGameType(learningData.lastConfiguration?.gameType);
 	const scope = learningData.lastConfiguration?.scope ?? DEFAULT_SCOPE;
 	const customCodes = scope.type === "custom" ? scope.countryCodes : [];
 	// El selector recibe `customCodes` entero (los devuelve intactos al
@@ -296,12 +298,13 @@ export function Configuration() {
 				/>
 
 				<header className="min-w-0 shrink-0">
+					{/* Sin `whitespace-nowrap`: "Aprende las capitales del mundo" se
+					    pasa por 2 px del ancho disponible a 320 px y se cortaba con
+					    "…". Los otros dos títulos caben en una línea; este baja a
+					    dos solo en las pantallas más estrechas. */}
 					<h1
 						className="
 							m-0
-							overflow-hidden
-							text-ellipsis
-							whitespace-nowrap
 							text-lg
 							font-bold
 							leading-tight

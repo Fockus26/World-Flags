@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
-import { FlagDisplay } from "@/components/game/session/FlagDisplay";
 import { Header } from "@/components/game/session/Header";
 import { GradeButtons } from "@/components/ui/GradeButtons";
 import { countries } from "@/data/countries";
@@ -12,6 +11,7 @@ import type { ReviewGrade } from "@/types/progress";
 import { isCatalogCountryCode } from "@/utils/country-catalog";
 import { toGameView } from "@/utils/learning-storage";
 import { CountryClozeCard } from "./countries/CountryClozeCard";
+import { isCardGameType, SESSION_CARDS } from "./session-cards";
 
 interface DailyPracticeProps {
 	gameType: GameType;
@@ -82,6 +82,8 @@ export function DailyPractice({
 	const currentCountry = countries.find(
 		(country) => country.code === currentCode,
 	);
+	// Países va con su tablero (cloze); los demás, con la tarjeta de su juego (D068).
+	const card = isCardGameType(gameType) ? SESSION_CARDS[gameType] : null;
 
 	function reveal() {
 		isAwaitingGradeRef.current = true;
@@ -142,7 +144,7 @@ export function DailyPractice({
 				/>
 
 				<div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-[0.65rem] min-[30rem]:gap-[clamp(0.75rem,2vh,1.5rem)]">
-					{gameType === "countries" ? (
+					{card === null ? (
 						<CountryClozeCard
 							countryCode={currentCountry.code}
 							targetState={isRevealed ? "revealed" : "target"}
@@ -150,10 +152,15 @@ export function DailyPractice({
 							slotRefs={slotRefs}
 						/>
 					) : (
-						<FlagDisplay countryCode={currentCountry.code} />
+						card.renderStimulus(currentCountry)
 					)}
 
 					<div className="flex flex-col items-center gap-3">
+						{card?.showQuestionInDaily && (
+							<p className="m-0 text-center font-extrabold text-surface-soft">
+								{card.getQuestion(currentCountry)}
+							</p>
+						)}
 						{!isRevealed ? (
 							<button
 								type="button"
@@ -171,9 +178,14 @@ export function DailyPractice({
 							<div className="flex w-full flex-col items-center gap-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
 								{/* En Países el nombre ya se ve en el tablero (verde, en su
 								    hueco) — repetirlo acá sería redundante. */}
-								{gameType === "flags" && (
+								{card !== null && (
 									<p className="m-0 text-center font-extrabold text-[1.4rem] text-surface-soft">
-										{currentCountry.name}
+										{card.getAnswer(currentCountry)}
+									</p>
+								)}
+								{card?.renderAnswerNote && (
+									<p className="m-0 max-w-xl text-center text-sm text-text-placeholder">
+										{card.renderAnswerNote(currentCountry)}
 									</p>
 								)}
 								<GradeButtons onGrade={handleGrade} />

@@ -87,7 +87,9 @@ export interface SessionRecord {
 	 * Ausente = Banderas: campo añadido junto con el modo Países, así que
 	 * cualquier registro guardado antes de esta versión no lo trae. Los
 	 * logros que filtran por juego lo leen como `session.gameType ?? "flags"`
-	 * (D036) — nunca lo des-estructures sin ese default.
+	 * (D036) — nunca lo des-estructures sin ese default. Puede traer también
+	 * el juego de una versión más nueva que este cliente no conoce (D062):
+	 * compáralo, no lo uses para indexar.
 	 */
 	gameType?: GameType;
 	/** Continente exacto o "world"; null en la práctica diaria y en scopes mixtos. */
@@ -118,9 +120,9 @@ export interface UserStats {
  * El progreso de aprendizaje propio de un juego: qué se sabe (`countryHistory`),
  * las puntuaciones de práctica por continente, los mejores tiempos de rush y el
  * candado de "practicado hoy". Cada `GameType` tiene el suyo — ver
- * `UserLearningData.countriesGame` y `toGameView`/`fromGameView` en
- * `learning-storage.ts` (D028/D029): Banderas sigue siendo el que vive en el
- * primer nivel de `UserLearningData`, Países vive aparte.
+ * `SUB_GAME_KEYS` y `toGameView`/`fromGameView` en `learning-storage.ts`
+ * (D028/D029/D061): Banderas sigue siendo el que vive en el primer nivel de
+ * `UserLearningData`; Países y Capitales viven aparte.
  */
 export interface GameProgress {
 	countryHistory: CountriesLearningHistory;
@@ -167,6 +169,8 @@ export interface UserLearningData {
 	lastPracticeByCountry: LastPracticeByCountry;
 	/** Progreso de Países (D028). Los campos de arriba siguen siendo los de Banderas. */
 	countriesGame: GameProgress;
+	/** Progreso de Capitales (D061), igual que el de Países. Columna `capitals_game`. */
+	capitalsGame: GameProgress;
 	achievements: UnlockedAchievements;
 	stats: UserStats;
 	sessionHistory: SessionRecord[];
