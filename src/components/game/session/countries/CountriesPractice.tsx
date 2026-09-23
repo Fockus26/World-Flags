@@ -2,10 +2,10 @@ import { type SubmitEvent, useEffect, useRef, useState } from "react";
 import { AnswerForm } from "@/components/game/session/AnswerForm";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
 import { Header } from "@/components/game/session/Header";
+import type { SessionRuntime } from "@/components/game/session/session-runtime";
 import { Button } from "@/components/ui/Button";
 import { useCardCountdown } from "@/hooks/useCardCountdown";
 import { useFlyToSlot } from "@/hooks/useFlyToSlot";
-import { useGame } from "@/hooks/useGame";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import {
 	type AnswerStatus,
@@ -32,15 +32,37 @@ const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 // un momento antes de calificarla automáticamente como "otra vez".
 const SKIP_REVEAL_MS = 1500;
 
+interface CountriesPracticeProps {
+	/**
+	 * De dónde sale la partida y a dónde va su resultado (D072). **Obligatoria
+	 * a propósito**, sin valor por defecto: `FlagGame` inyecta el `useGame()`
+	 * real y el tutorial su sandbox, que no escribe en ningún sitio. No vuelvas
+	 * a llamar a `useGame()` aquí dentro — sería la vía por la que la partida
+	 * guiada empezaría a tocar el progreso del usuario sin que nadie se entere
+	 * (lo vigila `tests/unit/tutorial-sandbox.test.ts`).
+	 */
+	runtime: SessionRuntime;
+	/**
+	 * Sustituye el texto del aviso de abandonar. El de siempre dice que se
+	 * pierde el progreso de la partida, y en la partida guiada eso sería
+	 * mentira justo en lo único que el tutorial promete. Sin pasar nada, el
+	 * juego real no cambia.
+	 */
+	exitDescription?: string;
+}
+
 /**
  * Práctica de países (D034): tarjeta cloze sobre el tablero del continente
  * de cada país — todos los nombres visibles salvo el que hay que adivinar,
  * con pistas letra a letra. Reutiliza `AnswerForm`/`GradeButtons`/SRS igual
  * que `Session.tsx` (práctica de Banderas); lo que cambia es la tarjeta.
  */
-export function CountriesPractice() {
+export function CountriesPractice({
+	runtime,
+	exitDescription,
+}: CountriesPracticeProps) {
 	const { activeGame, learningData, exitGame, finishGame, gradeCountryReview } =
-		useGame();
+		runtime;
 
 	const countries = activeGame?.countries ?? [];
 	const timerDuration =
@@ -346,6 +368,7 @@ export function CountriesPractice() {
 				isOpen={isExitModalOpen}
 				onCancel={handleCancelExit}
 				onConfirm={exitGame}
+				description={exitDescription}
 			/>
 		</>
 	);
