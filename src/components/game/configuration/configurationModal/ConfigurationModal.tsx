@@ -213,7 +213,10 @@ export function ConfigurationModal({
 			    ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #20 y #25). */}
 			<footer className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-surface-border pt-3">
 				<p className="text-xs">Versión {APP_VERSION}</p>
-				<div className="flex items-center gap-1">
+				{/* También envuelve por dentro: a 320 px los dos botones juntos
+				    miden 285 px en 259 px de pie (medido), así que sin esto se
+				    salían. Al envolver, se apilan alineados a la derecha. */}
+				<div className="flex flex-wrap items-center justify-end gap-1">
 					<Button
 						variant="text"
 						color="neutral"

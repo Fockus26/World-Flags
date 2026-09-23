@@ -61,7 +61,10 @@ export function useTutorial() {
 	return {
 		isOpen,
 
-		/** Reabrirlo a mano: se ve siempre, con o sin progreso. */
+		/**
+		 * Reabrirlo a mano: se ve siempre, con o sin progreso. Quién lo abrió
+		 * (para devolverle el foco) lo captura `Tutorial`, no esto.
+		 */
 		open: () => dispatch(openTutorial()),
 
 		/**

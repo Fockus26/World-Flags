@@ -46,6 +46,47 @@ export function Tutorial({ onClose }: TutorialProps) {
 
 	const headingRef = useRef<HTMLHeadingElement>(null);
 
+	/**
+	 * Quién abrió el recorrido, para devolverle el foco al cerrarlo (WCAG
+	 * 2.4.3). Hace falta porque React Aria solo restaura el foco cuando ve el
+	 * diálogo **pasar** a abierto, y este se monta ya abierto (`FlagGame` lo
+	 * renderiza solo mientras lo está, para que cada apertura arranque de cero):
+	 * sin esto, cerrarlo deja el foco en `<body>` — comprobado en el navegador.
+	 *
+	 * Se lee en el inicializador del `ref`, durante el primer render, cuando el
+	 * foco todavía está en el botón "Cómo se juega": los efectos —incluido el de
+	 * autoenfoque de React Aria y el de abajo— corren después. Abierto solo
+	 * (primera visita) no hay origen y no se hace nada.
+	 *
+	 * En un `ref` y no en una variable de módulo compartida entre las dos
+	 * instancias de `useTutorial`: con el React Compiler activo, una copia local
+	 * de una variable mutable de módulo se pliega de vuelta a la variable, así
+	 * que `const opener = x; x = null; if (!opener)…` se convierte en
+	 * `x = null; if (!x)…` y nunca restaura nada. Pasó, y en silencio.
+	 */
+	const openerRef = useRef<HTMLElement | null>(
+		typeof document === "undefined"
+			? null
+			: (document.activeElement as HTMLElement | null),
+	);
+
+	useEffect(() => {
+		const opener = openerRef.current;
+
+		if (!opener || opener === document.body) return;
+
+		return () => {
+			// En la siguiente tarea, ya desmontado el diálogo: mientras sigue
+			// montado, el focus-trap de React Aria devolvería el foco adentro.
+			// `setTimeout` y no `requestAnimationFrame` a propósito — rAF no corre
+			// con la pestaña en segundo plano, y el foco se quedaría en `<body>`
+			// sin que nada lo avisara (también comprobado).
+			setTimeout(() => {
+				if (document.contains(opener)) opener.focus();
+			}, 0);
+		};
+	}, []);
+
 	const step = TUTORIAL_STEPS[stepIndex];
 	const isPlaying = sandbox.state.gameId !== null;
 	const hasPlayed = sandbox.state.result !== null;
