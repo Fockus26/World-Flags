@@ -9,6 +9,35 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [1.1.0] - 2026-09-23
+
+### Añadido
+
+- Un tercer juego, Capitales: ves el nombre de un país y escribes su capital.
+  Tiene lo mismo que Banderas: práctica con repetición espaciada, competitivo
+  contrarreloj con su propio ranking de "Todo el mundo" y práctica diaria.
+- En los países con más de una capital valen todas (por ejemplo, Sucre y La
+  Paz en Bolivia), y al responder se muestran las otras que también valen y una
+  nota cuando hace falta.
+- En difícil y en el competitivo de Capitales cuentan las tildes, los guiones y
+  los apóstrofos; en fácil no.
+- Cuatro logros nuevos: tres de Capitales y "Tres en uno", por aprender un
+  continente completo en los tres juegos.
+
+### Cambiado
+
+- El selector de juego tiene tres opciones; en pantallas estrechas es una lista
+  desplegable.
+- Dos logros compartidos ya no hablan solo de banderas: "Acierta 500 respuestas
+  en total" y "Completa 5 sesiones sin un solo fallo".
+
+### Corregido
+
+- El resumen de una práctica de Países decía "banderas a la primera"; ahora
+  dice "países".
+- En el selector de juego, el marcador de la opción elegida quedaba un poco
+  corrido a la derecha.
+
 ## [1.0.1] - 2026-09-23
 
 ### Corregido
