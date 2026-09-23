@@ -298,12 +298,13 @@ export function Configuration() {
 				/>
 
 				<header className="min-w-0 shrink-0">
+					{/* Sin `whitespace-nowrap`: "Aprende las capitales del mundo" se
+					    pasa por 2 px del ancho disponible a 320 px y se cortaba con
+					    "…". Los otros dos títulos caben en una línea; este baja a
+					    dos solo en las pantallas más estrechas. */}
 					<h1
 						className="
 							m-0
-							overflow-hidden
-							text-ellipsis
-							whitespace-nowrap
 							text-lg
 							font-bold
 							leading-tight
