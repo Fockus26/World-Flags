@@ -36,6 +36,12 @@ export interface SessionCard {
 	placeholder: string;
 	/** Se añade al aviso de acierto o fallo: otras respuestas que valen y la nota. */
 	renderAnswerNote?: (country: Country) => ReactNode;
+	/**
+	 * La práctica diaria no tiene input ni pregunta: si la tarjeta sola no
+	 * dice qué se pregunta (el nombre de un país, en Capitales), se muestra la
+	 * pregunta encima. Banderas no la necesita y no cambia.
+	 */
+	showQuestionInDaily?: boolean;
 }
 
 /** "También vale La Paz." + la nota de la capital, si tiene. */
@@ -86,5 +92,6 @@ export const SESSION_CARDS: Record<CardGameType, SessionCard> = {
 		getQuestion: (country) => `¿Cuál es la capital de ${country.name}?`,
 		placeholder: "Escribe el nombre de la capital",
 		renderAnswerNote: (country) => <CapitalAnswerNote code={country.code} />,
+		showQuestionInDaily: true,
 	},
 };
