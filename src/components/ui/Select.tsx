@@ -55,8 +55,12 @@ export function Select({
 							key={option.value}
 							id={option.value}
 							textValue={option.label}
+							// 44 px: objetivo táctil mínimo del kit en móvil.
+							className="min-h-11"
 						>
 							{option.label}
+							{/* La marca de la opción elegida: sin ella solo se distinguía con el foco del teclado. */}
+							<ListBox.ItemIndicator />
 						</ListBox.Item>
 					))}
 				</ListBox>

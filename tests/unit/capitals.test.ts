@@ -156,6 +156,20 @@ describe("tildes y signos (D065)", () => {
 		assert.ok(easy("Washington DC", "us"));
 	});
 
+	test("cualquier apóstrofo, guion o raya vale como el del teclado (QA)", () => {
+		// ´ (teclado español), ʼ, y los guiones que ponen los móviles.
+		assert.ok(hard("Saint John´s", "ag"));
+		assert.ok(hard("Saint Johnʼs", "ag"));
+		assert.ok(hard("Port–au–Prince", "ht"));
+		assert.ok(hard("Port‑au‑Prince", "ht"));
+		// Pero siguen haciendo falta: sin signo, en difícil, no vale.
+		assert.equal(hard("Port au Prince", "ht"), false);
+	});
+
+	test("una tilde pegada como carácter aparte (NFD) vale como la normal", () => {
+		assert.ok(hard("Bogotá", "co"));
+	});
+
 	test("mayúsculas, espacios alrededor y espacios repetidos no cuentan", () => {
 		assert.ok(hard("  buenos   AIRES ", "ar"));
 	});

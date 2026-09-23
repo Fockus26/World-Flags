@@ -22,19 +22,20 @@ export function normalize(value: string, difficulty: Difficulty): string {
 function stripDiacritics(value: string): string {
 	return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
-
 /**
- * Para Capitales (D065): \u00bf`answer` es alguna de las respuestas `accepted`?
- * Banderas y Pa\u00edses siguen con `isCorrectAnswer`, que no cambia.
+ * Para Capitales (D065): ¿`answer` es alguna de las respuestas `accepted`?
+ * Banderas y Países siguen con `isCorrectAnswer`, que no cambia.
  *
- * - Dif\u00edcil (y competitivo): los signos cuentan igual que las tildes \u2014
- *   ap\u00f3strofos, guiones y espacios hay que escribirlos como son ("Saint
- *   John's", "Port-au-Prince"; decisi\u00f3n del due\u00f1o). Dos concesiones que no
- *   cambian lo que se escribe: el ap\u00f3strofo tipogr\u00e1fico (\u2019) de la fuente
- *   equivale al del teclado ('), el \u00fanico que se puede teclear; y varios
+ * - Difícil (y competitivo): los signos cuentan igual que las tildes —
+ *   apóstrofos, guiones y espacios hay que escribirlos como son ("Saint
+ *   John's", "Port-au-Prince"; decisión del dueño). Concesiones que no
+ *   cambian lo que se escribe, solo con qué tecla sale: cualquier apóstrofo
+ *   (’ ‘ ´ ʼ ʻ `) vale como el del teclado ('); cualquier guion o raya
+ *   (‐ ‑ ‒ – —, los que ponen los teclados de móvil) vale como "-"; una tilde
+ *   pegada como carácter aparte (NFD) vale como la tilde normal; y varios
  *   espacios seguidos cuentan como uno.
- * - F\u00e1cil: adem\u00e1s de las tildes, se ignoran espacios, guiones, puntos, comas
- *   y ap\u00f3strofos ("saint johns", "portonovo", "washington dc").
+ * - Fácil: además de las tildes, se ignoran espacios, guiones, puntos, comas
+ *   y apóstrofos ("saint johns", "portonovo", "washington dc").
  */
 export function isAcceptedAnswer(
 	answer: string,
@@ -50,10 +51,9 @@ export function isAcceptedAnswer(
 }
 
 function normalizeCapital(value: string, difficulty: Difficulty): string {
-	const base = normalize(value, difficulty).replace(
-		/[\u2019\u2018\u02bb`]/g,
-		"'",
-	);
+	const base = normalize(value.normalize("NFC"), difficulty)
+		.replace(/[\u2019\u2018\u00b4\u02bc\u02bb`]/g, "'")
+		.replace(/[\u2010-\u2014]/g, "-");
 
 	return difficulty === "easy"
 		? base.replace(/[\s.,'-]/g, "")

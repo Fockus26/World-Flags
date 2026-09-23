@@ -100,7 +100,10 @@ export function GameTypeToggle({
 						// El ancho sale del hueco real: el 100% menos el `p-1` de los dos
 						// lados, repartido entre los juegos que haya. El desplazamiento va
 						// en múltiplos de ese ancho, así que no hay que sumarle el padding.
-						className="absolute inset-y-1 left-1 rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] transition-transform duration-200 ease-in-out"
+						// En alto contraste el navegador pintaría la píldora del color
+						// del fondo y no se vería cuál está elegida: ahí va en los
+						// colores de sistema de "seleccionado" (Highlight/HighlightText).
+						className="absolute inset-y-1 left-1 rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] transition-transform duration-200 ease-in-out forced-color-adjust-none forced-colors:bg-[Highlight]"
 						style={{
 							width: `calc((100% - 0.5rem) / ${GAME_TYPES.length})`,
 							transform: `translateX(${selectedIndex * 100}%)`,
@@ -128,11 +131,11 @@ export function GameTypeToggle({
 							// en claro y 6,64:1 en oscuro.
 							className={`
 								relative z-10 flex flex-1 cursor-pointer items-center justify-center gap-1.5
-								rounded-[calc(var(--radius)-2px)] py-2
+								min-h-11 rounded-[calc(var(--radius)-2px)] py-2
 								transition-colors duration-150 ease-in-out
 								has-focus-visible:outline has-focus-visible:outline-2 has-focus-visible:outline-offset-2
 								has-focus-visible:outline-[var(--focus)]
-								${checked ? "text-[var(--btn-contained-fg)]" : "text-[var(--default-foreground)]"}
+								${checked ? "text-[var(--btn-contained-fg)] forced-color-adjust-none forced-colors:text-[HighlightText]" : "text-[var(--default-foreground)]"}
 							`}
 						>
 							<input
