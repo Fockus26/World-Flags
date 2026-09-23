@@ -537,3 +537,26 @@ Verificado sin fallos:
     practicaba en fácil vuelve a difícil sin aviso (`startGame`).
   - Banderas tampoco normaliza NFC (`normalize` compartida).
   - Enviar vacío no muestra ningún mensaje.
+
+## Verificación con cuenta real (2026-09-23, con permiso del dueño)
+
+- **Supabase:** columna `capitals_game` aplicada al proyecto (migración
+  `capitals_game`, `jsonb not null default '{}'`), comprobada en
+  `information_schema`.
+- **Rush de "Todo el mundo" con sesión iniciada:**
+  - Las 197 capitales se respondieron por script y el rush terminó en 23,30 s.
+  - Se desbloquearon los tres logros de Capitales.
+  - La fila `capitals:world` apareció en `leaderboard_entries` y en el modal
+    de ranking, en la pestaña Capitales, como #1.
+- **Segundo dispositivo:** simulado borrando el progreso local sin cerrar sesión
+  y recargando. Todo llegó de la nube: 197 capitales, el mejor tiempo y el juego
+  elegido. Banderas (3) y Países (0) sin cambios.
+- **A1 confirmado en navegador:** con el bundle de `main` en otro puerto y
+  `gameType: "capitals"` en la configuración, la app se queda en blanco con
+  `Cannot read properties of undefined (reading 'countryHistory')`.
+- **Lector de pantalla:** no se pudo escuchar Narrador (no hay salida de texto
+  verificable). Se comprobó el árbol de accesibilidad, que es lo que lee:
+  - El input recibe el foco con el nombre "¿Cuál es la capital de Bolivia?".
+  - Al fallar, un `role="alert"` contiene la respuesta, "También vale…" y la
+    nota.
+  - Enter envía la respuesta (Playwright).
