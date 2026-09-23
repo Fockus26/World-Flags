@@ -76,6 +76,13 @@ export function Session() {
 	// mismo pase en el que detecta el cambio, antes de evaluar si expiró —
 	// si no, lee el `timeLeft` viejo (0) de la bandera anterior y salta dos.
 	const timerCodeRef = useRef<string | null>(null);
+	// Qué admite la tarjeta actual: responderla ("idle") o calificarla
+	// ("answered"). `answerStatus` no sirve de guarda: un manejador lee el
+	// valor de su render, así que dos Enter seguidos, o dos pulsaciones de
+	// 1-4, llegaban antes del siguiente render y respondían o calificaban dos
+	// veces la misma tarjeta — en competitivo, el segundo Enter saltaba la
+	// bandera siguiente. Un ref cambia al momento.
+	const cardStepRef = useRef<"idle" | "answered">("idle");
 
 	const practiceQueue = usePracticeQueue({
 		initialCodes: countries.map((country) => country.code),
@@ -260,6 +267,7 @@ export function Session() {
 		setCurrentIndex((currentValue) => currentValue + 1);
 		setAnswer("");
 		setAnswerStatus("idle");
+		cardStepRef.current = "idle";
 	}
 
 	/** Congela el cronómetro durante la transición y lo reanuda al avanzar, sin contar esa espera. */
@@ -276,9 +284,15 @@ export function Session() {
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (!currentCountry || answerStatus !== "idle" || !answer.trim()) {
+		if (
+			!currentCountry ||
+			cardStepRef.current !== "idle" ||
+			answerStatus !== "idle" ||
+			!answer.trim()
+		) {
 			return;
 		}
+		cardStepRef.current = "answered";
 		const isCorrect = isCorrectAnswer(
 			answer,
 			currentCountry.name,
@@ -326,6 +340,8 @@ export function Session() {
 	}
 
 	function handleGrade(grade: ReviewGrade) {
+		if (cardStepRef.current !== "answered") return;
+		cardStepRef.current = "idle";
 		practiceQueue.grade(grade);
 		setIsSkipPending(false);
 		setAnswer("");
@@ -333,7 +349,14 @@ export function Session() {
 	}
 
 	function handleSkip() {
-		if (!currentCountry || answerStatus !== "idle") return;
+		if (
+			!currentCountry ||
+			cardStepRef.current !== "idle" ||
+			answerStatus !== "idle"
+		) {
+			return;
+		}
+		cardStepRef.current = "answered";
 
 		// Hasta ahora un skip era indistinguible de un fallo (ambos caían como
 		// `false`); se cuenta aparte para los logros de "sin saltarse ninguna".

@@ -37,6 +37,11 @@ export function DailyPractice({
 }: DailyPracticeProps) {
 	const { learningData, gradeCountryReview } = useGame();
 	const [isRevealed, setIsRevealed] = useState(false);
+	// Si la tarjeta actual ya está revelada y a la espera de su nota. Igual que
+	// en `Session`: `isRevealed` es el valor del render, así que dos
+	// pulsaciones de 1-4 seguidas calificaban dos veces la misma tarjeta. Un
+	// ref cambia al momento.
+	const isAwaitingGradeRef = useRef(false);
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 	const correctAnswersRef = useRef(0);
 	const startTimeRef = useRef(Date.now());
@@ -78,7 +83,14 @@ export function DailyPractice({
 		(country) => country.code === currentCode,
 	);
 
+	function reveal() {
+		isAwaitingGradeRef.current = true;
+		setIsRevealed(true);
+	}
+
 	function handleGrade(gradeValue: ReviewGrade) {
+		if (!isAwaitingGradeRef.current) return;
+		isAwaitingGradeRef.current = false;
 		grade(gradeValue);
 		setIsRevealed(false);
 	}
@@ -90,7 +102,7 @@ export function DailyPractice({
 			if (!isRevealed) {
 				if (event.code === "Space" || event.key === "Enter") {
 					event.preventDefault();
-					setIsRevealed(true);
+					reveal();
 				}
 				return;
 			}
@@ -104,7 +116,7 @@ export function DailyPractice({
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
 		// biome-ignore lint/correctness/useExhaustiveDependencies: handleGrade estabilizado por React Compiler (ver docs/components.md)
-	}, [isRevealed, isExitModalOpen, handleGrade]);
+	}, [isRevealed, isExitModalOpen, handleGrade, reveal]);
 
 	// Nada que practicar (la cola quedó vacía tras filtrar): de vuelta a la
 	// configuración en vez de una pantalla en blanco. Sale por `onAbandon`,
@@ -145,7 +157,7 @@ export function DailyPractice({
 						{!isRevealed ? (
 							<button
 								type="button"
-								onClick={() => setIsRevealed(true)}
+								onClick={reveal}
 								className="m-0 cursor-pointer border-0 bg-transparent p-0 text-center text-[0.95rem] text-text-placeholder animate-in fade-in-0 duration-150"
 							>
 								Presiona{" "}

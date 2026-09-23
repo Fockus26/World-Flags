@@ -9,6 +9,16 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [1.0.1] - 2026-09-23
+
+### Corregido
+
+- Al pulsar Enter dos veces seguidas en el competitivo de Banderas ya no se
+  salta la bandera siguiente.
+- Pulsar dos veces seguidas una tecla del 1 al 4 al calificar (en la práctica
+  de Banderas y en la práctica diaria) ya no califica dos veces la misma
+  tarjeta.
+
 ## [1.0.0] - 2026-09-21
 
 ### Añadido
