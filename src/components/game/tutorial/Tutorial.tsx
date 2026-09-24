@@ -138,7 +138,7 @@ export function Tutorial({ onClose }: TutorialProps) {
 						id={HEADING_ID}
 						ref={headingRef}
 						tabIndex={-1}
-						className="m-0 min-w-0 text-base font-bold text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)] sm:text-lg"
+						className="m-0 min-w-0 text-base font-bold text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface-soft sm:text-lg"
 					>
 						<span className="block text-xs font-bold text-text-placeholder">
 							{TUTORIAL_TEXTS.stepLabel(stepIndex + 1, TUTORIAL_STEPS.length)}

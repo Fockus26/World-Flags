@@ -126,9 +126,11 @@ const structuredData = {
 	</head>
 
 	<body>
+		<!-- Anillo en `primary-hover` (D101): el `primary-border` de antes daba
+		     ~2:1 contra el fondo, por debajo del 3:1 de un anillo de foco. -->
 		<a
 			href="#main-content"
-			class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-1000 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:font-bold focus:text-primary-soft focus:outline-3 focus:outline-offset-3 focus:outline-primary-border"
+			class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-1000 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:font-bold focus:text-primary-soft focus:outline-3 focus:outline-offset-3 focus:outline-primary-hover"
 		>
 			Saltar al contenido principal
 		</a>

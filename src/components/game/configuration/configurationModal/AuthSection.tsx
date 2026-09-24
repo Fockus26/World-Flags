@@ -240,7 +240,7 @@ export function AuthSection() {
 						type="button"
 						role="tab"
 						aria-selected={mode === item}
-						className="relative flex-1 cursor-pointer px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-placeholder transition-colors duration-150 hover:text-surface-soft active:text-surface-soft aria-selected:text-surface-soft focus-visible:text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--focus)]"
+						className="relative flex-1 cursor-pointer px-[0.2rem] py-2 text-center font-[inherit] font-bold text-text-placeholder transition-colors duration-150 hover:text-surface-soft aria-selected:text-surface-soft focus-visible:text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-surface-soft"
 						onClick={() => {
 							setMode(item);
 							setError(null);

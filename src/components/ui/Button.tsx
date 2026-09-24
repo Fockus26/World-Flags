@@ -37,7 +37,8 @@ export interface ButtonProps {
 
 /**
  * HeroUI pinta el botón con las custom props `--button-bg`,
- * `--button-bg-hover`, `--button-bg-pressed` y `--button-fg`. Se usa el
+ * `--button-bg-hover`, `--button-bg-pressed` y `--button-fg` (y el anillo de
+ * foco con `--focus`). Se usa el
  * `variant="primary"` de HeroUI como base (layout, press, focus ring, radio)
  * y se reescriben esas variables con los tokens de marca, conservando los
  * 6 colores × 4 variantes que ya usaba el juego.
@@ -91,7 +92,17 @@ function readableFg(base: string): string {
 
 function colorVars(color: ButtonColor, variant: ButtonVariant): CSSProperties {
 	const c = brand[color];
-	const style = { "--button-bg-pressed": c.hover } as Record<string, string>;
+	const style = {
+		"--button-bg-pressed": c.hover,
+		// Anillo de foco del color del botón (D101). HeroUI lo pinta con
+		// `ring-focus` = `var(--focus)` (morado para todos); se pisa aquí, en
+		// el propio botón. Va el token `-hover`, no el base: en claro el base
+		// de `success`/`warning` da 2,68/2,77:1 contra `--background` (falla
+		// el 3:1 de un anillo) y el `-hover` 3,88:1; en oscuro el `-hover` es
+		// más claro y da ≥7,9:1. Un solo tono por color, igual en las 4
+		// variantes. (`success` usa el token y no la mezcla de su `hover`.)
+		"--focus": `var(--color-${color}-hover)`,
+	} as Record<string, string>;
 
 	switch (variant) {
 		case "contained":
