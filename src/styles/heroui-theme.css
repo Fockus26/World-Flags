@@ -50,7 +50,9 @@
 		--separator: #ece9f6;
 
 		--accent: #6d5ef0;
-		--accent-foreground: #f7f6ff;
+		/* Blanco puro (D106): el #f7f6ff de antes daba 4,34:1 sobre el morado
+		   y fallaba AA en la opción marcada de `OptionTile`; blanco da 4,66:1. */
+		--accent-foreground: #ffffff;
 		--secondary: #b34bd1;
 		--secondary-foreground: #f9f0fc;
 
