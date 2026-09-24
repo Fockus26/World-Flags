@@ -25,6 +25,7 @@ import type {
 import {
 	createSessionRecord,
 	fromGameView,
+	getBestTimeKey,
 	getDueCountries,
 	getUnpracticedCodesToday,
 	hasPracticedCountryToday,
@@ -251,9 +252,11 @@ export function useGame() {
 			// (D033): un rush de Países abandonado a medio camino no debe
 			// mejorar ni crear una marca.
 			if (region && result.completed) {
+				// "Todo el mundo" va a la clave de la regla vigente del juego
+				// (D076): una marca nueva nunca compite con una de la regla vieja.
 				const view = registerRegionBestTime(
 					toGameView(updatedData, gameType),
-					region,
+					getBestTimeKey(region, gameType),
 					result.elapsedMs,
 				);
 				updatedData = fromGameView(updatedData, view, gameType);

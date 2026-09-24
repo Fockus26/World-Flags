@@ -10,6 +10,7 @@ import type { GameType } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
 import { isCatalogCountryCode } from "@/utils/country-catalog";
 import { toGameView } from "@/utils/learning-storage";
+import { playSound } from "@/utils/sound";
 import { CountryClozeCard } from "./countries/CountryClozeCard";
 import { isCardGameType, SESSION_CARDS } from "./session-cards";
 
@@ -93,6 +94,10 @@ export function DailyPractice({
 	function handleGrade(gradeValue: ReviewGrade) {
 		if (!isAwaitingGradeRef.current) return;
 		isAwaitingGradeRef.current = false;
+		// Aquí no se escribe la respuesta: quien juega revela y se califica,
+		// así que el acierto o el fallo es su nota. "Otra vez" es el único
+		// lapso (el mismo criterio que cuenta los aciertos arriba) (D083).
+		playSound(gradeValue === "again" ? "incorrect" : "correct");
 		grade(gradeValue);
 		setIsRevealed(false);
 	}
