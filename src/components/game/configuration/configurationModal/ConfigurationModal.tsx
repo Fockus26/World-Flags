@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import { ReleaseNotesModal } from "@/components/app/ReleaseNotesModal";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { ModalCloseButton } from "@/components/ui/ModalCloseButton";
 import { APP_VERSION } from "@/data/changelog";
 import type {
 	Difficulty,
@@ -132,15 +133,7 @@ export function ConfigurationModal({
 		>
 			<header className="mb-3 flex items-center justify-between">
 				<h2 id="user-modal-title">Perfil y configuración</h2>
-				<Button
-					variant="text"
-					color="danger"
-					type="button"
-					fullWidth={false}
-					onClick={onClose}
-				>
-					Cerrar
-				</Button>
+				<ModalCloseButton onClose={onClose} />
 			</header>
 
 			<Tabs
