@@ -37,6 +37,12 @@ interface AnswerFormProps {
 	 * que el lector de pantalla lo anuncie con el aviso.
 	 */
 	answerNote?: ReactNode;
+	/**
+	 * Competitivo: el castigo que acaba de sumar el fallo o el salto ("+10 s
+	 * al cronómetro", D075). Va dentro del aviso de fallo, en su propia línea,
+	 * para que se anuncie con él. ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #26).
+	 */
+	penaltyLabel?: string;
 	/** Expone el input real al padre — lo necesita el modo Países como origen de la animación de "vuelo" hacia el tablero. */
 	inputRef?: RefObject<HTMLInputElement | null>;
 }
@@ -55,6 +61,7 @@ export function AnswerForm({
 	placeholder = "Escribe el nombre del país",
 	correctSuffix,
 	answerNote,
+	penaltyLabel,
 	inputRef,
 }: AnswerFormProps) {
 	const isAnswerChecked = answerStatus !== "idle";
@@ -107,6 +114,11 @@ export function AnswerForm({
 					<FeedbackMessage key="incorrect" variant="danger" role="alert">
 						La respuesta correcta es <strong>{countryName}</strong>
 						{answerNote}
+						{penaltyLabel && (
+							<span className="block font-extrabold tabular-nums">
+								{penaltyLabel}
+							</span>
+						)}
 					</FeedbackMessage>
 				)}
 			</AnimatePresence>

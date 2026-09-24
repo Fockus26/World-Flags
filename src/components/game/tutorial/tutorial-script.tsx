@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { GAME_TYPE_LABELS, REGION_LABELS } from "@/types/country";
+import { RUSH_PENALTY_SUMMARY } from "@/utils/rush-penalty";
 import { TUTORIAL_REGION } from "@/utils/tutorial-sandbox";
 
 /**
@@ -98,8 +99,9 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
 				</p>
 				<p>
 					En <strong>Competitivo</strong> es una carrera: se cronometra la
-					partida entera, fallar penaliza, y tu mejor tiempo de &laquo;Todo el
-					mundo&raquo; entra en el ranking público.
+					partida entera (en Banderas y Capitales, {RUSH_PENALTY_SUMMARY}), y tu
+					mejor tiempo de &laquo;Todo el mundo&raquo; entra en el ranking
+					público.
 				</p>
 			</>
 		),

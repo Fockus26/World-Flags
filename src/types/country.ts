@@ -108,14 +108,56 @@ export const GAME_TYPE_NOUNS: Record<GameType, string> = {
 };
 
 /**
+ * Castigo del competitivo de Banderas y Capitales (D075): cada respuesta
+ * incorrecta y cada salto suman este tiempo al cronómetro. El rush de Países
+ * no tiene castigo (se completa o se rinde, D033). Cambiar estos números
+ * cambia la regla: los tiempos dejan de ser comparables y hace falta una
+ * clave nueva en `WORLD_BEST_TIME_KEYS` y en `LEADERBOARD_SCOPES` (D076).
+ */
+export const RUSH_WRONG_PENALTY_MS = 10_000;
+export const RUSH_SKIP_PENALTY_MS = 20_000;
+
+/**
+ * Dónde se guarda en `regionBestTimes` el mejor tiempo de "Todo el mundo".
+ * `"world"` es la de siempre; `"world@2"` la de la regla de castigo 2
+ * (+10 s / +20 s, D075). La marca de versión va en la clave y no en un campo
+ * aparte porque así un cliente viejo (el SW lo mantiene en caché) no puede
+ * mezclar reglas: solo escribe en `"world"`, y las claves que no conoce las
+ * conserva al normalizar y al fusionar (por el menor, clave a clave). Un
+ * campo de versión suelto, en cambio, lo perdería o lo dejaría desfasado de
+ * su tiempo (D076).
+ */
+export type WorldBestTimeKey = "world" | "world@2";
+
+/** Todas las claves de "Todo el mundo", la vigente y las de reglas anteriores. */
+export const WORLD_BEST_TIME_KEY_HISTORY: readonly WorldBestTimeKey[] = [
+	"world",
+	"world@2",
+];
+
+/**
+ * La clave vigente de cada juego (D076). Países no cambió de regla: sigue en
+ * `"world"`, con sus tiempos de siempre. En Banderas y Capitales, el `"world"`
+ * viejo se queda en los datos (lo siguen escribiendo los clientes viejos),
+ * pero ya no se muestra ni se sube al ranking.
+ */
+export const WORLD_BEST_TIME_KEYS: Record<GameType, WorldBestTimeKey> = {
+	countries: "world",
+	flags: "world@2",
+	capitals: "world@2",
+};
+
+/**
  * Scope del ranking público de "Todo el mundo" en `leaderboard_entries`
- * (PK `(user_id, scope)`, sin migración por juego). El de Banderas es
- * "world" a secas porque es el original: cambiarlo reiniciaría su ranking.
+ * (PK `(user_id, scope)`, sin migración por juego). Va a la par de
+ * `WORLD_BEST_TIME_KEYS`: con la regla 2 (D076) Banderas y Capitales
+ * estrenan scope, así el ranking empieza vacío y lo que siguen subiendo los
+ * clientes viejos (a "world" y "capitals:world") cae donde ya nadie lee.
  */
 export const LEADERBOARD_SCOPES: Record<GameType, string> = {
 	countries: "countries:world",
-	flags: "world",
-	capitals: "capitals:world",
+	flags: "flags:world@2",
+	capitals: "capitals:world@2",
 };
 
 /**
