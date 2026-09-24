@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 import { store } from "@/store";
 
@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { enqueueAchievementToasts } from "@/store/slices/achievementToastSlice";
 import { setLearningData } from "@/store/slices/gameSlice";
 
+import { createAchievementAnnouncementGate } from "@/utils/achievement-announcements";
 import { getNewlyUnlocked } from "@/utils/achievements";
 
 import { sealAchievements } from "@/utils/learning-storage";
@@ -49,8 +50,11 @@ export function AchievementsEffects() {
 	 * ya aprendidos dispararía media docena de avisos de golpe. Cualquier
 	 * desbloqueo posterior, con los datos ya asentados, sí es en vivo y se
 	 * anuncia.
+	 *
+	 * El silencio se gasta en esa primera pasada encuentre o no algo (ver
+	 * `utils/achievement-announcements.ts`).
 	 */
-	const isNextPassSilentRef = useRef(true);
+	const [announcementGate] = useState(createAchievementAnnouncementGate);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: learningData dispara el efecto intencionalmente, aunque el cuerpo lea el valor fresco del store (ver comentario abajo)
 	useEffect(() => {
@@ -61,7 +65,7 @@ export function AchievementsEffects() {
 			// próxima vez que se llegue a "ready" vuelva a ser una
 			// reconciliación silenciosa, no un anuncio en vivo — cubre también
 			// los logros que un login trae fusionados desde otro dispositivo.
-			isNextPassSilentRef.current = true;
+			announcementGate.reset();
 			return;
 		}
 
@@ -75,19 +79,24 @@ export function AchievementsEffects() {
 		const currentData = store.getState().game.learningData;
 		const newlyUnlocked = getNewlyUnlocked(currentData);
 
+		// Se consulta ANTES de mirar si hay delta: la primera pasada gasta el
+		// silencio aunque no encuentre nada. Si no, un perfil nuevo (sin
+		// logros que sembrar) lo dejaría pendiente y se tragaría el aviso de
+		// su primer logro de verdad.
+		const toAnnounce = announcementGate.pass(newlyUnlocked);
+
 		if (newlyUnlocked.length === 0) {
 			return;
 		}
 
 		dispatch(setLearningData(sealAchievements(currentData, newlyUnlocked)));
 
-		if (isNextPassSilentRef.current) {
-			isNextPassSilentRef.current = false;
+		if (toAnnounce.length === 0) {
 			return;
 		}
 
-		dispatch(enqueueAchievementToasts(newlyUnlocked));
-	}, [learningData, hydrationStatus, dispatch]);
+		dispatch(enqueueAchievementToasts(toAnnounce));
+	}, [learningData, hydrationStatus, announcementGate, dispatch]);
 
 	return null;
 }
