@@ -9,6 +9,7 @@ import { useGame } from "@/hooks/useGame";
 import { buildBoard, findMatch } from "@/utils/country-board";
 import { focusWhenVisible } from "@/utils/focus";
 import { getScopeLabel } from "@/utils/practice-scope";
+import { playSound } from "@/utils/sound";
 import type { BoardSlotState } from "./BoardSlot";
 import { CountryBoard } from "./CountryBoard";
 
@@ -236,6 +237,11 @@ export function CountriesRush() {
 
 		attemptCountry(code, true, "countries");
 
+		// Toque corto y suave, no el acierto entero: escribiendo rápido los
+		// países llegan seguidos y el acierto completo se amontonaría. El
+		// módulo descarta además los que llegan casi a la vez (D084).
+		playSound("found");
+
 		const fromEl = inputRef.current;
 		if (!fromEl) {
 			// Sin input que medir (no debería pasar, está siempre montado):
@@ -310,6 +316,10 @@ export function CountriesRush() {
 		const result = findMatch(inputValue, countries, foundCodes, "hard");
 
 		if (result.kind === "none") {
+			// El único fallo que se ve aquí: Enter con algo que no es un país
+			// del alcance. "Ya lo tienes" es un recordatorio, no un fallo, y
+			// no suena (D084).
+			playSound("incorrect");
 			setFeedback(`"${trimmed}" no es un país de ${scopeLabel}`);
 			return;
 		}

@@ -28,6 +28,7 @@ import {
 	calculateLearningProgress,
 	countLearnedCountries,
 	getDueCountries,
+	getWorldBestTime,
 	toGameView,
 } from "@/utils/learning-storage";
 import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
@@ -341,6 +342,7 @@ export function Configuration() {
 						}}
 						regionGameScores={gameView.regionGameScores}
 						regionBestTimes={gameView.regionBestTimes}
+						worldBestTime={getWorldBestTime(gameView.regionBestTimes, gameType)}
 						mode={mode}
 						getRegionPracticeProgress={(region) =>
 							getRegionPracticeProgress(region, gameType)

@@ -1,6 +1,11 @@
 import { supabase } from "@/lib/supabase";
 
-import type { UserLearningData } from "@/types/progress";
+import {
+	AVATAR_STYLES,
+	type AvatarStyle,
+	type UserLearningData,
+	type UserProfile,
+} from "@/types/progress";
 
 import {
 	normalizeLearningData,
@@ -345,21 +350,40 @@ export interface LeaderboardEntry {
 	userId: string;
 	displayName: string;
 	bestTimeMs: number;
+	/**
+	 * Avatar de la fila (D078). `null` en las filas anteriores a las columnas
+	 * `avatar_style`/`avatar_seed`, en las que sube un cliente viejo y con un
+	 * estilo que este cliente no conoce: se pinta la inicial del nombre.
+	 */
+	avatar: { style: AvatarStyle; seed: string } | null;
+}
+
+/** Perfil que acompaña al tiempo en cada fila del ranking. */
+type LeaderboardProfile = Pick<
+	UserProfile,
+	"name" | "avatarStyle" | "avatarSeed"
+>;
+
+function isAvatarStyle(value: unknown): value is AvatarStyle {
+	return (AVATAR_STYLES as readonly unknown[]).includes(value);
 }
 
 /**
- * Ranking completo de un scope ("world" por ahora), del más rápido al más
- * lento. Se trae completo (no solo el top N) para poder calcular en qué
- * puesto queda el usuario actual aunque no esté en el top 5 — la tabla
- * `leaderboard_entries` es pública y liviana (nombre + tiempo), así que esto
- * no debería ser un problema salvo con muchísimos usuarios.
+ * Ranking completo de un scope, del más rápido al más lento. Se trae
+ * completo (no solo el top N) para poder calcular en qué puesto queda el
+ * usuario actual aunque no esté en el top 20 — la tabla
+ * `leaderboard_entries` es pública y liviana (nombre, avatar y tiempo), así
+ * que esto no debería ser un problema salvo con muchísimos usuarios.
+ *
+ * Pide `avatar_style`/`avatar_seed`: las columnas tienen que existir antes de
+ * desplegar (`supabase/leaderboard-avatares.sql`, ya aplicado).
  */
 export async function fetchLeaderboard(
 	scope: string,
 ): Promise<LeaderboardEntry[]> {
 	const { data, error, status } = await supabase
 		.from("leaderboard_entries")
-		.select("user_id, display_name, best_time_ms")
+		.select("user_id, display_name, best_time_ms, avatar_style, avatar_seed")
 		.eq("scope", scope)
 		.order("best_time_ms", { ascending: true });
 
@@ -381,7 +405,80 @@ export async function fetchLeaderboard(
 		userId: row.user_id,
 		displayName: row.display_name,
 		bestTimeMs: row.best_time_ms,
+		avatar:
+			isAvatarStyle(row.avatar_style) && typeof row.avatar_seed === "string"
+				? { style: row.avatar_style, seed: row.avatar_seed }
+				: null,
 	}));
+}
+
+/**
+ * Nombre y avatar de todas las filas del usuario en el ranking, sin tocar sus
+ * tiempos (D079). Sin esto la fila solo se reescribe al batir la marca, y un
+ * cambio de nombre o de avatar no llegaría al ranking.
+ *
+ * Primero lee sus filas y solo escribe si alguna difiere: se llama en cada
+ * carga (así también se ponen al día las filas subidas por un cliente viejo,
+ * sin avatar) y una lectura cuesta menos que un `update` que no cambia nada.
+ * Mejor esfuerzo, como el resto del ranking: devuelve si quedó al día, para
+ * reintentar tras la siguiente sincronización buena si falló (D050).
+ */
+export async function syncLeaderboardProfile(
+	userId: string,
+	profile: LeaderboardProfile,
+): Promise<boolean> {
+	const { data, error, status } = await supabase
+		.from("leaderboard_entries")
+		.select("display_name, avatar_style, avatar_seed")
+		.eq("user_id", userId);
+
+	if (error) {
+		const cloudError = toCloudRequestError(
+			error,
+			status,
+			"Failed to read own leaderboard entries",
+		);
+
+		if (cloudError.kind === "server") {
+			console.error(cloudError.message, error);
+		}
+
+		return false;
+	}
+
+	const isUpToDate = (data ?? []).every(
+		(row) =>
+			row.display_name === profile.name &&
+			row.avatar_style === profile.avatarStyle &&
+			row.avatar_seed === profile.avatarSeed,
+	);
+
+	if (isUpToDate) return true;
+
+	const { error: updateError, status: updateStatus } = await supabase
+		.from("leaderboard_entries")
+		.update({
+			display_name: profile.name,
+			avatar_style: profile.avatarStyle,
+			avatar_seed: profile.avatarSeed,
+		})
+		.eq("user_id", userId);
+
+	if (updateError) {
+		const cloudError = toCloudRequestError(
+			updateError,
+			updateStatus,
+			"Failed to update own leaderboard profile",
+		);
+
+		if (cloudError.kind === "server") {
+			console.error(cloudError.message, updateError);
+		}
+
+		return false;
+	}
+
+	return true;
 }
 
 /**
@@ -395,13 +492,15 @@ export async function fetchLeaderboard(
 export async function upsertLeaderboardEntry(
 	userId: string,
 	scope: string,
-	displayName: string,
+	profile: LeaderboardProfile,
 	bestTimeMs: number,
 ): Promise<boolean> {
 	const { error, status } = await supabase.from("leaderboard_entries").upsert({
 		user_id: userId,
 		scope,
-		display_name: displayName,
+		display_name: profile.name,
+		avatar_style: profile.avatarStyle,
+		avatar_seed: profile.avatarSeed,
 		best_time_ms: bestTimeMs,
 		updated_at: new Date().toISOString(),
 	});

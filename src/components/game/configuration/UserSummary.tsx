@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { motionVariants } from "@/styles/animations";
 import { getCurrentStreak } from "@/utils/learning-storage";
+import { UserAvatar } from "./UserAvatar";
 
 interface UserSummaryProps {
 	name: string;
@@ -42,56 +42,6 @@ function truncateName(name: string): string {
 	return characters.length > MOBILE_NAME_MAX_CHARS
 		? `${characters.slice(0, MOBILE_NAME_MAX_CHARS).join("")}…`
 		: name;
-}
-
-/**
- * El avatar viene de dicebear (CDN externo): aunque los datos ya estén, la
- * imagen tarda en llegar, o no llega sin red. Mientras tanto se ve el
- * skeleton (que, como todos, espera `SKELETON_DELAY_MS` antes de verse: un
- * avatar en caché no parpadea); si falla, la inicial del nombre en vez de un
- * hueco. `UserSummary` le pone `key` con `src` para que un avatar nuevo vuelva
- * a empezar en "cargando".
- *
- * El skeleton se quita, no queda debajo: los avatares de dicebear tienen
- * fondo transparente y el brillo se vería a través de la imagen.
- *
- * Sin conexión (D052): un avatar ya visto sale de la caché HTTP del navegador
- * (dicebear lo sirve con `max-age` de ~1 año); si no está, en vez del disco
- * vacío se ve la inicial del nombre. Decorativa: el nombre ya va en el
- * `aria-label` del botón.
- */
-function AvatarImage({ src, name }: { src: string; name: string }) {
-	const [status, setStatus] = useState<"loading" | "loaded" | "error">(
-		"loading",
-	);
-
-	const initial = [...name.trim()][0]?.toUpperCase() ?? "";
-
-	return (
-		<span className={`relative ${AVATAR_BOX_CLASS}`}>
-			{status === "loading" && (
-				<Skeleton className="absolute inset-0 rounded-full" />
-			)}
-
-			{status === "error" && (
-				<span
-					className="absolute inset-0 grid place-items-center rounded-full bg-primary-soft text-xl font-black text-surface-soft sm:text-2xl"
-					aria-hidden="true"
-				>
-					{initial}
-				</span>
-			)}
-
-			<img
-				className={`size-full rounded-full object-cover ${status === "loaded" ? "" : "opacity-0"}`}
-				src={src}
-				alt=""
-				aria-hidden="true"
-				onLoad={() => setStatus("loaded")}
-				onError={() => setStatus("error")}
-			/>
-		</span>
-	);
 }
 
 export function UserSummary({
@@ -134,10 +84,13 @@ export function UserSummary({
 				{isLoading ? (
 					<Skeleton className={AVATAR_BOX_CLASS} />
 				) : (
-					<AvatarImage
+					// Decorativo: el nombre ya va en el `aria-label` del botón.
+					<UserAvatar
 						key={`${avatarUrl}|${isOnline}`}
 						src={avatarUrl}
 						name={name}
+						className={AVATAR_BOX_CLASS}
+						initialClassName="text-xl sm:text-2xl"
 					/>
 				)}
 

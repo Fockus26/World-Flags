@@ -10,8 +10,11 @@ import {
 	type PracticeScope,
 	REGIONS,
 	type Region,
+	WORLD_BEST_TIME_KEY_HISTORY,
+	WORLD_BEST_TIME_KEYS,
 } from "@/types/country";
 import type {
+	BestTimeKey,
 	CountriesLearningHistory,
 	DailyReminderPreference,
 	FieldUpdatedAt,
@@ -639,6 +642,45 @@ export function saveTutorialSeen(): void {
 	}
 }
 
+const SOUND_ENABLED_STORAGE_KEY = "world-flags-sound-enabled";
+
+/**
+ * ¿Suenan los efectos de acierto, fallo y logro en ESTE dispositivo (D081)?
+ *
+ * Por dispositivo, como la marca del tutorial (D071), y no en
+ * `UserLearningData`: es una preferencia del aparato (el móvil en el metro
+ * callado, el portátil en casa con sonido), costaría una columna nueva en
+ * Supabase con su SQL a mano, y el invitado también tiene que poder apagarlo.
+ *
+ * Activado por defecto: `true` si nunca se guardó, si lo guardado no es
+ * `"false"` o si no se puede leer. Solo `"false"` lo apaga.
+ */
+export function getSoundEnabled(): boolean {
+	if (typeof window === "undefined") return true;
+
+	try {
+		return window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) !== "false";
+	} catch {
+		return true;
+	}
+}
+
+/**
+ * Escribirla solo se hace desde el interruptor de la pestaña Juego
+ * (`useSoundPreference`). La partida guiada lee la preferencia (vía
+ * `utils/sound.ts`) pero no puede escribirla: la vigila
+ * `tests/unit/tutorial-sandbox.test.ts`.
+ */
+export function saveSoundEnabled(enabled: boolean): void {
+	try {
+		window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, String(enabled));
+	} catch {
+		// Sin acceso a localStorage no hay dónde recordarlo y sigue sonando:
+		// en ese navegador tampoco se guarda el progreso, así que es el menor
+		// de sus problemas.
+	}
+}
+
 export function saveDailyReminderAnswer(
 	currentData: UserLearningData,
 	optedIn: boolean,
@@ -776,10 +818,52 @@ export function registerRegionGame(
 	return updatedData;
 }
 
-/** Modo competitivo ("rush"): guarda el tiempo solo si mejora la marca previa. */
+/**
+ * Dónde se guarda el mejor tiempo de un rush de `region` en `gameType`: el
+ * continente tal cual, o la clave de "Todo el mundo" de la regla vigente de
+ * ese juego (D076).
+ */
+export function getBestTimeKey(
+	region: PracticeRegion,
+	gameType: GameType,
+): BestTimeKey {
+	return region === "world" ? WORLD_BEST_TIME_KEYS[gameType] : region;
+}
+
+/**
+ * El mejor tiempo de "Todo el mundo" de `gameType` con la regla vigente: el
+ * que se muestra y el que se sube al ranking. Las marcas de una regla
+ * anterior no cuentan (D076).
+ */
+export function getWorldBestTime(
+	regionBestTimes: RegionBestTimes,
+	gameType: GameType,
+): number | undefined {
+	return regionBestTimes[WORLD_BEST_TIME_KEYS[gameType]];
+}
+
+/**
+ * El mejor tiempo de "Todo el mundo" con cualquier regla, vigente o anterior.
+ * Solo para los logros de "completa el rush de Todo el mundo": se ganaron con
+ * la regla de entonces y siguen valiendo (son retroactivos, D070).
+ */
+export function getAnyRuleWorldBestTime(
+	regionBestTimes: RegionBestTimes,
+): number | undefined {
+	const times = WORLD_BEST_TIME_KEY_HISTORY.map(
+		(key) => regionBestTimes[key],
+	).filter((time): time is number => time !== undefined);
+
+	return times.length > 0 ? Math.min(...times) : undefined;
+}
+
+/**
+ * Modo competitivo ("rush"): guarda el tiempo solo si mejora la marca previa.
+ * `region` es la clave ya resuelta (ver `getBestTimeKey`).
+ */
 export function registerRegionBestTime(
 	currentData: UserLearningData,
-	region: PracticeRegion,
+	region: BestTimeKey,
 	elapsedMs: number,
 ): UserLearningData {
 	const previousBest = currentData.regionBestTimes[region];
@@ -982,7 +1066,13 @@ function mergeLastPracticeByCountry(
 	return merged;
 }
 
-/** Por continente (o "world"), el menor tiempo — la mejor marca de rush. */
+/**
+ * Por clave (continente, o "Todo el mundo" de cada regla), el menor tiempo —
+ * la mejor marca de rush. Clave a clave y nunca entre claves: una marca de
+ * "world" (regla vieja) jamás pasa a "world@2", venga de la nube, de otro
+ * dispositivo o de la base (D076). Las claves que este cliente no conoce se
+ * conservan, igual que hacen con "world@2" los clientes anteriores.
+ */
 function mergeRegionBestTimes(
 	remote: RegionBestTimes,
 	local: RegionBestTimes,
@@ -990,7 +1080,7 @@ function mergeRegionBestTimes(
 	const merged: RegionBestTimes = { ...remote };
 
 	for (const [region, timeMs] of Object.entries(local) as [
-		PracticeRegion,
+		BestTimeKey,
 		number | undefined,
 	][]) {
 		if (timeMs === undefined) continue;
