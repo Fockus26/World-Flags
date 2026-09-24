@@ -9,7 +9,7 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
-## [2.0.0] - 2026-09-23
+## [2.0.0] - 2026-09-24
 
 ### Añadido
 
@@ -30,6 +30,15 @@ Cómo se añade una entrada y cuándo se sube cada número: ver
   empezar; los de cada continente y los logros que ya tenías se quedan.
 - El ranking y los tiempos de Países no cambian: su competitivo no tiene
   castigo.
+
+## [1.3.0] - 2026-09-23
+
+### Cambiado
+
+- La ventana de Logros es más ancha y enseña varias tarjetas por fila, así ves
+  más logros de un vistazo sin tener que bajar tanto.
+- En Novedades solo se despliega la versión que estás usando; las anteriores
+  salen recogidas y se abren de una en una al pulsarlas.
 
 ## [1.2.0] - 2026-09-23
 
