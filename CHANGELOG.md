@@ -9,6 +9,13 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.1.3] - 2026-09-24
+
+### Corregido
+
+- Si empiezas desde cero, tu primer logro ya te avisa (y suena) al ganarlo.
+  Antes se guardaba sin decir nada y solo lo veías al abrir la lista de logros.
+
 ## [2.1.2] - 2026-09-24
 
 ### Corregido
