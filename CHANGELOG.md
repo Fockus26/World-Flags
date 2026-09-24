@@ -9,7 +9,7 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
-## [2.0.1] - 2026-09-24
+## [2.1.4] - 2026-09-24
 
 ### Cambiado
 
@@ -24,6 +24,56 @@ Cómo se añade una entrada y cuándo se sube cada número: ver
 - Algunos controles no marcaban nada al llegar a ellos con el teclado: los
   continentes y las casillas de países al elegir países sueltos, "Gestionar
   sesión" y la X de los avisos de logro. Ahora se ven.
+
+## [2.1.3] - 2026-09-24
+
+### Corregido
+
+- Si empiezas desde cero, tu primer logro ya te avisa (y suena) al ganarlo.
+  Antes se guardaba sin decir nada y solo lo veías al abrir la lista de logros.
+
+## [2.1.2] - 2026-09-24
+
+### Corregido
+
+- Al pedir otra vez el correo de confirmación de la cuenta ya no aparece
+  "Correo reenviado" si el envío falló: ahora se explica qué pasó para que
+  puedas volver a intentarlo.
+- El enlace del correo de confirmación te devuelve a la misma dirección desde
+  la que te registraste.
+
+## [2.1.1] - 2026-09-24
+
+### Corregido
+
+- En tema claro, el texto de la opción que tienes elegida en los ajustes de
+  partida (modo, orden, dificultad, temporizador y tema) se lee mejor: ahora es
+  blanco puro sobre el morado. También en la partida guiada.
+
+## [2.1.0] - 2026-09-24
+
+### Añadido
+
+- Ahora suena un sonido corto al acertar y otro al fallar, en Banderas, Países y
+  Capitales, en práctica, en competitivo y en la práctica diaria. Saltar una
+  pregunta suena como un fallo.
+- En el competitivo de Países cada país que encuentras suena con un toque corto,
+  para que no se amontonen si escribes rápido.
+- Al desbloquear logros suena una pequeña fanfarria, una sola vez aunque
+  consigas varios a la vez.
+- Puedes apagar los sonidos en Perfil y configuración, pestaña Juego, en
+  "Sonidos". Se guarda en este dispositivo.
+
+## [2.0.1] - 2026-09-24
+
+### Cambiado
+
+- En "Cómo se juega", la partida de ejemplo se juega al mismo tamaño que una
+  partida normal, en vez de en una ventana pequeña.
+- El recorrido ya no repite en cada paso que la partida es de ejemplo: lo dice
+  una vez, mientras la juegas.
+- En el último paso ya no sale "Saltar tutorial": para cerrar está "Empezar a
+  jugar".
 
 ## [2.0.0] - 2026-09-24
 

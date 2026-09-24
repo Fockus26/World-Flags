@@ -47,7 +47,8 @@ const OPTIONS = GAME_TYPES.map((gameType) => ({
  *
  * El texto de la opción marcada usa `--btn-contained-fg` (el mismo token que
  * el texto de un botón relleno), no `--accent-foreground`: ese daba 4,34:1
- * sobre el morado y fallaba AA, un hallazgo ya reportado dos veces.
+ * sobre el morado y fallaba AA, un hallazgo ya reportado dos veces. Desde
+ * D106 `--accent-foreground` es blanco en claro y los dos coinciden.
  *
  * No reutiliza `OptionTile` a propósito: ese componente es la base de otros
  * selectores del kit (tema, dificultad, modo de juego en `GameTab`) y cambiar

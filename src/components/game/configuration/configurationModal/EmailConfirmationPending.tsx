@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { useAuth } from "@/hooks/useAuth";
 import { spinTransition } from "@/styles/animations";
 
@@ -18,9 +19,10 @@ export function EmailConfirmationPending({
 	onCancel,
 }: EmailConfirmationPendingProps) {
 	const { signInWithEmail, resendConfirmationEmail } = useAuth();
-	const [resendState, setResendState] = useState<"idle" | "sending" | "sent">(
-		"idle",
-	);
+	const [resendState, setResendState] = useState<
+		"idle" | "sending" | "sent" | "error"
+	>("idle");
+	const [resendError, setResendError] = useState<string | null>(null);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: signInWithEmail está estabilizado por React Compiler (ver docs/components.md)
 	useEffect(() => {
@@ -33,7 +35,17 @@ export function EmailConfirmationPending({
 
 	async function handleResend() {
 		setResendState("sending");
-		await resendConfirmationEmail(email);
+		setResendError(null);
+		const { error } = await resendConfirmationEmail(email);
+
+		// Solo se confirma el reenvío si Supabase lo aceptó: puede rechazarlo por
+		// límite de envíos, dirección no autorizada en el mailer integrado o red.
+		if (error) {
+			setResendError(error);
+			setResendState("error");
+			return;
+		}
+
 		setResendState("sent");
 	}
 
@@ -67,6 +79,16 @@ export function EmailConfirmationPending({
 					Usar otro correo
 				</Button>
 			</div>
+
+			{resendState === "error" && resendError && (
+				<FeedbackMessage variant="danger" size="sm" role="alert">
+					No se pudo reenviar el correo: {resendError}
+				</FeedbackMessage>
+			)}
+
+			<p role="status" className="sr-only">
+				{resendState === "sent" ? `Te reenviamos el correo a ${email}.` : ""}
+			</p>
 		</div>
 	);
 }
