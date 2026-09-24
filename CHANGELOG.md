@@ -9,6 +9,14 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.1.1] - 2026-09-24
+
+### Corregido
+
+- En tema claro, el texto de la opción que tienes elegida en los ajustes de
+  partida (modo, orden, dificultad, temporizador y tema) se lee mejor: ahora es
+  blanco puro sobre el morado. También en la partida guiada.
+
 ## [2.1.0] - 2026-09-24
 
 ### Añadido
