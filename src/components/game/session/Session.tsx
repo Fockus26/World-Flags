@@ -13,6 +13,7 @@ import type { ReviewGrade } from "@/types/progress";
 import { toGameView } from "@/utils/learning-storage";
 import { getScopeLabel } from "@/utils/practice-scope";
 import { calculateScore } from "@/utils/score";
+import { playSound } from "@/utils/sound";
 import { AnswerForm } from "./AnswerForm";
 import { Header } from "./Header";
 import {
@@ -309,6 +310,9 @@ export function Session() {
 			configuration.difficulty,
 		);
 
+		// Suena lo mismo que se ve: el aviso de acierto o fallo (D083).
+		playSound(isCorrect ? "correct" : "incorrect");
+
 		if (configuration.mode === "competitive") {
 			attemptCountry(currentCountry.code, isCorrect, gameType);
 			// En competitivo cada bandera aparece una sola vez (avanza por
@@ -371,6 +375,12 @@ export function Session() {
 		// Hasta ahora un skip era indistinguible de un fallo (ambos caían como
 		// `false`); se cuenta aparte para los logros de "sin saltarse ninguna".
 		skippedAnswersRef.current += 1;
+
+		// Saltar se ve como un fallo en los dos modos (aviso rojo con la
+		// respuesta) y suena como tal: en competitivo penaliza, y en práctica
+		// se califica "otra vez" sola (D083). Vale también para el
+		// temporizador de práctica que se agota.
+		playSound("incorrect");
 
 		if (configuration.mode === "competitive") {
 			attemptCountry(currentCountry.code, false, gameType);

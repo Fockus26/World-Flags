@@ -18,6 +18,8 @@ import { toGameView } from "@/utils/learning-storage";
 import { isCorrectAnswer } from "@/utils/normalize-answer";
 import { getScopeLabel } from "@/utils/practice-scope";
 import { calculateScore } from "@/utils/score";
+// Solo reproduce y lee la preferencia; no escribe nada (D072, D080).
+import { playSound } from "@/utils/sound";
 import type { BoardSlotState } from "./BoardSlot";
 import { CountryClozeCard } from "./CountryClozeCard";
 
@@ -247,6 +249,9 @@ export function CountriesPractice({
 		if (!currentCountry || answerStatus !== "idle") return;
 
 		skippedAnswersRef.current += 1;
+		// Como en `Session`: saltar (o agotar el temporizador) se ve y suena
+		// como un fallo (D083).
+		playSound("incorrect");
 		recordFirstAttempt(currentCountry.code, false);
 		setIsSkipPending(true);
 		setAnswerStatus("incorrect");
@@ -278,6 +283,7 @@ export function CountriesPractice({
 		);
 
 		setAnswerStatus(isCorrect ? "correct" : "incorrect");
+		playSound(isCorrect ? "correct" : "incorrect");
 		// Un acierto con pistas cuenta igual para la puntuación (D034): las
 		// pistas ayudan a recordar, no sustituyen la calificación honesta que
 		// viene después (Otra vez/Difícil/Bien/Fácil).

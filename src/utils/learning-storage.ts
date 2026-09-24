@@ -639,6 +639,45 @@ export function saveTutorialSeen(): void {
 	}
 }
 
+const SOUND_ENABLED_STORAGE_KEY = "world-flags-sound-enabled";
+
+/**
+ * ¿Suenan los efectos de acierto, fallo y logro en ESTE dispositivo (D081)?
+ *
+ * Por dispositivo, como la marca del tutorial (D071), y no en
+ * `UserLearningData`: es una preferencia del aparato (el móvil en el metro
+ * callado, el portátil en casa con sonido), costaría una columna nueva en
+ * Supabase con su SQL a mano, y el invitado también tiene que poder apagarlo.
+ *
+ * Activado por defecto: `true` si nunca se guardó, si lo guardado no es
+ * `"false"` o si no se puede leer. Solo `"false"` lo apaga.
+ */
+export function getSoundEnabled(): boolean {
+	if (typeof window === "undefined") return true;
+
+	try {
+		return window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) !== "false";
+	} catch {
+		return true;
+	}
+}
+
+/**
+ * Escribirla solo se hace desde el interruptor de la pestaña Juego
+ * (`useSoundPreference`). La partida guiada lee la preferencia (vía
+ * `utils/sound.ts`) pero no puede escribirla: la vigila
+ * `tests/unit/tutorial-sandbox.test.ts`.
+ */
+export function saveSoundEnabled(enabled: boolean): void {
+	try {
+		window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, String(enabled));
+	} catch {
+		// Sin acceso a localStorage no hay dónde recordarlo y sigue sonando:
+		// en ese navegador tampoco se guarda el progreso, así que es el menor
+		// de sus problemas.
+	}
+}
+
 export function saveDailyReminderAnswer(
 	currentData: UserLearningData,
 	optedIn: boolean,
