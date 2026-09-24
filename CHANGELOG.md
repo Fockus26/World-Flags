@@ -9,6 +9,16 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.1.2] - 2026-09-24
+
+### Corregido
+
+- Al pedir otra vez el correo de confirmación de la cuenta ya no aparece
+  "Correo reenviado" si el envío falló: ahora se explica qué pasó para que
+  puedas volver a intentarlo.
+- El enlace del correo de confirmación te devuelve a la misma dirección desde
+  la que te registraste.
+
 ## [2.1.1] - 2026-09-24
 
 ### Corregido
