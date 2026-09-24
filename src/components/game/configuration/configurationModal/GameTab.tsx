@@ -13,6 +13,7 @@ import {
 	TIMER_DURATIONS,
 	type TimerDuration,
 } from "@/types/country";
+import { RUSH_PENALTY_SUMMARY } from "@/utils/rush-penalty";
 
 /** Botón "?" enfocable: el texto de ayuda va en `aria-label` (lo oyen los
  *  lectores de pantalla al enfocar) y también en el tooltip visual para ratón. */
@@ -63,8 +64,10 @@ export function GameTab({
 				legend={
 					<span className="inline-flex items-center gap-2">
 						Modo de juego
-						{/* ⚠️ Copy provisional — `CONTENT_CHECKLIST.md` #21 ("cada respuesta": vale para los tres juegos). */}
-						<HelpHint label="Competitivo: contrarreloj, guarda tu mejor tiempo; fallar penaliza. Práctica: sin cronómetro, calificas cada respuesta para repasarla." />
+						{/* ⚠️ Copy provisional — `CONTENT_CHECKLIST.md` #21 ("cada respuesta": vale para los tres juegos) y #26 (castigo, D075: el rush de Países no tiene). */}
+						<HelpHint
+							label={`Competitivo: contrarreloj, guarda tu mejor tiempo; en Banderas y Capitales ${RUSH_PENALTY_SUMMARY}. Práctica: sin cronómetro, calificas cada respuesta para repasarla.`}
+						/>
 					</span>
 				}
 			>

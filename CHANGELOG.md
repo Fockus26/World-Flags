@@ -9,7 +9,7 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
-## [1.3.0] - 2026-09-23
+## [2.1.0] - 2026-09-24
 
 ### Añadido
 
@@ -22,6 +22,48 @@ Cómo se añade una entrada y cuándo se sube cada número: ver
   consigas varios a la vez.
 - Puedes apagar los sonidos en Perfil y configuración, pestaña Juego, en
   "Sonidos". Se guarda en este dispositivo.
+
+## [2.0.1] - 2026-09-24
+
+### Cambiado
+
+- En "Cómo se juega", la partida de ejemplo se juega al mismo tamaño que una
+  partida normal, en vez de en una ventana pequeña.
+- El recorrido ya no repite en cada paso que la partida es de ejemplo: lo dice
+  una vez, mientras la juegas.
+- En el último paso ya no sale "Saltar tutorial": para cerrar está "Empezar a
+  jugar".
+
+## [2.0.0] - 2026-09-24
+
+### Añadido
+
+- El ranking enseña ahora los 20 mejores tiempos, y si estás más abajo sigues
+  viendo tu puesto debajo.
+- Cada jugador del ranking aparece con su avatar. Si cambias tu nombre o tu
+  avatar, el ranking se actualiza solo.
+- Mientras el ranking carga, ves la forma de la lista en vez de un "Cargando".
+
+### Cambiado
+
+- El modo competitivo de Banderas y Capitales castiga más: cada respuesta
+  incorrecta suma 10 segundos al cronómetro y cada bandera o capital saltada,
+  20 segundos. Al fallar ves cuánto se sumó.
+- Con el castigo nuevo, los tiempos de antes ya no se pueden comparar con los
+  de ahora, así que el ranking de Banderas y el de Capitales empiezan de cero.
+  Tu mejor tiempo de "Todo el mundo" en esos dos juegos también vuelve a
+  empezar; los de cada continente y los logros que ya tenías se quedan.
+- El ranking y los tiempos de Países no cambian: su competitivo no tiene
+  castigo.
+
+## [1.3.0] - 2026-09-23
+
+### Cambiado
+
+- La ventana de Logros es más ancha y enseña varias tarjetas por fila, así ves
+  más logros de un vistazo sin tener que bajar tanto.
+- En Novedades solo se despliega la versión que estás usando; las anteriores
+  salen recogidas y se abren de una en una al pulsarlas.
 
 ## [1.2.0] - 2026-09-23
 

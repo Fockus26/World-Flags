@@ -8,10 +8,13 @@ import {
 	type AnswerStatus,
 	DEFAULT_TIMER_DURATION,
 	type Region,
+	RUSH_SKIP_PENALTY_MS,
+	RUSH_WRONG_PENALTY_MS,
 } from "@/types/country";
 import type { ReviewGrade } from "@/types/progress";
 import { toGameView } from "@/utils/learning-storage";
 import { getScopeLabel } from "@/utils/practice-scope";
+import { formatPenalty } from "@/utils/rush-penalty";
 import { calculateScore } from "@/utils/score";
 import { playSound } from "@/utils/sound";
 import { AnswerForm } from "./AnswerForm";
@@ -30,9 +33,9 @@ const GRADE_BY_KEY: Record<string, ReviewGrade> = {
 };
 
 // Modo competitivo ("rush"): cada respuesta incorrecta o skip suma una
-// penalización al cronómetro en vez de bloquear el avance.
-const RUSH_WRONG_PENALTY_MS = 2000;
-const RUSH_SKIP_PENALTY_MS = 5000;
+// penalización al cronómetro en vez de bloquear el avance (+10 s / +20 s,
+// D075; las constantes viven en `types/country.ts` junto a la clave de
+// ranking que depende de ellas).
 const RUSH_ADVANCE_MS = 900;
 
 // Práctica: al usar skip se revela la respuesta un momento antes de
@@ -72,6 +75,8 @@ export function Session() {
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 	const [timeLeft, setTimeLeft] = useState<number>(timerDuration);
 	const [elapsedMs, setElapsedMs] = useState(0);
+	/** Competitivo: castigo de la última respuesta, para decirlo en el aviso de fallo. */
+	const [penaltyMs, setPenaltyMs] = useState<number | null>(null);
 	// Mientras se revela la respuesta tras un skip en práctica, no tiene
 	// sentido mostrar los botones de calificación: "otra vez" ya quedó
 	// decidido automáticamente.
@@ -278,6 +283,7 @@ export function Session() {
 		setCurrentIndex((currentValue) => currentValue + 1);
 		setAnswer("");
 		setAnswerStatus("idle");
+		setPenaltyMs(null);
 		cardStepRef.current = "idle";
 	}
 
@@ -320,6 +326,7 @@ export function Session() {
 			recordFirstAttempt(currentCountry.code, isCorrect);
 			if (!isCorrect && startTimeRef.current !== null) {
 				startTimeRef.current -= RUSH_WRONG_PENALTY_MS;
+				setPenaltyMs(RUSH_WRONG_PENALTY_MS);
 			}
 			setAnswerStatus(isCorrect ? "correct" : "incorrect");
 			pauseThenAdvance();
@@ -387,6 +394,7 @@ export function Session() {
 			recordFirstAttempt(currentCountry.code, false);
 			if (startTimeRef.current !== null) {
 				startTimeRef.current -= RUSH_SKIP_PENALTY_MS;
+				setPenaltyMs(RUSH_SKIP_PENALTY_MS);
 			}
 			setAnswerStatus("incorrect");
 			pauseThenAdvance();
@@ -436,6 +444,11 @@ export function Session() {
 						mode={configuration.mode}
 						onGrade={handleGrade}
 						hideGradeButtons={isSkipPending}
+						penaltyLabel={
+							penaltyMs !== null
+								? `${formatPenalty(penaltyMs)} al cronómetro`
+								: undefined
+						}
 					/>
 				</div>
 			</motion.section>
