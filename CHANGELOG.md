@@ -9,6 +9,17 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [1.2.1] - 2026-09-24
+
+### Cambiado
+
+- En "Cómo se juega", la partida de ejemplo se juega al mismo tamaño que una
+  partida normal, en vez de en una ventana pequeña.
+- El recorrido ya no repite en cada paso que la partida es de ejemplo: lo dice
+  una vez, mientras la juegas.
+- En el último paso ya no sale "Saltar tutorial": para cerrar está "Empezar a
+  jugar".
+
 ## [1.2.0] - 2026-09-23
 
 ### Añadido
