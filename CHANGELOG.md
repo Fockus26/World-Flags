@@ -9,6 +9,22 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.1.4] - 2026-09-24
+
+### Cambiado
+
+- Si juegas con el teclado, el contorno que marca dónde estás toma el color del
+  botón o de la tarjeta (rojo en "Cerrar" o "Abandonar", el color de tu nota en
+  cada continente…) en vez de ser siempre morado.
+- En el móvil, al tocar un botón o una tarjeta ves el mismo efecto que al pasar
+  el ratón por encima en el ordenador, y desaparece al soltar.
+
+### Corregido
+
+- Algunos controles no marcaban nada al llegar a ellos con el teclado: los
+  continentes y las casillas de países al elegir países sueltos, "Gestionar
+  sesión" y la X de los avisos de logro. Ahora se ven.
+
 ## [2.1.3] - 2026-09-24
 
 ### Corregido

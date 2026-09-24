@@ -149,7 +149,7 @@ export function ConnectivitySnackbar() {
 
 				<button
 					type="button"
-					className="shrink-0 cursor-pointer rounded-full border-0 bg-transparent p-1 text-text-placeholder transition-colors duration-150 hover:text-surface-soft focus-visible:text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
+					className="shrink-0 cursor-pointer rounded-full border-0 bg-transparent p-1 text-text-placeholder transition-colors duration-150 hover:text-surface-soft focus-visible:text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface-soft"
 					aria-label="Descartar aviso de conexión"
 					onClick={() => setShowReconnected(false)}
 				>

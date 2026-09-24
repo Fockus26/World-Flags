@@ -4,6 +4,25 @@
 @import "./theme.css";
 @import "./heroui-theme.css";
 
+/*
+ * `hover:` también al pulsar (D103). Tailwind v4 envuelve `hover:` en
+ * `@media (hover: hover)`, así que en pantallas táctiles tocar un elemento no
+ * enseñaba nada. Se conserva ese hover solo para ratón (sin la media query el
+ * hover se queda "pegado" en móvil tras tocar) y se suma `:active`, que dura
+ * lo que dura la pulsación. Afecta solo a las clases `hover:`/`group-hover:`
+ * de `src/`: el CSS de HeroUI trae sus propios `:hover`/`[data-pressed]`.
+ */
+@custom-variant hover {
+	@media (hover: hover) {
+		&:hover {
+			@slot;
+		}
+	}
+	&:active {
+		@slot;
+	}
+}
+
 @layer base {
 	:root {
 		font-family: var(--font-sans);

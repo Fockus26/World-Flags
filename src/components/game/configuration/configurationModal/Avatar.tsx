@@ -62,7 +62,7 @@ export function Avatar({ avatarStyle, value, onChange }: AvatarProps) {
 
 					return (
 						<button
-							className={`grid aspect-square place-items-center overflow-hidden rounded-full outline-3 outline-offset-3 cursor-pointer transition-[outline-color,transform,translate] duration-180 hover:-translate-y-0.5 active:-translate-y-0.5 hover:outline-surface-soft active:outline-surface-soft focus-visible:outline-[var(--focus)] ${
+							className={`grid aspect-square place-items-center overflow-hidden rounded-full outline-3 outline-offset-3 cursor-pointer transition-[outline-color,transform,translate] duration-180 hover:-translate-y-0.5 hover:outline-surface-soft focus-visible:-translate-y-0.5 focus-visible:outline-surface-soft ${
 								isSelected ? "outline-primary" : "outline-transparent"
 							}`}
 							type="button"

@@ -61,6 +61,11 @@
 
 ## Notas de contraste
 
+- **Anillos de foco** (D101–D102): el tono `-hover` de cada color (en claro más
+  oscuro, en oscuro más claro) es el que pasa 3:1 en los dos temas; el base de
+  `success` y `warning` no llega en claro (2,68/2,77:1 contra `--background`).
+  Tabla completa en `decisions/23-foco-y-toque.md`.
+
 - Botones sin relleno pleno (`soft`/`outline`/`text`): el texto se calcula con
   `color-mix(in oklab, <color> 62%, var(--foreground))` (`readableFg` en `Button.tsx`)
   para dar AA en ambos temas. El hover de `soft` **ahonda el tinte** en vez de saltar
