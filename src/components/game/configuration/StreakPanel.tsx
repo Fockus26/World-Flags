@@ -87,14 +87,17 @@ export function StreakPanel({ activeDays }: StreakPanelProps) {
 	return (
 		<div
 			id="streak-panel"
-			// `max-w-sm`: las celdas del calendario son cuadradas y ocupan un
-			// séptimo del ancho, así que sin tope el panel crece con la tarjeta
-			// (celdas de ~90 px y un panel más alto que la pantalla en móvil
-			// horizontal). El diseño elegido se dibujó a ~358 px de ancho.
-			className="flex max-w-sm flex-col gap-3 rounded-[var(--radius-md)] border border-surface-border bg-surface-hover/40 p-3 mt-2"
+			// A todo el ancho de la tarjeta (D100, sustituye al `max-w-sm` del panel
+			// entero). Las celdas del calendario son cuadradas y ocupan un séptimo
+			// del ancho, así que el tope pasa al calendario: `max-w-sm` en móvil
+			// (como antes, el diseño se dibujó a ~358 px) y, desde `sm`, racha y
+			// mejor racha repartidas a la izquierda y calendario de `max-w-xs` a
+			// la derecha. En móvil en horizontal (740×360) el panel queda más bajo
+			// que con el tope viejo (247 px frente a ~329 px).
+			className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 rounded-[var(--radius-md)] border border-surface-border bg-surface-hover/40 p-3 mt-2"
 		>
-			<div className="flex items-end justify-between gap-3">
-				<div className="flex flex-col gap-0.5">
+			<div className="flex items-end justify-between gap-3 sm:flex-1 sm:items-center sm:justify-evenly">
+				<div className="flex flex-col gap-0.5 sm:items-center">
 					<span className="text-3xl font-black leading-none text-primary tabular-nums">
 						{currentStreak}
 					</span>
@@ -102,7 +105,7 @@ export function StreakPanel({ activeDays }: StreakPanelProps) {
 						{currentStreak === 1 ? "día seguido" : "días seguidos"}
 					</span>
 				</div>
-				<div className="flex flex-col items-end gap-0.5">
+				<div className="flex flex-col items-end gap-0.5 sm:items-center">
 					<span className="text-[0.65rem] font-extrabold uppercase tracking-wide text-text-placeholder">
 						Mejor racha
 					</span>
@@ -112,7 +115,7 @@ export function StreakPanel({ activeDays }: StreakPanelProps) {
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-1.5">
+			<div className="flex w-full max-w-sm flex-col gap-1.5 sm:max-w-xs">
 				<div className="flex items-center justify-between">
 					<span className="text-[0.65rem] font-extrabold uppercase tracking-wide text-surface-soft">
 						{monthLabel}
