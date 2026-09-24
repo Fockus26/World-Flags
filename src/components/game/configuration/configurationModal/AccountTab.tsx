@@ -50,7 +50,7 @@ export function AccountTab({ profile, onSaveProfile }: AccountTabProps) {
 		<div className="flex flex-col gap-4">
 			<button
 				type="button"
-				className="self-start cursor-pointer border-0 bg-transparent p-0 text-text-placeholder font-[inherit] text-[0.8rem] font-bold transition-colors duration-150 hover:text-surface-soft active:text-surface-soft focus-visible:text-surface-soft"
+				className="self-start cursor-pointer rounded-sm border-0 bg-transparent p-0 text-text-placeholder font-[inherit] text-[0.8rem] font-bold transition-colors duration-150 hover:text-surface-soft focus-visible:text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface-soft"
 				onClick={() =>
 					setView((current) => (current === "profile" ? "session" : "profile"))
 				}

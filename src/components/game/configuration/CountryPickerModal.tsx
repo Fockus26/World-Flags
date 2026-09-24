@@ -58,7 +58,7 @@ function CountryCheckbox({
 			/>
 			<span
 				aria-hidden="true"
-				className="relative flex size-4 shrink-0 items-center justify-center rounded-[0.25rem] border-2 border-neutral-border bg-surface transition-colors duration-150 after:text-[0.65rem] after:leading-none after:font-black after:text-secondary-soft after:opacity-0 after:content-['✓'] peer-checked:border-secondary peer-checked:bg-secondary peer-checked:after:opacity-100 peer-disabled:border-neutral-hover peer-disabled:bg-neutral-hover peer-disabled:after:text-neutral-soft"
+				className="relative flex size-4 shrink-0 items-center justify-center rounded-[0.25rem] border-2 border-neutral-border bg-surface transition-colors duration-150 after:text-[0.65rem] after:leading-none after:font-black after:text-secondary-soft after:opacity-0 after:content-['✓'] peer-checked:border-secondary peer-checked:bg-secondary peer-checked:after:opacity-100 peer-disabled:border-neutral-hover peer-disabled:bg-neutral-hover peer-disabled:after:text-neutral-soft peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-secondary-hover"
 			/>
 			<span className="truncate">
 				{label}
@@ -191,7 +191,7 @@ export function CountryPickerModal({
 					<button
 						type="button"
 						onClick={clearAll}
-						className="shrink-0 cursor-pointer whitespace-nowrap rounded-sm px-1 text-[0.78rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)]"
+						className="shrink-0 cursor-pointer whitespace-nowrap rounded-sm px-1 text-[0.78rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-hover"
 					>
 						Limpiar todo ({selectedCatalogCount})
 					</button>
@@ -218,7 +218,7 @@ export function CountryPickerModal({
 									type="button"
 									onClick={() => toggleRegionExpanded(region)}
 									aria-expanded={isExpanded}
-									className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left"
+									className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-0 bg-transparent p-0 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface-soft"
 								>
 									<NavArrowDown
 										className={`size-4 shrink-0 text-text-placeholder transition-transform duration-150 ${isExpanded ? "rotate-0" : "-rotate-90"}`}
@@ -237,7 +237,7 @@ export function CountryPickerModal({
 									{selectedCount > 0 && (
 										<button
 											type="button"
-											className="cursor-pointer rounded-sm border-0 bg-transparent p-0.5 text-[0.72rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--focus)]"
+											className="cursor-pointer rounded-sm border-0 bg-transparent p-0.5 text-[0.72rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-secondary-hover"
 											onClick={() => toggleAllInRegion(regionCodes, true)}
 										>
 											Ninguno
@@ -246,7 +246,7 @@ export function CountryPickerModal({
 									{!allSelected && (
 										<button
 											type="button"
-											className="cursor-pointer rounded-sm border-0 bg-transparent p-0.5 text-[0.72rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--focus)]"
+											className="cursor-pointer rounded-sm border-0 bg-transparent p-0.5 text-[0.72rem] font-bold text-secondary transition-colors hover:text-secondary-hover focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-secondary-hover"
 											onClick={() => toggleAllInRegion(regionCodes, false)}
 										>
 											Todos

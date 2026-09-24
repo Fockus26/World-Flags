@@ -186,7 +186,7 @@ export function Tutorial({ onClose }: TutorialProps) {
 						className={
 							isPlaying
 								? "sr-only"
-								: "m-0 min-w-0 text-base font-bold text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)] sm:text-lg"
+								: "m-0 min-w-0 text-base font-bold text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface-soft sm:text-lg"
 						}
 					>
 						<span className="block text-xs font-bold text-text-placeholder">

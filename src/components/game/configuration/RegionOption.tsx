@@ -9,6 +9,7 @@ interface ScoreStyle extends CSSProperties {
 	"--app-score-color": string;
 	"--app-score-background": string;
 	"--app-score-active-color": string;
+	"--app-score-ring": string;
 }
 
 interface RegionOptionProps {
@@ -71,6 +72,14 @@ export function RegionOption({
 
 		"--app-score-active-color":
 			score !== null ? "var(--app-score-color)" : "var(--color-neutral)",
+
+		// Anillo de foco del color de la tarjeta (D102). El color de la nota
+		// crudo da 1,97–2,35:1 sobre claro en notas medias/altas (falla el
+		// 3:1 de un anillo), así que se mezcla hacia `--foreground` igual que
+		// el texto de `Button` (`readableFg`): ≥4,2:1 en claro y ≥6,5:1 en
+		// oscuro para las 10 notas.
+		"--app-score-ring":
+			"color-mix(in oklab, var(--app-score-color) 62%, var(--foreground))",
 	};
 
 	return (
@@ -81,7 +90,6 @@ export function RegionOption({
 	border-(--app-score-color)
 	text-surface-soft
 	hover:bg-(--app-score-background)
-	active:bg-(--app-score-background)
 	has-focus-visible:bg-(--app-score-background)
 	has-checked:bg-(--app-score-background)
 	has-checked:[&_.region-check]:border-(--app-score-color)
@@ -92,10 +100,9 @@ export function RegionOption({
 	active:translate-y-0
 	active:scale-[0.98]
 	hover:shadow-[0_0_0_2px_var(--app-score-color)]
-	active:shadow-[0_0_0_2px_var(--app-score-color)]
 	has-focus-visible:shadow-[0_0_0_2px_var(--app-score-color)]
 	has-checked:shadow-[0_0_0_2px_var(--app-score-color)]
-	outline-[var(--focus)]
+	outline-(--app-score-ring)
 	has-focus-visible:outline-[3px]
 	has-focus-visible:outline-offset-3
 	min-[44rem]:min-h-19
