@@ -48,14 +48,12 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
 		kind: "text",
 		body: (
 			<>
+				{/* Que la partida no cuenta se dice una sola vez, en el aviso que
+				    se ve mientras se juega (`demoBanner`, D092). */}
 				<p>
-					Te lo enseño con una partida de ejemplo: {DEMO_REGION_LABEL}, tres
+					En unos pocos pasos: los juegos, los modos y los ajustes. Y antes de
+					acabar juegas una partida corta de {DEMO_REGION_LABEL}, con tres
 					países.
-				</p>
-				<p>
-					<strong>Nada de lo que hagas aquí cuenta.</strong> No toca tu
-					progreso, ni tu racha, ni tus mejores tiempos, ni el ranking. Puedes
-					fallar todo a propósito.
 				</p>
 			</>
 		),
@@ -111,7 +109,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
 		body: (
 			<p>
 				Estos tres ajustes son del modo Práctica. Cámbialos si quieres: la
-				partida de ejemplo empieza con lo que dejes aquí.
+				partida del paso siguiente empieza con lo que dejes aquí.
 			</p>
 		),
 	},
@@ -155,18 +153,26 @@ export const TUTORIAL_TEXTS = {
 	skip: "Saltar tutorial",
 	back: "Atrás",
 	next: "Siguiente",
-	startDemo: "Jugar el ejemplo",
+	startDemo: "Empezar la partida",
 	finish: "Empezar a jugar",
-	/** Encima de la partida de ejemplo, siempre visible mientras se juega. */
-	demoBanner: "Partida de ejemplo: no cuenta para tu progreso.",
-	demoFinished: "Fin del ejemplo. Recuerda: no ha contado para tu progreso.",
-	demoReplay: "Repetir el ejemplo",
+	/**
+	 * Encima de la partida de ejemplo, siempre visible mientras se juega. Es
+	 * **el único sitio** del recorrido que dice que es un ejemplo y que no
+	 * cuenta (D092): el resto de textos no lo repite. Por eso lleva todo lo que
+	 * antes decía la bienvenida (progreso, racha, ranking, poder fallar).
+	 */
+	demoBanner:
+		"Partida de ejemplo: no cuenta para tu progreso, tu racha ni el ranking. Puedes fallar sin miedo.",
+	demoFinished: "Partida terminada: así es como se juega.",
+	demoReplay: "Jugar otra vez",
 	/**
 	 * Sustituye al aviso de abandonar de siempre ("el progreso de esta partida
-	 * se perderá"), que aquí sería falso: no había progreso que perder.
+	 * se perderá"), que aquí sería falso: no había progreso que perder. No
+	 * repite que no cuenta — eso ya lo dice el aviso de encima de la partida,
+	 * visible justo antes de pulsar "Salir" (D092).
 	 */
 	demoExitDescription:
-		"Es la partida de ejemplo: no se guarda nada, así que no pierdes nada. Puedes volver a jugarla.",
+		"Vuelves al recorrido y puedes empezarla otra vez cuando quieras.",
 	/** `aria-label` del contador de pasos. */
 	stepLabel: (current: number, total: number) => `Paso ${current} de ${total}`,
 } as const;
