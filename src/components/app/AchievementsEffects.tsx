@@ -10,6 +10,7 @@ import { createAchievementAnnouncementGate } from "@/utils/achievement-announcem
 import { getNewlyUnlocked } from "@/utils/achievements";
 
 import { sealAchievements } from "@/utils/learning-storage";
+import { playSound } from "@/utils/sound";
 
 /**
  * Sella los logros que se acaban de cumplir y anuncia los que ocurren en vivo
@@ -96,6 +97,12 @@ export function AchievementsEffects() {
 		}
 
 		dispatch(enqueueAchievementToasts(toAnnounce));
+
+		// Un sonido por tanda, no uno por logro (D080). Nunca en la pasada
+		// silenciosa (la siembra retroactiva, o lo que trae un login), ni por
+		// logros que llegan ya sellados de otro dispositivo: esos no aparecen
+		// en `newlyUnlocked`.
+		playSound("achievement");
 	}, [learningData, hydrationStatus, announcementGate, dispatch]);
 
 	return null;

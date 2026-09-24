@@ -3,6 +3,7 @@ import type {
 	GameType,
 	PracticeRegion,
 	Region,
+	WorldBestTimeKey,
 } from "./country";
 
 export const AVATAR_STYLES = [
@@ -47,8 +48,18 @@ export type CountriesLearningHistory = Record<string, CountryLearningHistory>;
 
 export type RegionGameScores = Partial<Record<Region, number[]>>;
 
-/** Mejor tiempo (ms) logrado en modo competitivo ("rush") por continente, o "world" para todo el mundo. */
-export type RegionBestTimes = Partial<Record<PracticeRegion, number>>;
+/**
+ * Mejor tiempo (ms) logrado en modo competitivo ("rush") por continente, o
+ * de "Todo el mundo" bajo la clave de su regla de castigo (`"world"` o
+ * `"world@2"`, ver `WORLD_BEST_TIME_KEYS`, D076). Léelo con
+ * `getWorldBestTime`, nunca con `.world` a secas.
+ */
+export type RegionBestTimes = Partial<
+	Record<PracticeRegion | WorldBestTimeKey, number>
+>;
+
+/** Clave de un mejor tiempo: un continente o una de las de "Todo el mundo". */
+export type BestTimeKey = keyof RegionBestTimes;
 
 /** Última fecha (YYYY-MM-DD, hora local) en que se practicó cada país. */
 export type LastPracticeByCountry = Partial<Record<string, string>>;

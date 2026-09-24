@@ -3,6 +3,7 @@ import { AutoHeight } from "@/components/ui/AutoHeight";
 import { Fieldset } from "@/components/ui/Fieldset";
 import { OptionTile } from "@/components/ui/OptionTile";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useSoundPreference } from "@/hooks/useSoundPreference";
 import {
 	type Difficulty,
 	GAME_MODE_LABELS,
@@ -12,6 +13,7 @@ import {
 	TIMER_DURATIONS,
 	type TimerDuration,
 } from "@/types/country";
+import { RUSH_PENALTY_SUMMARY } from "@/utils/rush-penalty";
 
 /** Botón "?" enfocable: el texto de ayuda va en `aria-label` (lo oyen los
  *  lectores de pantalla al enfocar) y también en el tooltip visual para ratón. */
@@ -54,14 +56,18 @@ export function GameTab({
 	difficulty,
 	onDifficultyChange,
 }: GameTabProps) {
+	const { soundEnabled, setSoundEnabled } = useSoundPreference();
+
 	return (
 		<div className="flex flex-col gap-5">
 			<Fieldset
 				legend={
 					<span className="inline-flex items-center gap-2">
 						Modo de juego
-						{/* ⚠️ Copy provisional — `CONTENT_CHECKLIST.md` #21 ("cada respuesta": vale para los tres juegos). */}
-						<HelpHint label="Competitivo: contrarreloj, guarda tu mejor tiempo; fallar penaliza. Práctica: sin cronómetro, calificas cada respuesta para repasarla." />
+						{/* ⚠️ Copy provisional — `CONTENT_CHECKLIST.md` #21 ("cada respuesta": vale para los tres juegos) y #26 (castigo, D075: el rush de Países no tiene). */}
+						<HelpHint
+							label={`Competitivo: contrarreloj, guarda tu mejor tiempo; en Banderas y Capitales ${RUSH_PENALTY_SUMMARY}. Práctica: sin cronómetro, calificas cada respuesta para repasarla.`}
+						/>
 					</span>
 				}
 			>
@@ -176,6 +182,32 @@ export function GameTab({
 					siempre, para que el ranking compare partidas equivalentes.
 				</p>
 			</AutoHeight>
+
+			{/* ⚠️ Copy provisional (CONTENT_CHECKLIST.md #28): "Sonidos" y sus dos opciones. */}
+			<Fieldset legend="Sonidos">
+				{/* Mismo patrón que "Temporizador": dos opciones de radio, y no un
+				    interruptor suelto, para que la fila se lea igual que el resto
+				    de ajustes (D081). Es de este dispositivo, no de la cuenta: no
+				    viaja con la configuración a la nube. */}
+				<div className="grid grid-cols-2 gap-1.5">
+					<OptionTile
+						name="settings-sound"
+						value="off"
+						checked={!soundEnabled}
+						onChange={() => setSoundEnabled(false)}
+					>
+						Desactivados
+					</OptionTile>
+					<OptionTile
+						name="settings-sound"
+						value="on"
+						checked={soundEnabled}
+						onChange={() => setSoundEnabled(true)}
+					>
+						Activados
+					</OptionTile>
+				</div>
+			</Fieldset>
 
 			<Fieldset legend="Tema">
 				<ThemeSwitcher />
