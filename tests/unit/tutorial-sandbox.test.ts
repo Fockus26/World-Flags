@@ -318,6 +318,9 @@ const FORBIDDEN_IMPORTS = new Set([
 	"clearSyncBase",
 	"syncLearningData",
 	"upsertLeaderboardEntry",
+	// La preferencia de sonido (D081): la partida guiada suena, pero solo lee.
+	"saveSoundEnabled",
+	"useSoundPreference",
 ]);
 
 /**
@@ -365,6 +368,8 @@ function listTutorialFiles(): string[] {
 		join(ROOT, "src", "hooks", "useTutorial.ts"),
 		join(ROOT, "src", "utils", "tutorial-sandbox.ts"),
 		join(ROOT, "src", "utils", "tutorial-gate.ts"),
+		// Lo importa `CountriesPractice` para sonar: tampoco puede escribir.
+		join(ROOT, "src", "utils", "sound.ts"),
 		// La pantalla que monta la partida guiada: si recupera `useGame`, la
 		// partida de ejemplo vuelve a escribir progreso.
 		join(

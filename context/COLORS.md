@@ -21,6 +21,7 @@
 | Rol | Hex | Uso |
 |---|---|---|
 | primary / accent | `#6d5ef0` | CTAs, selección, marca. **Como texto sobre blanco falla AA (~3.97:1)** — no usar como color de texto |
+| accent-foreground | `#ffffff` | texto sobre relleno `--accent` (opción marcada de `OptionTile`, primitivos HeroUI). 4,66:1. Antes `#f7f6ff` = 4,34:1, fallaba AA (D106) |
 | primary-hover | `#5b4bdb` | |
 | primary-soft | `#ecebfe` | fondos suaves, botón `soft` |
 | secondary | `#b34bd1` | acentos secundarios (botón "Práctica diaria", enlaces del picker) |
@@ -45,7 +46,7 @@
 
 | Rol | Hex |
 |---|---|
-| primary / accent | `#9b8bff` (pastel — texto de botón `contained` va oscuro: `--btn-contained-fg: #14121f`) |
+| primary / accent | `#9b8bff` (pastel — texto de botón `contained` va oscuro: `--btn-contained-fg: #14121f`; `--accent-foreground: #12101c` = 6,74:1) |
 | primary-soft | `#2c2650` |
 | secondary | `#e19bec` |
 | background | `#14121f` |

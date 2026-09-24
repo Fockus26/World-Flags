@@ -57,6 +57,7 @@ export function useAuth() {
 		const { data, error } = await supabase.auth.signUp({
 			email,
 			password,
+			options: { emailRedirectTo: window.location.origin },
 		});
 
 		if (error) {
@@ -85,6 +86,7 @@ export function useAuth() {
 		const { error } = await supabase.auth.resend({
 			type: "signup",
 			email,
+			options: { emailRedirectTo: window.location.origin },
 		});
 
 		return {

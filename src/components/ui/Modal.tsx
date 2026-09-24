@@ -19,6 +19,17 @@ interface ModalProps {
 	 * donde un clic fuera perdería el recorrido a medias.
 	 */
 	isDismissable?: boolean;
+	/**
+	 * ¿Puede el diálogo ocupar la pantalla entera? Por defecto no, como hasta
+	 * ahora: el contenedor de HeroUI deja su margen alrededor y el alto se
+	 * queda en el 90 % del viewport. En `true` desaparecen los dos límites
+	 * (margen 0 y alto máximo = todo el viewport); el tamaño real lo siguen
+	 * decidiendo el contenido y el `className`, y el margen visible, si hace
+	 * falta, lo pone el propio diálogo con su padding. Lo usa la partida de
+	 * ejemplo del recorrido, que tiene que medir lo mismo que una partida
+	 * normal (D090). Puede cambiar con el diálogo abierto.
+	 */
+	fillViewport?: boolean;
 	/** @deprecated HeroUI dimensiona el diálogo solo; se ignora. */
 	animateHeight?: boolean;
 }
@@ -46,6 +57,7 @@ export function Modal({
 	ariaDescribedby,
 	size = "md",
 	isDismissable = true,
+	fillViewport = false,
 }: ModalProps) {
 	return (
 		<ModalBackdrop
@@ -56,7 +68,13 @@ export function Modal({
 			isDismissable={isDismissable}
 			variant="blur"
 		>
-			<ModalContainer size={size} placement="center">
+			<ModalContainer
+				size={size}
+				placement="center"
+				// El margen del contenedor (`p-4 sm:p-10` en HeroUI) es lo que
+				// separa el diálogo del borde; a pantalla entera sobra.
+				className={fillViewport ? "p-0 sm:p-0" : undefined}
+			>
 				<ModalDialog
 					role={role}
 					aria-label={ariaLabel}
@@ -67,7 +85,8 @@ export function Modal({
 						// veces 0 en este entorno) y recorta con `overflow: clip`.
 						// Se fija el máximo al viewport dinámico y se habilita el
 						// scroll interno con barra.
-						"![max-height:90dvh] [overflow-y:auto] overscroll-contain",
+						fillViewport ? "![max-height:100dvh]" : "![max-height:90dvh]",
+						"[overflow-y:auto] overscroll-contain",
 						className ?? "",
 					]
 						.filter(Boolean)
