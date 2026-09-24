@@ -181,7 +181,7 @@ export function TutorialModeChoice({
 				<p className="m-0 text-xs text-text-placeholder">
 					En Competitivo el orden es siempre aleatorio y la dificultad siempre
 					difícil: no se ajustan, para que el ranking compare partidas
-					equivalentes. El ejemplo de dentro de un momento se juega en Práctica.
+					equivalentes. La partida de este recorrido se juega en Práctica.
 				</p>
 			</AutoHeight>
 		</div>
