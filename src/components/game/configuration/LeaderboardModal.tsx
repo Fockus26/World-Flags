@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
+import { LoadingAnnouncer } from "@/components/ui/LoadingAnnouncer";
 import { Modal } from "@/components/ui/Modal";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { type GameType, LEADERBOARD_SCOPES } from "@/types/country";
+import { getAvatarUrl } from "@/utils/avatar";
 import {
 	fetchLeaderboard,
 	isNetworkFailure,
@@ -12,6 +15,7 @@ import {
 } from "@/utils/cloud-storage";
 import { formatElapsedTime } from "@/utils/learning-storage";
 import { GameTypeToggle } from "./GameTypeToggle";
+import { UserAvatar } from "./UserAvatar";
 
 interface LeaderboardModalProps {
 	isOpen: boolean;
@@ -20,7 +24,23 @@ interface LeaderboardModalProps {
 	defaultGameType: GameType;
 }
 
-const TOP_COUNT = 5;
+/** Cuántas filas enseña el ranking (D077). Si estás más abajo, tu fila va aparte, bajo un separador. */
+const TOP_COUNT = 20;
+
+/**
+ * Filas del skeleton mientras llega el ranking. No se sabe cuántas vendrán:
+ * cinco es el alto del ranking de antes, y cada fila mide lo mismo que una
+ * real (mismo árbol, mismas cajas), así que al llegar los datos no se mueve
+ * nada de lo que ya estaba (D077).
+ */
+const SKELETON_ROW_COUNT = 5;
+
+/** Caja del avatar de cada fila: la comparten la imagen, la inicial y su skeleton. */
+const ROW_AVATAR_CLASS = "size-8 shrink-0 rounded-full";
+
+/** Clases de una fila, compartidas por la real y la de skeleton. */
+const ROW_CLASS =
+	"flex items-center justify-between gap-3 rounded-md px-3 py-2";
 
 /** ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #10 y #21). */
 const LEADERBOARD_DESCRIPTIONS: Record<GameType, string> = {
@@ -33,26 +53,75 @@ function LeaderboardRow({
 	rank,
 	entry,
 	isMe,
+	isOnline,
 }: {
 	rank: number;
 	entry: LeaderboardEntry;
 	isMe: boolean;
+	isOnline: boolean;
 }) {
+	const avatarUrl = entry.avatar
+		? getAvatarUrl(entry.avatar.style, entry.avatar.seed)
+		: null;
+
 	return (
 		<li
-			className={`flex items-center justify-between gap-3 rounded-md px-3 py-2 ${
+			className={`${ROW_CLASS} ${
 				isMe ? "bg-primary-soft text-primary" : "text-surface-soft"
 			}`}
 		>
 			<span className="flex min-w-0 items-center gap-2.5">
-				<span className="w-6 shrink-0 text-right font-black tabular-nums">
+				<span className="w-7 shrink-0 text-right font-black tabular-nums">
 					#{rank}
 				</span>
+				{/* Decorativo: el nombre va al lado. Al volver la red se remonta
+				    para reintentar un avatar que no cargó (como en `UserSummary`). */}
+				<UserAvatar
+					key={`${avatarUrl}|${isOnline}`}
+					src={avatarUrl}
+					name={entry.displayName}
+					className={ROW_AVATAR_CLASS}
+					initialClassName="text-sm"
+					loading="lazy"
+				/>
 				<span className="truncate font-bold">{entry.displayName}</span>
+				{/* Tu fila no se distingue solo por el color. ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #27). */}
+				{isMe && (
+					<span className="shrink-0 text-[0.8rem] font-extrabold">(tú)</span>
+				)}
 			</span>
 			<span className="shrink-0 font-extrabold tabular-nums">
 				{formatElapsedTime(entry.bestTimeMs)}
 			</span>
+		</li>
+	);
+}
+
+/**
+ * Fila de carga con la forma de una real: puesto, avatar redondo, nombre y
+ * tiempo. Las medidas salen del contenido de referencia invisible de
+ * `Skeleton` (D042), no de anchos inventados.
+ */
+function LeaderboardSkeletonRow({ rank }: { rank: number }) {
+	return (
+		<li className={`${ROW_CLASS} text-surface-soft`} aria-hidden="true">
+			<span className="flex min-w-0 items-center gap-2.5">
+				<span className="w-7 shrink-0 text-right font-black tabular-nums">
+					<Skeleton shape="line" className="ml-auto rounded-sm">
+						#{rank}
+					</Skeleton>
+				</span>
+				<Skeleton className={ROW_AVATAR_CLASS} />
+				<Skeleton shape="line" className="rounded-sm font-bold">
+					Jugador de ejemplo
+				</Skeleton>
+			</span>
+			<Skeleton
+				shape="line"
+				className="shrink-0 rounded-sm font-extrabold tabular-nums"
+			>
+				0:00.00
+			</Skeleton>
 		</li>
 	);
 }
@@ -89,8 +158,7 @@ export function LeaderboardModal({
 		// (`isOnline` en las dependencias) y el ranking aparece.
 		if (!isOnline) return;
 
-		// Un scope por juego (D033): la PK (user_id, scope) de
-		// `leaderboard_entries` ya lo soporta sin migración.
+		// Un scope por juego (D033), y por regla de castigo (D076).
 		fetchLeaderboard(LEADERBOARD_SCOPES[gameType])
 			.then((result) => {
 				if (!cancelled) setEntries(result);
@@ -110,6 +178,8 @@ export function LeaderboardModal({
 		};
 	}, [isOpen, gameType, isOnline]);
 
+	const isLoading = isOpen && !error && !isOffline && entries === null;
+
 	const myIndex =
 		entries?.findIndex((entry) => entry.userId === user?.id) ?? -1;
 	const myRank = myIndex >= 0 ? myIndex + 1 : null;
@@ -119,7 +189,7 @@ export function LeaderboardModal({
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			className="w-[min(28rem,92vw)] text-left"
+			className="w-[min(30rem,92vw)] text-left"
 			ariaLabelledby="leaderboard-title"
 		>
 			<header className="mb-3 flex items-center justify-between gap-3">
@@ -148,6 +218,14 @@ export function LeaderboardModal({
 				{LEADERBOARD_DESCRIPTIONS[gameType]}
 			</p>
 
+			{/* Fuera de la lista ocupada: si no, el anuncio no se oiría (D042).
+			    ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #27). */}
+			<LoadingAnnouncer
+				isLoading={isLoading}
+				loadingMessage="Cargando el ranking…"
+				readyMessage="Ranking cargado."
+			/>
+
 			{error && (
 				<FeedbackMessage variant="danger" size="sm" role="alert">
 					{error}
@@ -164,8 +242,20 @@ export function LeaderboardModal({
 				</p>
 			)}
 
-			{!error && !isOffline && entries === null && (
-				<p className="text-[0.85rem] text-text-placeholder">Cargando…</p>
+			{isLoading && (
+				<ol
+					className="m-0 flex list-none flex-col gap-1 p-0"
+					aria-busy="true"
+					aria-labelledby="leaderboard-title"
+				>
+					{Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
+						<LeaderboardSkeletonRow
+							// biome-ignore lint/suspicious/noArrayIndexKey: filas de relleno fijas, sin identidad propia
+							key={index}
+							rank={index + 1}
+						/>
+					))}
+				</ol>
 			)}
 
 			{!error && entries !== null && entries.length === 0 && (
@@ -175,13 +265,17 @@ export function LeaderboardModal({
 			)}
 
 			{!error && entries !== null && entries.length > 0 && (
-				<ol className="m-0 flex list-none flex-col gap-1 p-0">
+				<ol
+					className="m-0 flex list-none flex-col gap-1 p-0"
+					aria-labelledby="leaderboard-title"
+				>
 					{entries.slice(0, TOP_COUNT).map((entry, index) => (
 						<LeaderboardRow
 							key={entry.userId}
 							rank={index + 1}
 							entry={entry}
 							isMe={entry.userId === user?.id}
+							isOnline={isOnline}
 						/>
 					))}
 				</ol>
@@ -190,8 +284,18 @@ export function LeaderboardModal({
 			{!error && entries !== null && myRank !== null && !isMeInTop && (
 				<>
 					<hr className="my-3 border-surface-border" />
-					<ol className="m-0 flex list-none flex-col gap-1 p-0">
-						<LeaderboardRow rank={myRank} entry={entries[myIndex]} isMe />
+					{/* `start`: el número de la lista es tu puesto real, no "1". */}
+					<ol
+						className="m-0 flex list-none flex-col gap-1 p-0"
+						start={myRank}
+						aria-label="Tu puesto"
+					>
+						<LeaderboardRow
+							rank={myRank}
+							entry={entries[myIndex]}
+							isMe
+							isOnline={isOnline}
+						/>
 					</ol>
 				</>
 			)}

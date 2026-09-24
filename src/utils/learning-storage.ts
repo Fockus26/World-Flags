@@ -10,8 +10,11 @@ import {
 	type PracticeScope,
 	REGIONS,
 	type Region,
+	WORLD_BEST_TIME_KEY_HISTORY,
+	WORLD_BEST_TIME_KEYS,
 } from "@/types/country";
 import type {
+	BestTimeKey,
 	CountriesLearningHistory,
 	DailyReminderPreference,
 	FieldUpdatedAt,
@@ -776,10 +779,52 @@ export function registerRegionGame(
 	return updatedData;
 }
 
-/** Modo competitivo ("rush"): guarda el tiempo solo si mejora la marca previa. */
+/**
+ * Dónde se guarda el mejor tiempo de un rush de `region` en `gameType`: el
+ * continente tal cual, o la clave de "Todo el mundo" de la regla vigente de
+ * ese juego (D076).
+ */
+export function getBestTimeKey(
+	region: PracticeRegion,
+	gameType: GameType,
+): BestTimeKey {
+	return region === "world" ? WORLD_BEST_TIME_KEYS[gameType] : region;
+}
+
+/**
+ * El mejor tiempo de "Todo el mundo" de `gameType` con la regla vigente: el
+ * que se muestra y el que se sube al ranking. Las marcas de una regla
+ * anterior no cuentan (D076).
+ */
+export function getWorldBestTime(
+	regionBestTimes: RegionBestTimes,
+	gameType: GameType,
+): number | undefined {
+	return regionBestTimes[WORLD_BEST_TIME_KEYS[gameType]];
+}
+
+/**
+ * El mejor tiempo de "Todo el mundo" con cualquier regla, vigente o anterior.
+ * Solo para los logros de "completa el rush de Todo el mundo": se ganaron con
+ * la regla de entonces y siguen valiendo (son retroactivos, D070).
+ */
+export function getAnyRuleWorldBestTime(
+	regionBestTimes: RegionBestTimes,
+): number | undefined {
+	const times = WORLD_BEST_TIME_KEY_HISTORY.map(
+		(key) => regionBestTimes[key],
+	).filter((time): time is number => time !== undefined);
+
+	return times.length > 0 ? Math.min(...times) : undefined;
+}
+
+/**
+ * Modo competitivo ("rush"): guarda el tiempo solo si mejora la marca previa.
+ * `region` es la clave ya resuelta (ver `getBestTimeKey`).
+ */
 export function registerRegionBestTime(
 	currentData: UserLearningData,
-	region: PracticeRegion,
+	region: BestTimeKey,
 	elapsedMs: number,
 ): UserLearningData {
 	const previousBest = currentData.regionBestTimes[region];
@@ -982,7 +1027,13 @@ function mergeLastPracticeByCountry(
 	return merged;
 }
 
-/** Por continente (o "world"), el menor tiempo — la mejor marca de rush. */
+/**
+ * Por clave (continente, o "Todo el mundo" de cada regla), el menor tiempo —
+ * la mejor marca de rush. Clave a clave y nunca entre claves: una marca de
+ * "world" (regla vieja) jamás pasa a "world@2", venga de la nube, de otro
+ * dispositivo o de la base (D076). Las claves que este cliente no conoce se
+ * conservan, igual que hacen con "world@2" los clientes anteriores.
+ */
 function mergeRegionBestTimes(
 	remote: RegionBestTimes,
 	local: RegionBestTimes,
@@ -990,7 +1041,7 @@ function mergeRegionBestTimes(
 	const merged: RegionBestTimes = { ...remote };
 
 	for (const [region, timeMs] of Object.entries(local) as [
-		PracticeRegion,
+		BestTimeKey,
 		number | undefined,
 	][]) {
 		if (timeMs === undefined) continue;

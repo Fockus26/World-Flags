@@ -21,6 +21,7 @@ import type { UserLearningData } from "@/types/progress";
 
 import {
 	isNetworkFailure,
+	syncLeaderboardProfile,
 	syncLearningData,
 	upsertLeaderboardEntry,
 } from "@/utils/cloud-storage";
@@ -31,6 +32,7 @@ import {
 	getGameProgress,
 	getLearningData,
 	getSyncBase,
+	getWorldBestTime,
 	hasPendingChanges,
 	mergeLearningData,
 	saveLearningData,
@@ -54,6 +56,9 @@ const SYNC_RETRY_DELAYS_MS = [5_000, 15_000, 30_000, 60_000];
  */
 const SYNC_IDLE_MS = 5_000;
 const SYNC_MAX_WAIT_MS = 60_000;
+
+/** Espera tras un cambio de nombre o avatar antes de ponerlo al día en el ranking (D079). */
+const LEADERBOARD_PROFILE_IDLE_MS = 3_000;
 
 /** Una sincronización de la cuenta falló y se juega en modo `local`. */
 interface FailedSync {
@@ -122,6 +127,9 @@ export function GameEffects() {
 
 	/** Última marca de "Todo el mundo" subida al ranking, por juego. */
 	const pushedWorldBestRef = useRef<Partial<Record<GameType, number>>>({});
+
+	/** Último perfil (usuario, nombre, avatar) que quedó al día en el ranking. */
+	const syncedLeaderboardProfileRef = useRef<string | null>(null);
 
 	/**
 	 * Red de seguridad: si Supabase Auth no resuelve (red caída, mal
@@ -590,8 +598,12 @@ export function GameEffects() {
 		}
 
 		for (const gameType of GAME_TYPES) {
-			const worldBestMs = getGameProgress(learningData, gameType)
-				.regionBestTimes.world;
+			// Solo la marca de la regla vigente (D076): el `world` de la regla
+			// vieja se queda en los datos, pero no vuelve a subir a ningún sitio.
+			const worldBestMs = getWorldBestTime(
+				getGameProgress(learningData, gameType).regionBestTimes,
+				gameType,
+			);
 
 			if (
 				worldBestMs === undefined ||
@@ -605,7 +617,7 @@ export function GameEffects() {
 			void upsertLeaderboardEntry(
 				user.id,
 				LEADERBOARD_SCOPES[gameType],
-				learningData.profile.name,
+				learningData.profile,
 				worldBestMs,
 			).then((uploaded) => {
 				if (!uploaded && pushedWorldBestRef.current[gameType] === worldBestMs) {
@@ -614,6 +626,59 @@ export function GameEffects() {
 			});
 		}
 	}, [learningData, status, user, hydrationStatus, connectivity, lastSyncedAt]);
+
+	const { name, avatarStyle, avatarSeed } = learningData.profile;
+
+	/**
+	 * Nombre y avatar en el ranking (D079): una vez por carga y con cada
+	 * cambio de perfil, las filas del usuario se ponen al día sin tocar sus
+	 * tiempos (ver `syncLeaderboardProfile`). Mejor esfuerzo: si falla, se
+	 * reintenta tras la siguiente sincronización buena (`lastSyncedAt`).
+	 */
+	// biome-ignore lint/correctness/useExhaustiveDependencies: lastSyncedAt re-dispara el reintento de un perfil que no se pudo subir
+	useEffect(() => {
+		if (
+			status !== "authenticated" ||
+			!userId ||
+			hydrationStatus !== "ready" ||
+			hydratedUserRef.current !== userId ||
+			connectivity === "offline"
+		) {
+			return;
+		}
+
+		const profileKey = JSON.stringify([userId, name, avatarStyle, avatarSeed]);
+
+		if (syncedLeaderboardProfileRef.current === profileKey) return;
+
+		// Se espera a que el usuario pare: probar avatares uno tras otro no
+		// lanza una escritura por clic, y dos escrituras en vuelo no pueden
+		// llegar desordenadas y dejar el avatar anterior.
+		const timeoutId = setTimeout(() => {
+			syncedLeaderboardProfileRef.current = profileKey;
+
+			void syncLeaderboardProfile(userId, {
+				name,
+				avatarStyle,
+				avatarSeed,
+			}).then((synced) => {
+				if (!synced && syncedLeaderboardProfileRef.current === profileKey) {
+					syncedLeaderboardProfileRef.current = null;
+				}
+			});
+		}, LEADERBOARD_PROFILE_IDLE_MS);
+
+		return () => clearTimeout(timeoutId);
+	}, [
+		name,
+		avatarStyle,
+		avatarSeed,
+		status,
+		userId,
+		hydrationStatus,
+		connectivity,
+		lastSyncedAt,
+	]);
 
 	return null;
 }

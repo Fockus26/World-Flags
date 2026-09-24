@@ -8,6 +8,7 @@ import {
 import type { UserLearningData } from "@/types/progress";
 import {
 	countLearnedCountries,
+	getAnyRuleWorldBestTime,
 	getCurrentStreak,
 	getGameProgress,
 	isCountryLearned,
@@ -326,8 +327,10 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		emoji: "🏎️",
 		category: "velocidad",
 		gameType: "flags",
+		// Con cualquier regla de castigo (D076): una vuelta hecha con la regla
+		// vieja ya desbloqueó el logro y sigue contando.
 		evaluate: (data) => {
-			const worldBest = data.regionBestTimes.world;
+			const worldBest = getAnyRuleWorldBestTime(data.regionBestTimes);
 
 			return flag(worldBest !== undefined && worldBest <= 15 * MINUTE_MS);
 		},
@@ -520,7 +523,9 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		gameType: "countries",
 		evaluate: (data) =>
 			flag(
-				getGameProgress(data, "countries").regionBestTimes.world !== undefined,
+				getAnyRuleWorldBestTime(
+					getGameProgress(data, "countries").regionBestTimes,
+				) !== undefined,
 			),
 	},
 	{
@@ -575,7 +580,9 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
 		gameType: "capitals",
 		evaluate: (data) =>
 			flag(
-				getGameProgress(data, "capitals").regionBestTimes.world !== undefined,
+				getAnyRuleWorldBestTime(
+					getGameProgress(data, "capitals").regionBestTimes,
+				) !== undefined,
 			),
 	},
 	{

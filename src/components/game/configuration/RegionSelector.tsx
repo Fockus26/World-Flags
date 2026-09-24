@@ -21,6 +21,12 @@ interface RegionSelectorProps {
 	onScopeChange: (scope: PracticeScope) => void;
 	regionGameScores: Partial<Record<Region, number[]>>;
 	regionBestTimes: Partial<Record<PracticeRegion, number>>;
+	/**
+	 * Mejor tiempo de "Todo el mundo" con la regla vigente del juego (D076).
+	 * Va aparte porque su clave en `regionBestTimes` depende del juego: el
+	 * `world` de ahí dentro puede ser una marca de la regla vieja.
+	 */
+	worldBestTime: number | undefined;
 	mode: GameMode;
 	getRegionPracticeProgress: (region: Region) => {
 		practiced: number;
@@ -44,6 +50,7 @@ export function RegionSelector({
 	onScopeChange,
 	regionGameScores,
 	regionBestTimes,
+	worldBestTime,
 	mode,
 	getRegionPracticeProgress,
 	isLoading = false,
@@ -115,8 +122,8 @@ export function RegionSelector({
 					}
 					scoreTooltipLabel="Media de tus continentes, ponderada por número de países"
 					bestTimeLabel={
-						mode === "competitive" && regionBestTimes.world !== undefined
-							? formatElapsedTime(regionBestTimes.world)
+						mode === "competitive" && worldBestTime !== undefined
+							? formatElapsedTime(worldBestTime)
 							: null
 					}
 					checked={!isLoading && isWorldSelected}

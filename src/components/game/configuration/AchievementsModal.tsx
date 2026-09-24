@@ -28,7 +28,7 @@ function isNewlyUnlocked(achievement: AchievementView): boolean {
 	return achievement.unlockedAt !== null && achievement.seenAt === null;
 }
 
-function AchievementRow({
+function AchievementCard({
 	achievement,
 	rowRef,
 }: {
@@ -61,7 +61,11 @@ function AchievementRow({
 	return (
 		<li
 			ref={rowRef}
-			className={`flex items-start gap-3 rounded-md border px-3 py-2.5 ${
+			// Tarjeta vertical dentro de la rejilla del `ul` (D085): `h-full` +
+			// columna flex para que las de una misma fila midan lo mismo (el
+			// `li` ya se estira en el grid) y el estado quede siempre abajo,
+			// alineado entre vecinas aunque una descripción ocupe más líneas.
+			className={`flex h-full flex-col gap-2 rounded-md border px-3 py-2.5 ${
 				unlocked
 					? // El borde reutiliza el mismo `color-mix` que ya usa
 						// `FeedbackMessage` para sus variantes de color — no un verde
@@ -74,11 +78,14 @@ function AchievementRow({
 					: "border-surface-border bg-surface"
 			}`}
 		>
-			<span className="shrink-0 text-[1.35rem] leading-none" aria-hidden="true">
-				{achievement.emoji}
-			</span>
+			<span className="flex items-start gap-2.5">
+				<span
+					className="shrink-0 text-[1.35rem] leading-none"
+					aria-hidden="true"
+				>
+					{achievement.emoji}
+				</span>
 
-			<span className="flex min-w-0 flex-1 flex-col gap-1">
 				{/* El nombre NUNCA va coloreado (ni verde ni morado): sobre fondo
 				    claro `text-success` da 2.71:1 y `text-primary` 3.97:1, ambos
 				    fallan AA (`context/DESIGN_RULES.md`). Lo desbloqueado se
@@ -87,7 +94,7 @@ function AchievementRow({
 				    estado — nunca solo por el color del texto. Lo recién
 				    desbloqueado suma el anillo de arriba MÁS esta etiqueta de
 				    texto: nunca solo el anillo, que sería una señal solo de forma/color. */}
-				<span className="flex flex-wrap items-center gap-1.5">
+				<span className="flex min-w-0 flex-wrap items-center gap-1.5">
 					<strong className="text-[0.95rem] text-surface-soft">
 						{achievement.name}
 					</strong>
@@ -96,14 +103,16 @@ function AchievementRow({
 						// Fondo transparente a propósito: dentro de la tarjeta
 						// desbloqueada (bg-success-soft) reutiliza exactamente el
 						// mismo par texto/fondo que ya está verificado para
-						// `text-success-hover` (el icono de arriba), en vez de un
+						// `text-success-hover` (el icono del estado), en vez de un
 						// fondo nuevo sin contraste comprobado.
 						<span className="rounded-full border border-[color-mix(in_oklab,var(--success)_55%,transparent)] bg-transparent px-1.5 py-0.5 text-[0.65rem] font-black text-success-hover">
 							Nuevo
 						</span>
 					)}
 				</span>
+			</span>
 
+			<span className="flex min-w-0 flex-1 flex-col gap-1">
 				<span className="text-[0.8rem] text-text-placeholder">
 					{achievement.description}
 				</span>
@@ -120,7 +129,7 @@ function AchievementRow({
 					</span>
 				)}
 
-				<span className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] font-semibold text-text-placeholder">
+				<span className="mt-auto flex items-center gap-1.5 pt-0.5 text-[0.75rem] font-semibold text-text-placeholder">
 					{unlocked ? (
 						<CheckCircle
 							className="size-3.5 shrink-0 text-success-hover"
@@ -181,7 +190,11 @@ export function AchievementsModal({
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			className="w-[min(32rem,92vw)] text-left"
+			// Del ancho de la partida guiada (`Tutorial.tsx`), para que quepan
+			// varias tarjetas por fila (D085). `max-w-none` quita el tope de
+			// `size="md"` de HeroUI (`.modal__dialog--md` = `max-w-md`), que si
+			// no deja el diálogo en ~28rem aunque pida más ancho.
+			className="w-[min(58rem,94vw)] max-w-none text-left"
 			ariaLabelledby="achievements-title"
 		>
 			<header className="mb-3 flex items-center justify-between gap-3">
@@ -215,9 +228,12 @@ export function AchievementsModal({
 								{ACHIEVEMENT_CATEGORY_LABELS[category]}
 							</h3>
 
-							<ul className="m-0 flex list-none flex-col gap-2 p-0">
+							{/* La rejilla va en el propio `ul` (cada tarjeta sigue siendo
+							    un `li`): 1 columna a 320 px, 2 desde `min-[30rem]` y 3
+							    desde `min-[44rem]`, breakpoints que ya usa la app (D085). */}
+							<ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 min-[30rem]:grid-cols-2 min-[44rem]:grid-cols-3">
 								{items.map((achievement) => (
-									<AchievementRow
+									<AchievementCard
 										key={achievement.id}
 										achievement={achievement}
 										rowRef={(node) => {
