@@ -3,6 +3,7 @@ import { AutoHeight } from "@/components/ui/AutoHeight";
 import { Fieldset } from "@/components/ui/Fieldset";
 import { OptionTile } from "@/components/ui/OptionTile";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useSoundPreference } from "@/hooks/useSoundPreference";
 import {
 	type Difficulty,
 	GAME_MODE_LABELS,
@@ -55,6 +56,8 @@ export function GameTab({
 	difficulty,
 	onDifficultyChange,
 }: GameTabProps) {
+	const { soundEnabled, setSoundEnabled } = useSoundPreference();
+
 	return (
 		<div className="flex flex-col gap-5">
 			<Fieldset
@@ -179,6 +182,32 @@ export function GameTab({
 					siempre, para que el ranking compare partidas equivalentes.
 				</p>
 			</AutoHeight>
+
+			{/* ⚠️ Copy provisional (CONTENT_CHECKLIST.md #28): "Sonidos" y sus dos opciones. */}
+			<Fieldset legend="Sonidos">
+				{/* Mismo patrón que "Temporizador": dos opciones de radio, y no un
+				    interruptor suelto, para que la fila se lea igual que el resto
+				    de ajustes (D081). Es de este dispositivo, no de la cuenta: no
+				    viaja con la configuración a la nube. */}
+				<div className="grid grid-cols-2 gap-1.5">
+					<OptionTile
+						name="settings-sound"
+						value="off"
+						checked={!soundEnabled}
+						onChange={() => setSoundEnabled(false)}
+					>
+						Desactivados
+					</OptionTile>
+					<OptionTile
+						name="settings-sound"
+						value="on"
+						checked={soundEnabled}
+						onChange={() => setSoundEnabled(true)}
+					>
+						Activados
+					</OptionTile>
+				</div>
+			</Fieldset>
 
 			<Fieldset legend="Tema">
 				<ThemeSwitcher />

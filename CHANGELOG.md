@@ -9,6 +9,20 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.1.0] - 2026-09-24
+
+### Añadido
+
+- Ahora suena un sonido corto al acertar y otro al fallar, en Banderas, Países y
+  Capitales, en práctica, en competitivo y en la práctica diaria. Saltar una
+  pregunta suena como un fallo.
+- En el competitivo de Países cada país que encuentras suena con un toque corto,
+  para que no se amontonen si escribes rápido.
+- Al desbloquear logros suena una pequeña fanfarria, una sola vez aunque
+  consigas varios a la vez.
+- Puedes apagar los sonidos en Perfil y configuración, pestaña Juego, en
+  "Sonidos". Se guarda en este dispositivo.
+
 ## [2.0.1] - 2026-09-24
 
 ### Cambiado

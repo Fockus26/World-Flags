@@ -9,6 +9,7 @@ import { setLearningData } from "@/store/slices/gameSlice";
 import { getNewlyUnlocked } from "@/utils/achievements";
 
 import { sealAchievements } from "@/utils/learning-storage";
+import { playSound } from "@/utils/sound";
 
 /**
  * Sella los logros que se acaban de cumplir y anuncia los que ocurren en vivo
@@ -87,6 +88,12 @@ export function AchievementsEffects() {
 		}
 
 		dispatch(enqueueAchievementToasts(newlyUnlocked));
+
+		// Un sonido por tanda, no uno por logro (D080). Nunca en la pasada
+		// silenciosa de arriba (la siembra retroactiva, o lo que trae un
+		// login), ni por logros que llegan ya sellados de otro dispositivo:
+		// esos no aparecen en `newlyUnlocked`.
+		playSound("achievement");
 	}, [learningData, hydrationStatus, dispatch]);
 
 	return null;
