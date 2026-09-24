@@ -33,6 +33,11 @@ import {
 } from "@/utils/learning-storage";
 import { getScopeLabel, isEmptyScope } from "@/utils/practice-scope";
 import { AchievementsModal } from "./AchievementsModal";
+import {
+	COUNT_BADGE_CLASS,
+	ConfigurationMenu,
+	type ConfigurationMenuAction,
+} from "./ConfigurationMenu";
 import { CountryPickerModal } from "./CountryPickerModal";
 import { ConfigurationModal } from "./configurationModal/ConfigurationModal";
 import { GameTypeToggle } from "./GameTypeToggle";
@@ -108,6 +113,12 @@ export function Configuration() {
 	const dueCount = getDueCountries(gameView.countryHistory).length;
 	const dailyPracticeLabel = `Práctica diaria (${dueCount})`;
 	const title = GAME_TYPE_TITLES[gameType];
+
+	function handleMenuAction(action: ConfigurationMenuAction) {
+		if (action === "achievements") setIsAchievementsOpen(true);
+		else if (action === "leaderboard") setIsLeaderboardOpen(true);
+		else setIsCountryPickerOpen(true);
+	}
 
 	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -200,87 +211,101 @@ export function Configuration() {
 						onOpenModal={() => setIsConfigurationModalOpen(true)}
 					/>
 
-					<Tooltip
-						label={
-							unseenCount > 0 ? `Logros (${unseenCount} sin ver)` : "Logros"
-						}
-						position="left"
-						side="bottom"
-					>
-						<span className="relative inline-flex">
-							<IconButton
-								type="button"
-								color="neutral"
-								variant="text"
-								// El contador va en el nombre accesible, no solo en el
-								// badge: si no, "tienes logros nuevos" sería un estado
-								// comunicado únicamente por color y forma.
-								aria-label={
-									unseenCount > 0
-										? `Ver logros, ${unseenCount} sin ver`
-										: "Ver logros"
-								}
-								onClick={() => setIsAchievementsOpen(true)}
-							>
-								🏅
-							</IconButton>
+					{/* Escritorio: los tres iconos con tooltip. Por debajo de `sm`
+					    (el corte en el que `UserSummary` ya se compacta; a 360 px le
+					    quedaban ~165 px) van dentro del menú ⋮ (D096). Se pintan los
+					    dos y CSS oculta uno, como el selector de juego (D066). */}
+					<ConfigurationMenu
+						className="shrink-0 sm:hidden"
+						unseenCount={unseenCount}
+						customCatalogCount={customCatalogCount}
+						isLoading={isInitialLoad}
+						onAction={handleMenuAction}
+					/>
 
-							{/* Los iconos no dependen del progreso y se ven desde el
+					<div className="hidden shrink-0 items-center gap-2 sm:flex">
+						<Tooltip
+							label={
+								unseenCount > 0 ? `Logros (${unseenCount} sin ver)` : "Logros"
+							}
+							position="left"
+							side="bottom"
+						>
+							<span className="relative inline-flex">
+								<IconButton
+									type="button"
+									color="neutral"
+									variant="text"
+									// El contador va en el nombre accesible, no solo en el
+									// badge: si no, "tienes logros nuevos" sería un estado
+									// comunicado únicamente por color y forma.
+									aria-label={
+										unseenCount > 0
+											? `Ver logros, ${unseenCount} sin ver`
+											: "Ver logros"
+									}
+									onClick={() => setIsAchievementsOpen(true)}
+								>
+									🏅
+								</IconButton>
+
+								{/* Los iconos no dependen del progreso y se ven desde el
 							    principio; sus contadores sí, así que esperan a los
 							    datos. Son `absolute`: al aparecer no mueven nada. */}
-							{!isInitialLoad && unseenCount > 0 && (
-								<span
-									aria-hidden="true"
-									className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-black text-primary-soft"
-								>
-									{unseenCount}
-								</span>
-							)}
-						</span>
-					</Tooltip>
+								{!isInitialLoad && unseenCount > 0 && (
+									<span
+										aria-hidden="true"
+										className={`pointer-events-none absolute -right-1 -top-1 ${COUNT_BADGE_CLASS}`}
+									>
+										{unseenCount}
+									</span>
+								)}
+							</span>
+						</Tooltip>
 
-					<Tooltip label="Ranking" position="left" side="bottom">
-						<IconButton
-							type="button"
-							color="neutral"
-							variant="text"
-							aria-label="Ver ranking"
-							onClick={() => setIsLeaderboardOpen(true)}
-						>
-							🏆
-						</IconButton>
-					</Tooltip>
-
-					<Tooltip
-						label={
-							customCatalogCount > 0
-								? `${customCatalogCount} país${customCatalogCount === 1 ? "" : "es"} elegidos a mano`
-								: "Elegir países específicos"
-						}
-						position="left"
-						side="bottom"
-					>
-						<span className="relative inline-flex">
+						<Tooltip label="Ranking" position="left" side="bottom">
 							<IconButton
 								type="button"
 								color="neutral"
 								variant="text"
-								aria-label="Elegir países específicos"
-								onClick={() => setIsCountryPickerOpen(true)}
+								aria-label="Ver ranking"
+								onClick={() => setIsLeaderboardOpen(true)}
 							>
-								📍
+								🏆
 							</IconButton>
+						</Tooltip>
 
-							{!isInitialLoad && customCatalogCount > 0 && (
-								<span
-									aria-hidden="true"
-									className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-black text-primary-soft"
+						<Tooltip
+							label={
+								customCatalogCount > 0
+									? `${customCatalogCount} país${customCatalogCount === 1 ? "" : "es"} elegidos a mano`
+									: "Elegir países específicos"
+							}
+							position="left"
+							side="bottom"
+						>
+							<span className="relative inline-flex">
+								<IconButton
+									type="button"
+									color="neutral"
+									variant="text"
+									aria-label="Elegir países específicos"
+									onClick={() => setIsCountryPickerOpen(true)}
 								>
-									{customCatalogCount}
-								</span>
-							)}
-						</span>
-					</Tooltip>
+									📍
+								</IconButton>
+
+								{!isInitialLoad && customCatalogCount > 0 && (
+									<span
+										aria-hidden="true"
+										className={`pointer-events-none absolute -right-1 -top-1 ${COUNT_BADGE_CLASS}`}
+									>
+										{customCatalogCount}
+									</span>
+								)}
+							</span>
+						</Tooltip>
+					</div>
 				</div>
 
 				<AutoHeight show={isStreakOpen} className="shrink-0">

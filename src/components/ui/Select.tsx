@@ -1,4 +1,5 @@
 import { Select as HeroSelect, Label, ListBox } from "@heroui/react";
+import { POPOVER_MOTION_CLASS } from "./popover-motion";
 
 export interface SelectOption {
 	value: string;
@@ -48,7 +49,8 @@ export function Select({
 				<HeroSelect.Value />
 				<HeroSelect.Indicator />
 			</HeroSelect.Trigger>
-			<HeroSelect.Popover>
+			{/* Apertura y cierre más visibles que los de serie (D099). */}
+			<HeroSelect.Popover className={POPOVER_MOTION_CLASS}>
 				<ListBox>
 					{options.map((option) => (
 						<ListBox.Item

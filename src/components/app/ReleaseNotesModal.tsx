@@ -1,6 +1,6 @@
 import { Accordion } from "@heroui/react";
-import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { ModalCloseButton } from "@/components/ui/ModalCloseButton";
 import { APP_VERSION, CHANGELOG } from "@/data/changelog";
 
 interface ReleaseNotesModalProps {
@@ -52,15 +52,7 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
 				<h2 id="release-notes-title" className="m-0">
 					Novedades
 				</h2>
-				<Button
-					variant="text"
-					color="danger"
-					type="button"
-					fullWidth={false}
-					onClick={onClose}
-				>
-					Cerrar
-				</Button>
+				<ModalCloseButton onClose={onClose} />
 			</header>
 
 			<p className="mt-0 mb-4 text-sm">

@@ -9,6 +9,23 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.2.0] - 2026-09-24
+
+### Añadido
+
+- En el móvil, Logros, Ranking y Elegir países están ahora en un menú (el botón
+  de los tres puntos), cada uno con su nombre. Si tienes logros sin ver, el
+  botón del menú lo avisa con un número.
+
+### Cambiado
+
+- En el móvil, las ventanas se cierran con una X arriba a la derecha en vez del
+  botón "Cerrar".
+- En el ordenador y la tableta, el panel de la racha ocupa todo el ancho: tu
+  racha y tu mejor racha a un lado y el calendario del mes al otro.
+- Las listas desplegables, como la de elegir qué practicar en el móvil, se
+  abren y se cierran con una animación que ahora sí se nota.
+
 ## [2.1.4] - 2026-09-24
 
 ### Cambiado

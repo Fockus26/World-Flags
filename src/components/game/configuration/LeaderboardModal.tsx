@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { LoadingAnnouncer } from "@/components/ui/LoadingAnnouncer";
 import { Modal } from "@/components/ui/Modal";
+import { ModalCloseButton } from "@/components/ui/ModalCloseButton";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
@@ -196,15 +196,7 @@ export function LeaderboardModal({
 				<h2 id="leaderboard-title" className="m-0">
 					Ranking — Todo el mundo
 				</h2>
-				<Button
-					variant="text"
-					color="danger"
-					type="button"
-					fullWidth={false}
-					onClick={onClose}
-				>
-					Cerrar
-				</Button>
+				<ModalCloseButton onClose={onClose} />
 			</header>
 
 			<GameTypeToggle

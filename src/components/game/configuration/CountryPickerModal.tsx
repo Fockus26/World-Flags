@@ -3,6 +3,7 @@ import { NavArrowDown } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { ModalCloseButton } from "@/components/ui/ModalCloseButton";
 import { countries } from "@/data/countries";
 import { motionVariants } from "@/styles/animations";
 import { REGION_LABELS, REGIONS, type Region } from "@/types/country";
@@ -177,15 +178,7 @@ export function CountryPickerModal({
 				<h2 id="country-picker-title" className="m-0">
 					Elegir países
 				</h2>
-				<Button
-					variant="text"
-					color="danger"
-					type="button"
-					fullWidth={false}
-					onClick={onClose}
-				>
-					Cerrar
-				</Button>
+				<ModalCloseButton onClose={onClose} />
 			</header>
 
 			<div className="mt-0 mb-3 flex items-start justify-between gap-3">

@@ -1,7 +1,7 @@
 import { CheckCircle, Lock } from "iconoir-react";
 import { useEffect, useRef } from "react";
-import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { ModalCloseButton } from "@/components/ui/ModalCloseButton";
 import { type AchievementView, useAchievements } from "@/hooks/useAchievements";
 import type { GameType } from "@/types/country";
 import {
@@ -201,15 +201,7 @@ export function AchievementsModal({
 				<h2 id="achievements-title" className="m-0">
 					Logros
 				</h2>
-				<Button
-					variant="text"
-					color="danger"
-					type="button"
-					fullWidth={false}
-					onClick={onClose}
-				>
-					Cerrar
-				</Button>
+				<ModalCloseButton onClose={onClose} />
 			</header>
 
 			<p className="mt-0 mb-4 text-[0.85rem] text-text-placeholder">
