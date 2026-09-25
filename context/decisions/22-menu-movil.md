@@ -80,6 +80,9 @@ Pedido del dueño: "no hay animaciones en el select del modo de juego".
 
 ## D100 — La racha a todo el ancho de la tarjeta (sustituye al `max-w-sm`)
 
+> **Sustituida por D118–D119** (`decisions/28-racha-calendario.md`): el panel vuelve a
+> ser una columna en todos los anchos y el calendario ocupa todo el ancho.
+
 El dueño había elegido en `fix/responsive-racha` limitar el panel entero a `max-w-sm`
 porque las celdas del calendario (1/7 del ancho, cuadradas) crecían a ~90 px y el panel
 no cabía en móvil horizontal. Ahora pide que la racha ocupe todo el ancho en escritorio.

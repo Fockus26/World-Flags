@@ -20,6 +20,13 @@ interface ModalProps {
 	 */
 	isDismissable?: boolean;
 	/**
+	 * ¿Escape deja de cerrar? Por defecto no (Escape cierra, como hasta
+	 * ahora). En `true` el diálogo no se puede descartar con el teclado: solo
+	 * lo usa la actualización obligatoria (D111), que junto con
+	 * `isDismissable={false}` no tiene forma de cerrarse salvo su botón.
+	 */
+	isKeyboardDismissDisabled?: boolean;
+	/**
 	 * ¿Puede el diálogo ocupar la pantalla entera? Por defecto no, como hasta
 	 * ahora: el contenedor de HeroUI deja su margen alrededor y el alto se
 	 * queda en el 90 % del viewport. En `true` desaparecen los dos límites
@@ -57,6 +64,7 @@ export function Modal({
 	ariaDescribedby,
 	size = "md",
 	isDismissable = true,
+	isKeyboardDismissDisabled = false,
 	fillViewport = false,
 }: ModalProps) {
 	return (
@@ -66,6 +74,7 @@ export function Modal({
 				if (!open) onClose();
 			}}
 			isDismissable={isDismissable}
+			isKeyboardDismissDisabled={isKeyboardDismissDisabled}
 			variant="blur"
 		>
 			<ModalContainer

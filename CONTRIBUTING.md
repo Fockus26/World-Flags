@@ -131,11 +131,15 @@ same PR.** Each merge to `main` is deployed, so each PR is a release: there is n
    Sections (only the ones you need, in this order): `Añadido`, `Cambiado`, `Obsoleto`,
    `Eliminado`, `Corregido`, `Seguridad`. Plain text only — no bold, code or links inside
    an item (the dialog shows it as-is). Long items can wrap onto indented lines.
-3. PRs with no user-visible change (docs, tests, CI, refactors, tooling) don't bump the
+3. Set the same version in `const APP_VERSION = "x.y.z";` at the top of `public/sw.js`.
+   That changes the service worker's bytes, so open tabs get the "Actualizar" prompt
+   (`context/decisions/25-actualizacion-obligatoria.md`, D107). Don't touch `CACHE_NAME`.
+4. PRs with no user-visible change (docs, tests, CI, refactors, tooling) don't bump the
    version and don't add an entry.
 
-`bun run test` fails if the changelog doesn't follow this format or if its first entry
-isn't the version in `package.json`. If two open PRs claim the same version, whoever
+`bun run test` fails if the changelog doesn't follow this format, if its first entry
+isn't the version in `package.json`, or if `APP_VERSION` in `public/sw.js` doesn't match
+it. If two open PRs claim the same version, whoever
 merges second renumbers theirs when updating from `main`.
 
 ---

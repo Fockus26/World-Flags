@@ -9,7 +9,7 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
-## [2.2.1] - 2026-09-24
+## [2.4.2] - 2026-09-24
 
 ### Corregido
 
@@ -21,6 +21,55 @@ Cómo se añade una entrada y cuándo se sube cada número: ver
   notificaciones. Si no se puede activar (las tienes bloqueadas, estás en un
   iPhone sin la app instalada o el navegador no las admite), el aviso te dice
   por qué y cómo arreglarlo en vez de cerrarse sin más.
+
+## [2.4.1] - 2026-09-24
+
+### Cambiado
+
+- Al abrir el ranking, las filas de carga aparecen al momento en vez de dejar
+  un hueco vacío, y la ventana crece o se encoge con suavidad cuando llegan los
+  tiempos (sin animación si tienes activado reducir el movimiento).
+
+## [2.4.0] - 2026-09-24
+
+### Añadido
+
+- Si tienes abierta una versión de la app que ya no es compatible, la app te
+  pide actualizar antes de seguir jugando, con un solo botón. Tu progreso
+  guardado se conserva. Sin conexión puedes seguir jugando como siempre.
+
+### Corregido
+
+- El aviso de que hay una versión nueva vuelve a salir en cada versión, también
+  con la app ya abierta. Desde hace varias versiones no aparecía.
+
+## [2.3.1] - 2026-09-24
+
+### Cambiado
+
+- El panel de la racha tiene la misma forma en todas las pantallas: tu racha y
+  tu mejor racha arriba y, debajo, el calendario del mes a todo el ancho.
+
+## [2.3.0] - 2026-09-24
+
+### Añadido
+
+- En "Cómo se juega" ya puedes elegir a qué juego es la partida de ejemplo:
+  Países, Banderas o Capitales.
+
+### Cambiado
+
+- Mientras juegas la partida de ejemplo ya no hay nada encima de ella: tiene
+  el mismo tamaño que una partida normal. Que no cuenta para tu progreso se
+  dice justo antes de empezarla, y se sale con "Abandonar".
+
+## [2.2.1] - 2026-09-24
+
+### Seguridad
+
+- El ranking rechaza los tiempos imposibles de conseguir jugando, para que nadie
+  pueda colarse arriba con un tiempo inventado. Si te pasa con un tiempo tuyo, tu
+  marca se queda guardada en tu progreso aunque no aparezca en el ranking.
 
 ## [2.2.0] - 2026-09-24
 
