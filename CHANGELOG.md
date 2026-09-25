@@ -9,12 +9,20 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
-## [2.2.1] - 2026-09-24
+## [2.2.2] - 2026-09-24
 
 ### Cambiado
 
 - El panel de la racha tiene la misma forma en todas las pantallas: tu racha y
   tu mejor racha arriba y, debajo, el calendario del mes a todo el ancho.
+
+## [2.2.1] - 2026-09-24
+
+### Seguridad
+
+- El ranking rechaza los tiempos imposibles de conseguir jugando, para que nadie
+  pueda colarse arriba con un tiempo inventado. Si te pasa con un tiempo tuyo, tu
+  marca se queda guardada en tu progreso aunque no aparezca en el ranking.
 
 ## [2.2.0] - 2026-09-24
 

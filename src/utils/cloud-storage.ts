@@ -6,7 +6,10 @@ import {
 	type UserLearningData,
 	type UserProfile,
 } from "@/types/progress";
-
+import {
+	isLeaderboardTimeRejected,
+	type LeaderboardUploadResult,
+} from "./leaderboard-validation";
 import {
 	normalizeLearningData,
 	planSync,
@@ -486,15 +489,18 @@ export async function syncLeaderboardProfile(
  * hace falta un merge, cada mejora reemplaza la fila entera del usuario.
  * Es un "mejor esfuerzo": si falla (p. ej. la tabla todavía no existe en
  * Supabase, ver supabase/leaderboard.sql) no debe romper el juego, solo se
- * registra el error. Devuelve si subió: una marca hecha sin conexión se
- * reintenta después de la siguiente sincronización buena (D050).
+ * registra el error. Devuelve cómo acabó: una marca que no subió (`failed`,
+ * p. ej. sin conexión) se reintenta después de la siguiente sincronización
+ * buena (D050); una que el servidor rechazó por imposible (`rejected`, el
+ * trigger de `supabase/leaderboard-validacion.sql`) no se reintenta: volvería
+ * a rechazarse (D113).
  */
 export async function upsertLeaderboardEntry(
 	userId: string,
 	scope: string,
 	profile: LeaderboardProfile,
 	bestTimeMs: number,
-): Promise<boolean> {
+): Promise<LeaderboardUploadResult> {
 	const { error, status } = await supabase.from("leaderboard_entries").upsert({
 		user_id: userId,
 		scope,
@@ -506,6 +512,16 @@ export async function upsertLeaderboardEntry(
 	});
 
 	if (error) {
+		// No es un fallo de la sincronización: el progreso local y la marca
+		// se quedan como están, solo no llega al ranking público.
+		if (isLeaderboardTimeRejected(error)) {
+			console.warn(
+				`Leaderboard time rejected by the server (${scope}): ${error.message}`,
+			);
+
+			return "rejected";
+		}
+
 		const cloudError = toCloudRequestError(
 			error,
 			status,
@@ -516,8 +532,8 @@ export async function upsertLeaderboardEntry(
 			console.error(cloudError.message, error);
 		}
 
-		return false;
+		return "failed";
 	}
 
-	return true;
+	return "uploaded";
 }
