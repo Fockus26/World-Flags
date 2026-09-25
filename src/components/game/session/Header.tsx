@@ -1,5 +1,7 @@
 import { LogOut } from "iconoir-react";
 import { Button } from "@/components/ui/Button";
+import { formatPenaltyAnnouncement } from "@/utils/rush-penalty";
+import { PenaltyBadge, type PenaltyEvent } from "./PenaltyBadge";
 import { Timer } from "./Timer";
 
 interface HeaderProps {
@@ -10,6 +12,10 @@ interface HeaderProps {
 	timerDuration?: number;
 	/** Modo competitivo ("rush"): cronómetro de toda la sesión, en ms. */
 	elapsedMs?: number;
+	/** Competitivo: castigos que están subiendo junto al cronómetro (D132). */
+	penalties?: PenaltyEvent[];
+	/** Un castigo terminó su salida: quién lo pinta lo quita de `penalties`. */
+	onPenaltyDone?: (id: number) => void;
 	onExit: () => void;
 }
 
@@ -31,9 +37,12 @@ export function Header({
 	timeLeft,
 	timerDuration,
 	elapsedMs,
+	penalties = [],
+	onPenaltyDone,
 	onExit,
 }: HeaderProps) {
 	const progress = ((currentIndex + 1) / totalCountries) * 100;
+	const latestPenalty = penalties.at(-1);
 
 	return (
 		<>
@@ -52,12 +61,39 @@ export function Header({
 						<Timer timeLeft={timeLeft} totalDuration={timerDuration} />
 					)}
 					{elapsedMs !== undefined && (
-						<span
-							className="font-extrabold text-primary text-lg tabular-nums"
-							role="timer"
-							aria-live="off"
-						>
-							{formatStopwatch(elapsedMs)}
+						<span className="relative flex items-center">
+							{penalties.map((penalty) => (
+								<PenaltyBadge
+									key={penalty.id}
+									penaltyMs={penalty.penaltyMs}
+									onDone={() => onPenaltyDone?.(penalty.id)}
+								/>
+							))}
+							{/* El cronómetro "salta" con cada castigo: la `key` del
+							    último lo remonta y rearranca el `zoom-in` (D132). */}
+							<span
+								key={latestPenalty?.id ?? 0}
+								className={`font-extrabold text-primary text-lg tabular-nums ${
+									latestPenalty
+										? "animate-in zoom-in-125 duration-300 motion-reduce:animate-none"
+										: ""
+								}`}
+								role="timer"
+								aria-live="off"
+							>
+								{formatStopwatch(elapsedMs)}
+							</span>
+							{/* Nunca solo visual (D134): el badge es `aria-hidden` y
+							    esto lo dice. Montada desde el principio para que el
+							    lector la registre; cada castigo mete un nodo nuevo
+							    (su `key`), así que dos iguales seguidos se anuncian. */}
+							<span className="sr-only" aria-live="polite">
+								{latestPenalty && (
+									<span key={latestPenalty.id}>
+										{formatPenaltyAnnouncement(latestPenalty.penaltyMs)}
+									</span>
+								)}
+							</span>
 						</span>
 					)}
 					<Button

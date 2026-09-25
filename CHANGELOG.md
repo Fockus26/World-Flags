@@ -9,6 +9,14 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.4.2] - 2026-09-25
+
+### Cambiado
+
+- En el modo competitivo de Banderas y Capitales, el castigo por fallar o
+  saltar ya no va escrito en el aviso de fallo: ahora aparece un "+10 s" o
+  "+20 s" junto al cronómetro, que da un salto en ese mismo momento.
+
 ## [2.4.0] - 2026-09-24
 
 ### Añadido

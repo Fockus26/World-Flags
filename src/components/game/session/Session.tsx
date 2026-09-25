@@ -14,11 +14,11 @@ import {
 import type { ReviewGrade } from "@/types/progress";
 import { toGameView } from "@/utils/learning-storage";
 import { getScopeLabel } from "@/utils/practice-scope";
-import { formatPenalty } from "@/utils/rush-penalty";
 import { calculateScore } from "@/utils/score";
 import { playSound } from "@/utils/sound";
 import { AnswerForm } from "./AnswerForm";
 import { Header } from "./Header";
+import type { PenaltyEvent } from "./PenaltyBadge";
 import {
 	type CardGameType,
 	isCardGameType,
@@ -95,8 +95,13 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 	const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 	const [timeLeft, setTimeLeft] = useState<number>(timerDuration);
 	const [elapsedMs, setElapsedMs] = useState(0);
-	/** Competitivo: castigo de la última respuesta, para decirlo en el aviso de fallo. */
-	const [penaltyMs, setPenaltyMs] = useState<number | null>(null);
+	/**
+	 * Competitivo: castigos que el cronómetro está mostrando ("+10 s" que sube
+	 * a su lado, D132). Uno por evento, con `id` propio: dos seguidos no se
+	 * pisan. Cada uno se quita solo al terminar su salida (`removePenalty`).
+	 */
+	const [penalties, setPenalties] = useState<PenaltyEvent[]>([]);
+	const penaltyIdRef = useRef(0);
 	// Mientras se revela la respuesta tras un skip en práctica, no tiene
 	// sentido mostrar los botones de calificación: "otra vez" ya quedó
 	// decidido automáticamente.
@@ -303,8 +308,27 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 		setCurrentIndex((currentValue) => currentValue + 1);
 		setAnswer("");
 		setAnswerStatus("idle");
-		setPenaltyMs(null);
 		cardStepRef.current = "idle";
+	}
+
+	/**
+	 * Suma el castigo al cronómetro y lo pinta al momento (D132). El intervalo
+	 * está congelado durante la transición (`pauseThenAdvance`), así que sin
+	 * este `setElapsedMs` el número saltaría 900 ms después del "+10 s", al
+	 * avanzar; así saltan juntos. El tiempo final no cambia: la pausa se
+	 * descuenta igual al reanudar.
+	 */
+	function applyPenalty(penaltyMs: number) {
+		if (startTimeRef.current === null) return;
+		startTimeRef.current -= penaltyMs;
+		setElapsedMs(Date.now() - startTimeRef.current);
+		penaltyIdRef.current += 1;
+		const id = penaltyIdRef.current;
+		setPenalties((current) => [...current, { id, penaltyMs }]);
+	}
+
+	function removePenalty(id: number) {
+		setPenalties((current) => current.filter((penalty) => penalty.id !== id));
 	}
 
 	/** Congela el cronómetro durante la transición y lo reanuda al avanzar, sin contar esa espera. */
@@ -344,10 +368,7 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 			// En competitivo cada bandera aparece una sola vez (avanza por
 			// índice), así que el guard de `recordFirstAttempt` nunca salta.
 			recordFirstAttempt(currentCountry.code, isCorrect);
-			if (!isCorrect && startTimeRef.current !== null) {
-				startTimeRef.current -= RUSH_WRONG_PENALTY_MS;
-				setPenaltyMs(RUSH_WRONG_PENALTY_MS);
-			}
+			if (!isCorrect) applyPenalty(RUSH_WRONG_PENALTY_MS);
 			setAnswerStatus(isCorrect ? "correct" : "incorrect");
 			pauseThenAdvance();
 			return;
@@ -412,10 +433,7 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 		if (configuration.mode === "competitive") {
 			attemptCountry(currentCountry.code, false, gameType);
 			recordFirstAttempt(currentCountry.code, false);
-			if (startTimeRef.current !== null) {
-				startTimeRef.current -= RUSH_SKIP_PENALTY_MS;
-				setPenaltyMs(RUSH_SKIP_PENALTY_MS);
-			}
+			applyPenalty(RUSH_SKIP_PENALTY_MS);
 			setAnswerStatus("incorrect");
 			pauseThenAdvance();
 			return;
@@ -446,6 +464,8 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 					timeLeft={isTimedPractice ? timeLeft : undefined}
 					timerDuration={isTimedPractice ? timerDuration : undefined}
 					elapsedMs={isCompetitiveMode ? elapsedMs : undefined}
+					penalties={penalties}
+					onPenaltyDone={removePenalty}
 					onExit={handleOpenExitModal}
 				/>
 
@@ -464,11 +484,6 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 						mode={configuration.mode}
 						onGrade={handleGrade}
 						hideGradeButtons={isSkipPending}
-						penaltyLabel={
-							penaltyMs !== null
-								? `${formatPenalty(penaltyMs)} al cronómetro`
-								: undefined
-						}
 					/>
 				</div>
 			</motion.section>
