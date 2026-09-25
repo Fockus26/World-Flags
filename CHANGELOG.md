@@ -9,6 +9,19 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.4.0] - 2026-09-24
+
+### Añadido
+
+- Si tienes abierta una versión de la app que ya no es compatible, la app te
+  pide actualizar antes de seguir jugando, con un solo botón. Tu progreso
+  guardado se conserva. Sin conexión puedes seguir jugando como siempre.
+
+### Corregido
+
+- El aviso de que hay una versión nueva vuelve a salir en cada versión, también
+  con la app ya abierta. Desde hace varias versiones no aparecía.
+
 ## [2.3.1] - 2026-09-24
 
 ### Cambiado

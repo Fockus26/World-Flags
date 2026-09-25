@@ -80,5 +80,73 @@ export function useServiceWorkerUpdate() {
 		waitingWorker?.postMessage({ type: "SKIP_WAITING" });
 	};
 
-	return { updateAvailable: waitingWorker !== null, applyUpdate };
+	return {
+		updateAvailable: waitingWorker !== null,
+		applyUpdate,
+		forceUpdate,
+	};
+}
+
+/**
+ * Tope para cada espera de `forceUpdate` (bajar `sw.js` e instalarlo, o que
+ * el worker nuevo tome el control). Pasado, se recarga igual.
+ */
+const FORCE_UPDATE_STEP_MS = 5_000;
+
+function delay(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Resuelve cuando el worker queda instalado (o falla, o pasa el tope). */
+function waitUntilInstalled(worker: ServiceWorker | null): Promise<void> {
+	if (worker?.state !== "installing") return Promise.resolve();
+
+	return Promise.race([
+		new Promise<void>((resolve) => {
+			worker.addEventListener("statechange", () => {
+				if (worker.state !== "installing") resolve();
+			});
+		}),
+		delay(FORCE_UPDATE_STEP_MS),
+	]);
+}
+
+/**
+ * "Actualizar" de la actualización obligatoria (D111): a diferencia de
+ * `applyUpdate`, no espera a que el navegador haya encontrado el SW nuevo.
+ *
+ * 1. Si no hay uno esperando, se le pide al navegador que lo busque ya
+ *    (`registration.update()`) y se espera a que se instale.
+ * 2. Con uno esperando y la página controlada, se activa (`SKIP_WAITING`):
+ *    el `controllerchange` de arriba recarga esta pestaña y las demás.
+ * 3. En cualquier otro caso (sin SW, sin registro, sin red, sin versión
+ *    nueva de `sw.js`), se recarga sin más: la navegación va siempre a la red
+ *    primero (`sw.js`), así que la recarga trae el HTML y el bundle nuevos.
+ *
+ * Si tras activar el worker la recarga no llega (p. ej. otra pestaña ya lo
+ * había activado y no hubo `controllerchange` aquí), se recarga a mano.
+ */
+async function forceUpdate(): Promise<void> {
+	if ("serviceWorker" in navigator) {
+		try {
+			const registration = await navigator.serviceWorker.getRegistration();
+
+			if (registration && !registration.waiting) {
+				await Promise.race([
+					registration.update(),
+					delay(FORCE_UPDATE_STEP_MS),
+				]);
+				await waitUntilInstalled(registration.installing);
+			}
+
+			if (registration?.waiting && navigator.serviceWorker.controller) {
+				registration.waiting.postMessage({ type: "SKIP_WAITING" });
+				await delay(FORCE_UPDATE_STEP_MS);
+			}
+		} catch {
+			// Sin red o sin permiso para el SW: basta con recargar.
+		}
+	}
+
+	window.location.reload();
 }

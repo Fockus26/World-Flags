@@ -1,12 +1,15 @@
 const CACHE_NAME = "banderas-cache-v4";
 const OFFLINE_URL = "/";
 
-// 1.2.0 (partida guiada, D071). Antes: 1.1.0 (modo Capitales, D062).
-// Cambiar cualquier byte de este archivo hace que el navegador instale un
-// service worker nuevo y la app ofrezca "Actualizar" a las pestañas abiertas
-// con la versión anterior — si no, seguirían sirviendo el bundle viejo, sin el
-// tutorial. `CACHE_NAME` no cambia a propósito: las banderas ya precargadas
-// (D054) siguen valiendo.
+// Versión de la app que trae este service worker: siempre la de
+// `package.json` (lo exige `tests/unit/sw-version.test.ts`, D107). Así cada
+// versión cambia al menos un byte de este archivo, el navegador instala un
+// service worker nuevo y la app ofrece "Actualizar" a las pestañas abiertas
+// con la anterior; si no, seguirían con el bundle viejo. Antes solo cambiaba
+// cuando alguien se acordaba de tocar un comentario (la última vez, 1.2.0).
+// `CACHE_NAME` no cambia a propósito: las banderas ya precargadas (D054)
+// siguen valiendo.
+const APP_VERSION = "2.4.0";
 
 // Sin `skipWaiting()` automático a propósito: así el service worker nuevo se
 // queda "esperando" (`registration.waiting`) en vez de tomar el control de
