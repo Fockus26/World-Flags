@@ -9,6 +9,18 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.2.1] - 2026-09-24
+
+### Corregido
+
+- Si juegas con el teclado, el contorno que marca dónde estás aparece ya con su
+  color, sin pasar antes un instante por el color del texto.
+- En el móvil, al tocar las pestañas de Perfil y configuración, las listas
+  desplegables o las versiones de Novedades ves el mismo efecto que al pasar el
+  ratón por encima en el ordenador, y desaparece al soltar.
+- Con lector de pantalla, el enlace "Saltar al contenido principal" está dentro
+  de su propia zona de navegación, "Accesos directos".
+
 ## [2.2.0] - 2026-09-24
 
 ### Añadido
