@@ -80,6 +80,10 @@ en escritorio.
 
 ## D092 — Que la partida es de ejemplo y no cuenta se dice una sola vez
 
+> **Sustituida por D122** (`29-tutorial-modo-de-juego.md`): el aviso de encima
+> de la partida desaparece (D120) y la información pasa al texto del paso de la
+> partida y al aviso de abandonar.
+
 Se dice en el aviso que se ve **mientras se juega** (`demoBanner`), que absorbe
 lo que antes contaba la bienvenida: *no cuenta para tu progreso, tu racha ni el
 ranking; puedes fallar sin miedo*. Se reescribió el resto para no repetirlo:

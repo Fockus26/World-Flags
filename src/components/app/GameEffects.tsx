@@ -26,6 +26,8 @@ import {
 	upsertLeaderboardEntry,
 } from "@/utils/cloud-storage";
 
+import { shouldRetryLeaderboardUpload } from "@/utils/leaderboard-validation";
+
 import {
 	clearLearningData,
 	createDefaultLearningData,
@@ -582,7 +584,8 @@ export function GameEffects() {
 	 * esfuerzo, ver upsertLeaderboardEntry. No espera a las subidas agrupadas
 	 * porque esto no compite en frecuencia con el resto de `learningData`
 	 * (solo cambia al batir una marca). Si falla (sin conexión), se reintenta
-	 * tras la siguiente sincronización buena (`lastSyncedAt`). Un solo efecto
+	 * tras la siguiente sincronización buena (`lastSyncedAt`); si el servidor
+	 * la rechaza por imposible, no (D113). Un solo efecto
 	 * para todos los juegos (D061), con la última marca subida de cada uno.
 	 */
 	// biome-ignore lint/correctness/useExhaustiveDependencies: lastSyncedAt re-dispara el reintento de una marca que no se pudo subir
@@ -619,8 +622,14 @@ export function GameEffects() {
 				LEADERBOARD_SCOPES[gameType],
 				learningData.profile,
 				worldBestMs,
-			).then((uploaded) => {
-				if (!uploaded && pushedWorldBestRef.current[gameType] === worldBestMs) {
+			).then((result) => {
+				// Una marca rechazada por el servidor (D113) se queda como
+				// "subida": reintentarla con cada cambio de `learningData` solo
+				// repetiría el rechazo. Vuelve a probarse en la próxima carga.
+				if (
+					shouldRetryLeaderboardUpload(result) &&
+					pushedWorldBestRef.current[gameType] === worldBestMs
+				) {
 					pushedWorldBestRef.current[gameType] = undefined;
 				}
 			});

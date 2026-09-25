@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CountriesPractice } from "@/components/game/session/countries/CountriesPractice";
+import { Session } from "@/components/game/session/Session";
 import { Button } from "@/components/ui/Button";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { Modal } from "@/components/ui/Modal";
@@ -51,11 +52,13 @@ interface TutorialProps {
  * único que se le pide de más es no cerrarse con un clic fuera
  * (`isDismissable={false}`), porque eso perdería el recorrido a medias; Escape
  * sigue cerrándolo. "Saltar tutorial" está en todos los pasos menos el último
- * —también mientras se juega—: ahí ya está "Empezar a jugar", que hace lo
- * mismo, y dos botones para cerrar sobran (D091).
+ * —ahí ya está "Empezar a jugar", que hace lo mismo, y dos botones para cerrar
+ * sobran (D091)— y **menos mientras se juega** (D120): la partida manda, con
+ * su propio "Abandonar", y Escape sigue cerrando el recorrido.
  *
  * Mientras se juega el ejemplo, el diálogo crece hasta el tamaño de una
- * partida normal (D090): ver `PLAYING_DIALOG_CLASSES`.
+ * partida normal (D090): ver `PLAYING_DIALOG_CLASSES`. Sin nada encima de la
+ * partida (D120), mide lo mismo también de alto.
  *
  * **No resalta ni señala con flechas la UI real.** Las vistas del juego viven
  * dentro del giro 3D de `PageFlip`, que deja montada la vista anterior en su
@@ -122,6 +125,8 @@ export function Tutorial({ onClose }: TutorialProps) {
 	const step = TUTORIAL_STEPS[stepIndex];
 	const isPlaying = sandbox.state.gameId !== null;
 	const hasPlayed = sandbox.state.result !== null;
+	/** El juego elegido para la partida de ejemplo (D121). */
+	const gameType = sandbox.state.configuration.gameType;
 
 	/**
 	 * Foco al título de cada paso, que lleva el contador dentro: el lector de
@@ -167,27 +172,31 @@ export function Tutorial({ onClose }: TutorialProps) {
 			    en vez de ajustarse a lo que queda (ver `TutorialPlayStep`). */}
 			<div className={`flex flex-col ${isPlaying ? "min-h-0 gap-2" : "gap-4"}`}>
 				{/* `min-h-10` = el alto de "Saltar tutorial": en el último paso,
-				    sin el botón, la cabecera no encoge ni el texto de debajo sube. */}
+				    sin el botón, la cabecera no encoge ni el texto de debajo sube.
+				    Jugando, la cabecera entera se oculta a la vista (D120): sin
+				    aviso ni "Saltar tutorial" no le queda nada visible, y `sr-only`
+				    la saca del `flex` (es `absolute`), así que tampoco se come el
+				    `gap` y la partida se queda con todo el alto. */}
 				<header
-					className={`flex min-h-10 justify-between gap-3 ${isPlaying ? "items-center" : "items-start"}`}
+					className={
+						isPlaying
+							? "sr-only"
+							: "flex min-h-10 items-start justify-between gap-3"
+					}
 				>
 					{/* `tabIndex={-1}` solo para poder enfocarlo al cambiar de paso;
 					    no entra en el orden de tabulación. El contador va dentro del
 					    encabezado y no en un elemento aparte para que se anuncie de
 					    una sola vez al recibir el foco.
-					    Jugando se oculta a la vista (no al lector: sigue nombrando
-					    el diálogo, y la región de abajo anuncia el paso): el hueco
-					    es para la partida, que ya lleva su propio encabezado con el
-					    continente (D090). */}
+					    Jugando se oculta a la vista con su cabecera (no al lector:
+					    sigue nombrando el diálogo, y la región de abajo anuncia el
+					    paso): el hueco es para la partida, que ya lleva su propio
+					    encabezado con el continente (D090). */}
 					<h2
 						id={HEADING_ID}
 						ref={headingRef}
 						tabIndex={-1}
-						className={
-							isPlaying
-								? "sr-only"
-								: "m-0 min-w-0 text-base font-bold text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface-soft sm:text-lg"
-						}
+						className="m-0 min-w-0 text-base font-bold text-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface-soft sm:text-lg"
 					>
 						<span className="block text-xs font-bold text-text-placeholder">
 							{TUTORIAL_TEXTS.stepLabel(stepIndex + 1, TUTORIAL_STEPS.length)}
@@ -195,21 +204,10 @@ export function Tutorial({ onClose }: TutorialProps) {
 						{step.title}
 					</h2>
 
-					{/* El único sitio del recorrido que dice que la partida es de
-					    ejemplo y que no cuenta (D092), visible todo el rato que se
-					    juega. Aviso propio y no `FeedbackMessage`: sus dos
-					    variantes son "acierto" y "error", y esto no es ninguna de
-					    las dos. El significado va en el texto, sin icono — el ámbar
-					    sobre su fondo suave (2,78:1) no llegaría al 3:1 que
-					    necesita un icono informativo. Texto en `surface-soft` sobre
-					    `warning-soft`: contraste de sobra. */}
-					{isPlaying && (
-						<p className="m-0 min-w-0 flex-1 rounded-[var(--radius)] border border-warning-border bg-warning-soft px-3 py-2 text-xs font-bold text-surface-soft">
-							{TUTORIAL_TEXTS.demoBanner}
-						</p>
-					)}
-
-					{stepIndex !== LAST_STEP_INDEX && (
+					{/* Ni aviso de "partida de ejemplo" ni "Saltar tutorial" mientras
+					    se juega (D120): lo que antes decía el aviso está en el texto
+					    del paso, justo antes de empezar, y en el de abandonar (D122). */}
+					{!isPlaying && stepIndex !== LAST_STEP_INDEX && (
 						<Button
 							variant="text"
 							color="danger"
@@ -233,7 +231,9 @@ export function Tutorial({ onClose }: TutorialProps) {
 					    trae su propia pregunta y su encabezado. */}
 					{!isPlaying && (
 						<div className="flex flex-col gap-2 text-sm text-surface-soft [&_p]:m-0">
-							{step.body}
+							{typeof step.body === "function"
+								? step.body(gameType)
+								: step.body}
 						</div>
 					)}
 
@@ -259,8 +259,7 @@ export function Tutorial({ onClose }: TutorialProps) {
 				</div>
 
 				{/* Mientras se juega manda la partida: sus propios controles
-				    ("Comprobar", "Saltar", "Salir") y nada más, salvo el aviso
-				    y "Saltar tutorial", que siguen arriba. */}
+				    ("Comprobar", "Saltar", "Abandonar") y nada más (D120). */}
 				{!isPlaying && (
 					<footer className="flex gap-2">
 						<Button
@@ -298,7 +297,8 @@ interface TutorialPlayStepProps {
 /**
  * El paso de la partida: antes de empezar, mientras se juega y después.
  *
- * `CountriesPractice` necesita un alto definido para repartir su tablero y su
+ * `CountriesPractice` (y `Session`, con las mismas clases en su `<section>`)
+ * necesita un alto definido para repartir su tablero y su
  * formulario (por dentro es `flex` con `min-h-0 flex-1`), así que el hueco lo
  * fija este contenedor, y jugando mide lo mismo que en una partida normal
  * (D090). En `FlagGame`, su `<section>` es `h-[min(100%,45rem)]
@@ -316,12 +316,22 @@ function TutorialPlayStep({
 	runtime,
 }: TutorialPlayStepProps) {
 	if (isPlaying) {
+		// La misma pantalla que monta `FlagGame` para ese juego en Práctica
+		// (D121): Países tiene la suya; Banderas y Capitales comparten
+		// `Session`. Las dos reciben el sandbox como `runtime` obligatorio.
 		return (
 			<div className="flex h-[45rem] min-h-0 justify-center md:h-[50rem]">
-				<CountriesPractice
-					runtime={runtime}
-					exitDescription={TUTORIAL_TEXTS.demoExitDescription}
-				/>
+				{runtime.activeGame?.configuration.gameType === "countries" ? (
+					<CountriesPractice
+						runtime={runtime}
+						exitDescription={TUTORIAL_TEXTS.demoExitDescription}
+					/>
+				) : (
+					<Session
+						runtime={runtime}
+						exitDescription={TUTORIAL_TEXTS.demoExitDescription}
+					/>
+				)}
 			</div>
 		);
 	}

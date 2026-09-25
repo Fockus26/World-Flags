@@ -22,6 +22,20 @@ const MONTH_LABELS = [
 	"diciembre",
 ];
 
+/**
+ * Celda del calendario (D119). Cada columna es 1/7 del ancho del panel, así
+ * que a todo el ancho una celda cuadrada llegaría a ~120 px en escritorio.
+ * `aspect-square` la deja cuadrada mientras es pequeña (móvil en vertical) y
+ * `max-h-7` corta su alto a 28 px: a partir de ahí la celda se ensancha pero
+ * no crece hacia abajo, así que la rejilla ocupa todo el ancho sin alargar el
+ * panel (móvil en horizontal, 740×360).
+ *
+ * `w-full` es imprescindible: con el ancho automático del grid, el navegador
+ * traslada el `max-height` al ancho a través del `aspect-ratio` y la celda se
+ * queda en un cuadrado de 28 px pegado a la izquierda de su columna.
+ */
+const CELL_CLASS = "aspect-square w-full max-h-7 rounded-[3px]";
+
 interface MonthCell {
 	key: string;
 	practiced: boolean;
@@ -87,17 +101,14 @@ export function StreakPanel({ activeDays }: StreakPanelProps) {
 	return (
 		<div
 			id="streak-panel"
-			// A todo el ancho de la tarjeta (D100, sustituye al `max-w-sm` del panel
-			// entero). Las celdas del calendario son cuadradas y ocupan un séptimo
-			// del ancho, así que el tope pasa al calendario: `max-w-sm` en móvil
-			// (como antes, el diseño se dibujó a ~358 px) y, desde `sm`, racha y
-			// mejor racha repartidas a la izquierda y calendario de `max-w-xs` a
-			// la derecha. En móvil en horizontal (740×360) el panel queda más bajo
-			// que con el tope viejo (247 px frente a ~329 px).
-			className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 rounded-[var(--radius-md)] border border-surface-border bg-surface-hover/40 p-3 mt-2"
+			// Una sola columna en todos los anchos (D118, sustituye a D100): racha y
+			// mejor racha en una fila arriba y el calendario a todo el ancho de la
+			// tarjeta debajo. El tope ya no va en el ancho del calendario sino en el
+			// alto de cada celda (`CELL_CLASS`, D119).
+			className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-surface-border bg-surface-hover/40 p-3 mt-2"
 		>
-			<div className="flex items-end justify-between gap-3 sm:flex-1 sm:items-center sm:justify-evenly">
-				<div className="flex flex-col gap-0.5 sm:items-center">
+			<div className="flex items-end justify-between gap-3">
+				<div className="flex flex-col gap-0.5">
 					<span className="text-3xl font-black leading-none text-primary tabular-nums">
 						{currentStreak}
 					</span>
@@ -105,7 +116,7 @@ export function StreakPanel({ activeDays }: StreakPanelProps) {
 						{currentStreak === 1 ? "día seguido" : "días seguidos"}
 					</span>
 				</div>
-				<div className="flex flex-col items-end gap-0.5 sm:items-center">
+				<div className="flex flex-col items-end gap-0.5">
 					<span className="text-[0.65rem] font-extrabold uppercase tracking-wide text-text-placeholder">
 						Mejor racha
 					</span>
@@ -115,7 +126,7 @@ export function StreakPanel({ activeDays }: StreakPanelProps) {
 				</div>
 			</div>
 
-			<div className="flex w-full max-w-sm flex-col gap-1.5 sm:max-w-xs">
+			<div className="flex w-full flex-col gap-1.5">
 				<div className="flex items-center justify-between">
 					<span className="text-[0.65rem] font-extrabold uppercase tracking-wide text-surface-soft">
 						{monthLabel}
@@ -147,13 +158,13 @@ export function StreakPanel({ activeDays }: StreakPanelProps) {
 						{cells.map((cell) => (
 							<span
 								key={cell.key}
-								className={
+								className={`${CELL_CLASS} ${
 									cell.isToday
-										? "aspect-square rounded-[3px] border-2 border-dashed border-warning"
+										? "border-2 border-dashed border-warning"
 										: cell.practiced
-											? "aspect-square rounded-[3px] bg-primary"
-											: "aspect-square rounded-[3px] bg-surface-hover"
-								}
+											? "bg-primary"
+											: "bg-surface-hover"
+								}`}
 							/>
 						))}
 					</div>
