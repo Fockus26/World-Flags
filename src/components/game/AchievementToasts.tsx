@@ -7,8 +7,13 @@ import {
 
 /** Cuánto queda visible antes de empezar a salir. */
 const VISIBLE_MS = 6000;
-/** Tiene que coincidir con la duración de `animate-out` de abajo. */
-const EXIT_MS = 220;
+/**
+ * Red de seguridad para quitar el aviso si `animationend` no llega (pestaña
+ * oculta, animaciones desactivadas por el sistema...). Lo normal es quitarlo
+ * al terminar la animación de salida (`duration-200`), no por un tiempo que
+ * tenga que coincidir con ella (D128).
+ */
+const EXIT_FALLBACK_MS = 400;
 
 function prefersReducedMotion(): boolean {
 	if (typeof window === "undefined") return false;
@@ -43,9 +48,11 @@ function AchievementToastCard({
 
 		// Con movimiento reducido no tiene sentido esperar a una animación que
 		// ya dura 0.01ms (bloque global de `global.css`): se quita al toque.
+		// Si no, esto es solo la red de seguridad: lo normal es que lo quite
+		// `onAnimationEnd` de abajo.
 		const removeTimeoutId = window.setTimeout(
 			() => onDismissRef.current(),
-			prefersReducedMotion() ? 0 : EXIT_MS,
+			prefersReducedMotion() ? 0 : EXIT_FALLBACK_MS,
 		);
 
 		return () => window.clearTimeout(removeTimeoutId);
@@ -53,11 +60,25 @@ function AchievementToastCard({
 
 	return (
 		<div
+			// Parpadeo al salir (D128): las animaciones de `tw-animate-css` no
+			// conservan su último fotograma (`animation-fill-mode: none`), así
+			// que al acabar la salida (200 ms) la tarjeta volvía a opacidad 1
+			// hasta que el temporizador de 220 ms la quitaba, uno o más
+			// fotogramas y todas a la vez si entraron juntas. Ahora la salida se
+			// queda en su último fotograma (`fill-mode-forwards`) y la tarjeta
+			// se quita justo cuando termina, sin adivinar su duración.
 			className={`pointer-events-auto flex w-full items-start gap-3 rounded-lg border border-[color-mix(in_oklab,var(--success)_45%,transparent)] bg-success-soft p-3 shadow-xl duration-200 ${
 				isLeaving
-					? "animate-out fade-out-0 slide-out-to-right-4"
+					? "animate-out fade-out-0 slide-out-to-right-4 fill-mode-forwards"
 					: "animate-in fade-in-0 slide-in-from-right-4"
 			}`}
+			onAnimationEnd={(event) => {
+				// Solo la animación de salida de la propia tarjeta, no una que
+				// burbujee desde dentro.
+				if (isLeaving && event.target === event.currentTarget) {
+					onDismissRef.current();
+				}
+			}}
 		>
 			<span className="shrink-0 text-[1.5rem] leading-none" aria-hidden="true">
 				{toast.emoji}
