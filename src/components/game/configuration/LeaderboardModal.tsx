@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnimatedHeight } from "@/components/ui/AnimatedHeight";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { LoadingAnnouncer } from "@/components/ui/LoadingAnnouncer";
 import { Modal } from "@/components/ui/Modal";
@@ -48,6 +49,40 @@ const LEADERBOARD_DESCRIPTIONS: Record<GameType, string> = {
 	flags: "Mejor tiempo en modo competitivo practicando todas las banderas.",
 	capitals: "Mejor tiempo en modo competitivo practicando todas las capitales.",
 };
+
+/** Id de tu fila en el ranking de demostración (D117): la demo no depende de tener sesión. */
+const DEMO_OWN_ID = "demo-ranking-tu";
+
+/**
+ * Solo en desarrollo (D117): el valor de `?demo-ranking`, o `null` si no
+ * está. En el build de producción `import.meta.env.DEV` es `false` y esto
+ * es siempre `null`.
+ */
+function readDemoParam(): string | null {
+	if (!import.meta.env.DEV || typeof window === "undefined") return null;
+
+	return new URLSearchParams(window.location.search).get("demo-ranking");
+}
+
+/**
+ * Pide el ranking de un scope. En desarrollo con `?demo-ranking` lo sirve
+ * `leaderboard-demo.ts` (30 personas falsas, sin tocar la base). El `import()`
+ * va dentro de la condición de `DEV`: en producción la rama entera se elimina
+ * y el archivo de la demo no se empaqueta.
+ */
+function loadLeaderboard(scope: string): Promise<LeaderboardEntry[]> {
+	if (import.meta.env.DEV) {
+		const demoParam = readDemoParam();
+
+		if (demoParam !== null) {
+			return import("./leaderboard-demo").then(({ fetchDemoLeaderboard }) =>
+				fetchDemoLeaderboard(scope, demoParam, DEMO_OWN_ID),
+			);
+		}
+	}
+
+	return fetchLeaderboard(scope);
+}
 
 function LeaderboardRow({
 	rank,
@@ -101,24 +136,28 @@ function LeaderboardRow({
  * Fila de carga con la forma de una real: puesto, avatar redondo, nombre y
  * tiempo. Las medidas salen del contenido de referencia invisible de
  * `Skeleton` (D042), no de anchos inventados.
+ *
+ * `immediate` (D115): el ranking va siempre a la red, así que la espera de
+ * 300 ms solo dejaba ver un hueco del alto del skeleton sin nada dentro.
  */
 function LeaderboardSkeletonRow({ rank }: { rank: number }) {
 	return (
 		<li className={`${ROW_CLASS} text-surface-soft`} aria-hidden="true">
 			<span className="flex min-w-0 items-center gap-2.5">
 				<span className="w-7 shrink-0 text-right font-black tabular-nums">
-					<Skeleton shape="line" className="ml-auto rounded-sm">
+					<Skeleton shape="line" className="ml-auto rounded-sm" immediate>
 						#{rank}
 					</Skeleton>
 				</span>
-				<Skeleton className={ROW_AVATAR_CLASS} />
-				<Skeleton shape="line" className="rounded-sm font-bold">
+				<Skeleton className={ROW_AVATAR_CLASS} immediate />
+				<Skeleton shape="line" className="rounded-sm font-bold" immediate>
 					Jugador de ejemplo
 				</Skeleton>
 			</span>
 			<Skeleton
 				shape="line"
 				className="shrink-0 rounded-sm font-extrabold tabular-nums"
+				immediate
 			>
 				0:00.00
 			</Skeleton>
@@ -159,7 +198,7 @@ export function LeaderboardModal({
 		if (!isOnline) return;
 
 		// Un scope por juego (D033), y por regla de castigo (D076).
-		fetchLeaderboard(LEADERBOARD_SCOPES[gameType])
+		loadLeaderboard(LEADERBOARD_SCOPES[gameType])
 			.then((result) => {
 				if (!cancelled) setEntries(result);
 			})
@@ -180,8 +219,12 @@ export function LeaderboardModal({
 
 	const isLoading = isOpen && !error && !isOffline && entries === null;
 
-	const myIndex =
-		entries?.findIndex((entry) => entry.userId === user?.id) ?? -1;
+	// En la demo (solo dev, D117) tu fila es la suya, tengas sesión o no.
+	// `DEV &&` explícito aquí, no solo dentro de `readDemoParam`: así el
+	// minificador ve la rama muerta y `DEMO_OWN_ID` tampoco llega a `dist/`.
+	const ownId =
+		import.meta.env.DEV && readDemoParam() !== null ? DEMO_OWN_ID : user?.id;
+	const myIndex = entries?.findIndex((entry) => entry.userId === ownId) ?? -1;
 	const myRank = myIndex >= 0 ? myIndex + 1 : null;
 	const isMeInTop = myRank !== null && myRank <= TOP_COUNT;
 
@@ -218,89 +261,94 @@ export function LeaderboardModal({
 				readyMessage="Ranking cargado."
 			/>
 
-			{error && (
-				<FeedbackMessage variant="danger" size="sm" role="alert">
-					{error}
-				</FeedbackMessage>
-			)}
+			{/* Lo que cambia con la carga (skeleton, filas, avisos) cambia de
+			    golpe y la caja anima su alto hacia el nuevo (D116): de 5 filas
+			    de skeleton a 20 filas, o a una sola, sin salto. */}
+			<AnimatedHeight>
+				{error && (
+					<FeedbackMessage variant="danger" size="sm" role="alert">
+						{error}
+					</FeedbackMessage>
+				)}
 
-			{!error && isOffline && (
-				<p className="flex items-start gap-2 text-[0.85rem] text-text-placeholder">
-					<span aria-hidden="true">📡</span>
-					<span>
-						Sin conexión: el ranking necesita internet. Aparecerá aquí en cuanto
-						vuelvas a estar en línea.
-					</span>
-				</p>
-			)}
-
-			{isLoading && (
-				<ol
-					className="m-0 flex list-none flex-col gap-1 p-0"
-					aria-busy="true"
-					aria-labelledby="leaderboard-title"
-				>
-					{Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
-						<LeaderboardSkeletonRow
-							// biome-ignore lint/suspicious/noArrayIndexKey: filas de relleno fijas, sin identidad propia
-							key={index}
-							rank={index + 1}
-						/>
-					))}
-				</ol>
-			)}
-
-			{!error && entries !== null && entries.length === 0 && (
-				<p className="text-[0.85rem] text-text-placeholder">
-					Todavía nadie tiene un tiempo registrado. ¡Sé el primero!
-				</p>
-			)}
-
-			{!error && entries !== null && entries.length > 0 && (
-				<ol
-					className="m-0 flex list-none flex-col gap-1 p-0"
-					aria-labelledby="leaderboard-title"
-				>
-					{entries.slice(0, TOP_COUNT).map((entry, index) => (
-						<LeaderboardRow
-							key={entry.userId}
-							rank={index + 1}
-							entry={entry}
-							isMe={entry.userId === user?.id}
-							isOnline={isOnline}
-						/>
-					))}
-				</ol>
-			)}
-
-			{!error && entries !== null && myRank !== null && !isMeInTop && (
-				<>
-					<hr className="my-3 border-surface-border" />
-					{/* `start`: el número de la lista es tu puesto real, no "1". */}
-					<ol
-						className="m-0 flex list-none flex-col gap-1 p-0"
-						start={myRank}
-						aria-label="Tu puesto"
-					>
-						<LeaderboardRow
-							rank={myRank}
-							entry={entries[myIndex]}
-							isMe
-							isOnline={isOnline}
-						/>
-					</ol>
-				</>
-			)}
-
-			{status === "authenticated" &&
-				entries !== null &&
-				entries.length > 0 &&
-				myRank === null && (
-					<p className="mt-3 mb-0 text-[0.8rem] text-text-placeholder">
-						Todavía no tienes un tiempo registrado: completa una práctica
-						competitiva de "Todo el mundo" para entrar al ranking.
+				{!error && isOffline && (
+					<p className="flex items-start gap-2 text-[0.85rem] text-text-placeholder">
+						<span aria-hidden="true">📡</span>
+						<span>
+							Sin conexión: el ranking necesita internet. Aparecerá aquí en
+							cuanto vuelvas a estar en línea.
+						</span>
 					</p>
 				)}
+
+				{isLoading && (
+					<ol
+						className="m-0 flex list-none flex-col gap-1 p-0"
+						aria-busy="true"
+						aria-labelledby="leaderboard-title"
+					>
+						{Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
+							<LeaderboardSkeletonRow
+								// biome-ignore lint/suspicious/noArrayIndexKey: filas de relleno fijas, sin identidad propia
+								key={index}
+								rank={index + 1}
+							/>
+						))}
+					</ol>
+				)}
+
+				{!error && entries !== null && entries.length === 0 && (
+					<p className="text-[0.85rem] text-text-placeholder">
+						Todavía nadie tiene un tiempo registrado. ¡Sé el primero!
+					</p>
+				)}
+
+				{!error && entries !== null && entries.length > 0 && (
+					<ol
+						className="m-0 flex list-none flex-col gap-1 p-0"
+						aria-labelledby="leaderboard-title"
+					>
+						{entries.slice(0, TOP_COUNT).map((entry, index) => (
+							<LeaderboardRow
+								key={entry.userId}
+								rank={index + 1}
+								entry={entry}
+								isMe={entry.userId === ownId}
+								isOnline={isOnline}
+							/>
+						))}
+					</ol>
+				)}
+
+				{!error && entries !== null && myRank !== null && !isMeInTop && (
+					<>
+						<hr className="my-3 border-surface-border" />
+						{/* `start`: el número de la lista es tu puesto real, no "1". */}
+						<ol
+							className="m-0 flex list-none flex-col gap-1 p-0"
+							start={myRank}
+							aria-label="Tu puesto"
+						>
+							<LeaderboardRow
+								rank={myRank}
+								entry={entries[myIndex]}
+								isMe
+								isOnline={isOnline}
+							/>
+						</ol>
+					</>
+				)}
+
+				{status === "authenticated" &&
+					entries !== null &&
+					entries.length > 0 &&
+					myRank === null && (
+						<p className="mt-3 mb-0 text-[0.8rem] text-text-placeholder">
+							Todavía no tienes un tiempo registrado: completa una práctica
+							competitiva de "Todo el mundo" para entrar al ranking.
+						</p>
+					)}
+			</AnimatedHeight>
 
 			{status !== "authenticated" && (
 				<p className="mt-3 mb-0 text-[0.8rem] text-text-placeholder">
