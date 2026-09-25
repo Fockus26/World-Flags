@@ -5,6 +5,8 @@ import {
 	type Difficulty,
 	GAME_MODE_LABELS,
 	GAME_MODES,
+	GAME_TYPE_LABELS,
+	GAME_TYPES,
 	type GameConfiguration,
 	type GameMode,
 	type PracticeOrder,
@@ -32,8 +34,9 @@ interface TutorialSettingsProps {
  * necesita medir nada — y el paso de cierre dice dónde viven en la app.
  *
  * Usa los mismos primitivos y las mismas constantes que `GameTab` (`GAME_MODES`,
- * `GAME_MODE_LABELS`, `TIMER_DURATIONS`), no una copia de sus etiquetas: añadir
- * un modo o una duración allí aparece aquí solo. Los `name` de los radios sí
+ * `GAME_MODE_LABELS`, `TIMER_DURATIONS`) y que el selector de juego
+ * (`GAME_TYPES`, `GAME_TYPE_LABELS`), no una copia de sus etiquetas: añadir un
+ * juego, un modo o una duración allí aparece aquí solo. Los `name` de los radios sí
  * son propios (`tutorial-*`), para no agruparse con los del modal si llegaran a
  * coexistir en el DOM.
  */
@@ -43,6 +46,26 @@ export function TutorialSettings({
 }: TutorialSettingsProps) {
 	return (
 		<div className="flex flex-col gap-5">
+			{/* El juego de la partida de ejemplo (D121): los tres, con el mismo
+			    orden y las mismas etiquetas que el selector de la configuración
+			    (`GAME_TYPES`, `GAME_TYPE_LABELS`). Países por defecto, como un
+			    usuario nuevo (D030). */}
+			<Fieldset legend="Juego">
+				<div className="grid grid-cols-3 gap-1.5">
+					{GAME_TYPES.map((gameType) => (
+						<OptionTile
+							key={gameType}
+							name="tutorial-game-type"
+							value={gameType}
+							checked={configuration.gameType === gameType}
+							onChange={() => onChange({ gameType })}
+						>
+							{GAME_TYPE_LABELS[gameType]}
+						</OptionTile>
+					))}
+				</div>
+			</Fieldset>
+
 			<Fieldset legend="Orden">
 				<div className="grid grid-cols-2 gap-1.5">
 					{(
