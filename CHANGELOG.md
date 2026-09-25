@@ -9,6 +9,19 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.4.2] - 2026-09-24
+
+### Corregido
+
+- El sonido de respuesta incorrecta se oye ahora tan fuerte como el de acierto,
+  también en el altavoz del móvil, donde antes casi no se oía.
+- Los avisos de logro ya no parpadean al desaparecer, sobre todo cuando
+  consigues varios a la vez.
+- Al aceptar el recordatorio diario, el navegador te pide permiso para enviar
+  notificaciones. Si no se puede activar (las tienes bloqueadas, estás en un
+  iPhone sin la app instalada o el navegador no las admite), el aviso te dice
+  por qué y cómo arreglarlo en vez de cerrarse sin más.
+
 ## [2.4.1] - 2026-09-24
 
 ### Cambiado
