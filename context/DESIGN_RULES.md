@@ -18,8 +18,12 @@
   del color de marca que ya tienen, `surface-soft` si son neutros, y nunca un
   color que dé menos de 3:1 contra el fondo en claro u oscuro. Ver
   `decisions/23-foco-y-toque.md`.
-- **Al tocar se ve el hover** (D103): `hover:` incluye `:active` (variante en
-  `global.css`). No siembres `active:` que repita un `hover:`.
+- **Al tocar se ve el hover** (D103, D130): `hover:` incluye `:active` y
+  `[data-pressed="true"]` de React Aria (variante en `global.css`), y los
+  `Tabs`/`Select`/`Accordion` de HeroUI tienen su pulsado en `global.css`. No
+  siembres `active:` que repita un `hover:`.
+- **`transition-colors` no anima el contorno** (D129): no vuelvas a meter
+  `outline-color` en una transición de un elemento con anillo de foco de `outline`.
 - Sin scroll horizontal a **320px**. Al 400% de zoom, una columna.
 - `prefers-reduced-motion` respetado (bloque en `global.css` + `<MotionConfig reducedMotion="user">` en `Providers.tsx`).
 - Todo control con nombre accesible. Iconos-solo → `aria-label` de la **acción**.
