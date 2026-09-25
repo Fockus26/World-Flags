@@ -9,6 +9,14 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.2.1] - 2026-09-24
+
+### Cambiado
+
+- Al abrir el ranking, las filas de carga aparecen al momento en vez de dejar
+  un hueco vacío, y la ventana crece o se encoge con suavidad cuando llegan los
+  tiempos (sin animación si tienes activado reducir el movimiento).
+
 ## [2.2.0] - 2026-09-24
 
 ### Añadido
