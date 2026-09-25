@@ -22,6 +22,14 @@ Cómo se añade una entrada y cuándo se sube cada número: ver
   el mismo tamaño que una partida normal. Que no cuenta para tu progreso se
   dice justo antes de empezarla, y se sale con "Abandonar".
 
+## [2.2.1] - 2026-09-24
+
+### Seguridad
+
+- El ranking rechaza los tiempos imposibles de conseguir jugando, para que nadie
+  pueda colarse arriba con un tiempo inventado. Si te pasa con un tiempo tuyo, tu
+  marca se queda guardada en tu progreso aunque no aparezca en el ranking.
+
 ## [2.2.0] - 2026-09-24
 
 ### Añadido
