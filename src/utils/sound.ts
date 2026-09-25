@@ -17,7 +17,7 @@ import { getSoundEnabled } from "@/utils/learning-storage";
 export type SoundName =
 	/** Respuesta correcta: dos notas ascendentes. */
 	| "correct"
-	/** Respuesta incorrecta (o saltada): dos notas graves descendentes. */
+	/** Respuesta incorrecta (o saltada): dos notas descendentes, más graves que el acierto. */
 	| "incorrect"
 	/** País encontrado en el rush de Países: un toque corto, pensado para oírse muchas veces seguidas. */
 	| "found"
@@ -77,9 +77,29 @@ function withSparkle(note: Note): Note[] {
 	];
 }
 
+/**
+ * Octava superior en seno que da "cuerpo" audible a las notas graves del
+ * fallo (D125). Los altavoces de móvil apenas reproducen nada por debajo de
+ * ~500 Hz: sin este parcial, el fallo se quedaba casi mudo en el teléfono. Con
+ * él, el oído reconstruye la nota grave a partir de su octava (fundamental
+ * ausente) y el sonido se sigue oyendo "abajo".
+ */
+function withBody(note: Note): Note[] {
+	return [
+		note,
+		{
+			...note,
+			frequency: note.frequency * 2,
+			glideTo: note.glideTo === undefined ? undefined : note.glideTo * 2,
+			peak: note.peak * 0.5,
+			type: "sine",
+		},
+	];
+}
+
 // Notas en Hz (afinación de 440 Hz).
-const A3 = 220;
-const D4 = 293.66;
+const E4 = 329.63;
+const A4 = 440;
 const C5 = 523.25;
 const E5 = 659.25;
 const G5 = 783.99;
@@ -108,18 +128,30 @@ const SOUNDS: Record<SoundName, readonly Note[]> = {
 			type: "triangle",
 		}),
 	],
-	// Re–La graves en seno, con un leve deslizamiento hacia abajo: se entiende
-	// como "no" sin zumbido ni estridencia.
+	// La–Mi descendente (cuarta justa: el espejo del acierto, una octava más
+	// abajo) en triángulo con su octava y un leve deslizamiento hacia abajo:
+	// se entiende como "no" sin zumbido ni estridencia (D125). Antes era Re4–La3
+	// en seno puro, que a igual volumen se oía ~5,6 dB más bajo que el acierto
+	// (ponderación A) y ~27 dB más bajo en un altavoz de móvil. Con estos picos
+	// y la octava a la mitad queda a +0,6 dB (A) y −1,8 dB (móvil simulado:
+	// paso alto de 4.º orden a 500 Hz) del acierto: igual de audible, con la
+	// nota más alta en 880 Hz y sin armónicos ásperos (triángulo, no cuadrada).
 	incorrect: [
-		{ frequency: D4, start: 0, duration: 0.13, peak: 0.55, type: "sine" },
-		{
-			frequency: A3,
+		...withBody({
+			frequency: A4,
+			start: 0,
+			duration: 0.13,
+			peak: 0.65,
+			type: "triangle",
+		}),
+		...withBody({
+			frequency: E4,
 			start: 0.1,
 			duration: 0.2,
-			peak: 0.6,
-			type: "sine",
-			glideTo: A3 * 0.94,
-		},
+			peak: 0.7,
+			type: "triangle",
+			glideTo: E4 * 0.94,
+		}),
 	],
 	// Un solo toque del La agudo del acierto, más corto y más suave.
 	found: withSparkle({

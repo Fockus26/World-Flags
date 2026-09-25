@@ -7,6 +7,7 @@ import {
 	createSandboxState,
 	exitSandboxGame,
 	finishSandboxGame,
+	recordSandboxAttempts,
 	recordSandboxGrade,
 	type SandboxState,
 	startSandboxGame,
@@ -16,7 +17,7 @@ export interface SandboxRuntime {
 	/** Lo que se le pasa a la pantalla de sesión. */
 	runtime: SessionRuntime;
 	state: SandboxState;
-	/** Cambia orden / dificultad / temporizador / modo antes de jugar. */
+	/** Cambia juego / orden / dificultad / temporizador antes de jugar. */
 	configure: (partial: Partial<GameConfiguration>) => void;
 	start: () => void;
 }
@@ -58,6 +59,11 @@ export function useSandboxRuntime(): SandboxRuntime {
 			setState((current) => finishSandboxGame(current, result)),
 
 		gradeCountryReview: () => setState(recordSandboxGrade),
+
+		// Solo lo llama el competitivo de `Session`, que la partida guiada no
+		// juega (D073); aun así, cuenta y nada más.
+		attemptCountry: () =>
+			setState((current) => recordSandboxAttempts(current, 1)),
 	};
 
 	return {

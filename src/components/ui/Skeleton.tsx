@@ -28,6 +28,14 @@ interface SkeletonProps {
 	children?: ReactNode;
 	/** `false`: bloque quieto, sin brillo (p. ej. un avatar que no cargó). */
 	animated?: boolean;
+	/**
+	 * `true`: visible desde el primer frame, sin la espera de
+	 * `SKELETON_DELAY_MS` ni el fundido de entrada. Para cargas que van
+	 * siempre a la red y casi nunca son instantáneas (el ranking, D115), donde
+	 * 300 ms de hueco vacío se notan más que el skeleton. Por defecto `false`:
+	 * los demás consumidores no cambian.
+	 */
+	immediate?: boolean;
 }
 
 /**
@@ -43,6 +51,7 @@ export function Skeleton({
 	shape = "block",
 	children,
 	animated = true,
+	immediate = false,
 }: SkeletonProps) {
 	return (
 		<HeroSkeleton<"span">
@@ -58,7 +67,8 @@ export function Skeleton({
 				// Entra con un fundido tras `SKELETON_DELAY_MS` (el `delay` va
 				// inline, abajo). Con movimiento reducido, el bloque global de
 				// `global.css` deja el fundido en 0.01 ms pero respeta la espera.
-				"animate-in fade-in fill-mode-backwards duration-200",
+				// `immediate`: ni espera ni fundido, ya está en el primer frame.
+				immediate ? "" : "animate-in fade-in fill-mode-backwards duration-200",
 				// El brillo vive en `::after`, que el `*` del bloque de
 				// movimiento reducido de `global.css` no alcanza.
 				"motion-reduce:after:animate-none",
@@ -67,7 +77,9 @@ export function Skeleton({
 			]
 				.filter(Boolean)
 				.join(" ")}
-			style={{ animationDelay: `${SKELETON_DELAY_MS}ms` }}
+			style={
+				immediate ? undefined : { animationDelay: `${SKELETON_DELAY_MS}ms` }
+			}
 		>
 			{/* `flex flex-col` y no `block`: si la referencia es un elemento
 			    `inline-flex` (un `Button`), como bloque le sumaría debajo el
