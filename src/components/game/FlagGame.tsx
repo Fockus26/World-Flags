@@ -1,7 +1,9 @@
 import { useRef } from "react";
 import { PageFlip } from "@/components/app/PageFlip";
+import { RequiredUpdateDialog } from "@/components/app/RequiredUpdateDialog";
 import { SystemSnackbars } from "@/components/app/SystemSnackbars";
 import { useGame } from "@/hooks/useGame";
+import { useRequiredUpdate } from "@/hooks/useRequiredUpdate";
 import { useTutorial } from "@/hooks/useTutorial";
 import { AchievementToasts } from "./AchievementToasts";
 import { Configuration } from "./configuration/Configuration";
@@ -115,6 +117,7 @@ function FlagGameContent() {
 
 export default function FlagGame() {
 	const tutorial = useTutorial();
+	const updateRequired = useRequiredUpdate();
 
 	return (
 		<main
@@ -137,12 +140,19 @@ export default function FlagGame() {
 			{/* Fuera de `FlagGameContent`: tiene que verse en cualquier vista
 			    (sesión, práctica diaria, resultados...), no solo en una. */}
 			<AchievementToasts />
-			<SystemSnackbars />
+			{/* Con la actualización obligatoria en pantalla (D109) los avisos
+			    de sistema sobran: flotarían por encima del diálogo (z-300) y
+			    ofrecerían otras acciones ("Ahora no", "Ver novedades"). */}
+			{!updateRequired && <SystemSnackbars />}
 
 			{/* Montado solo mientras está abierto, para que cada apertura
 			    arranque el recorrido desde el primer paso y con una partida de
 			    ejemplo nueva. */}
 			{tutorial.isOpen && <Tutorial onClose={tutorial.close} />}
+
+			{/* Lo último: si la versión ya no vale (D109), tapa también el
+			    recorrido. */}
+			{updateRequired && <RequiredUpdateDialog />}
 		</main>
 	);
 }
