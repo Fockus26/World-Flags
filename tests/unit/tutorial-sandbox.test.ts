@@ -12,18 +12,19 @@
  *
  * 1. **Comportamiento**: jugar una partida guiada entera sobre el sandbox no
  *    escribe ni un byte en `localStorage`, y lo guardado queda idéntico.
- * 2. **Estructura**: ningún archivo del tutorial (ni la pantalla de práctica
- *    que monta) importa nada capaz de escribir progreso. Es lo que atrapa la
+ * 2. **Estructura**: ningún archivo del tutorial (ni las pantallas de sesión
+ *    que monta: `CountriesPractice` para Países, `Session` para Banderas y
+ *    Capitales) importa nada capaz de escribir progreso. Es lo que atrapa la
  *    regresión del futuro — un `useGame()` de vuelta dentro de la sesión.
  */
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { beforeEach, describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { countries } from "@/data/countries";
-import type { GameResult } from "@/types/country";
+import { GAME_TYPE_LABELS, GAME_TYPES, type GameResult } from "@/types/country";
 import type { UserLearningData } from "@/types/progress";
 import {
 	createDefaultLearningData,
@@ -45,6 +46,7 @@ import {
 	exitSandboxGame,
 	finishSandboxGame,
 	getTutorialCountries,
+	recordSandboxAttempts,
 	recordSandboxGrade,
 	startSandboxGame,
 	TUTORIAL_CONFIGURATION,
@@ -214,6 +216,54 @@ describe("la partida de ejemplo no toca el progreso", () => {
 		assert.deepEqual(toGameView(sandboxData, "countries").countryHistory, {});
 	});
 
+	// La partida de ejemplo se puede jugar a los tres juegos (D121): Países
+	// monta `CountriesPractice` y Banderas y Capitales montan `Session`, las
+	// dos sobre el mismo sandbox. Para cada uno, la partida entera —con los
+	// intentos del competitivo de `Session` incluidos, aunque el ejemplo sea
+	// siempre Práctica— no escribe nada.
+	for (const gameType of GAME_TYPES) {
+		test(`jugarla a ${GAME_TYPE_LABELS[gameType]} no escribe nada`, () => {
+			seedRealProgress();
+
+			const before = storage.snapshot();
+			const writesBefore = storage.writes;
+
+			let sandbox = configureSandbox(createSandboxState(), {
+				gameType,
+				order: "random",
+				difficulty: "hard",
+			});
+			sandbox = startSandboxGame(sandbox);
+
+			// Arranca con el juego elegido y los tres países de siempre.
+			assert.equal(sandbox.configuration.gameType, gameType);
+			assert.equal(sandbox.configuration.mode, "practice");
+			assert.equal(sandbox.preparedCountries.length, 3);
+
+			for (const _country of sandbox.preparedCountries) {
+				sandbox = recordSandboxAttempts(sandbox, 1);
+				sandbox = recordSandboxGrade(sandbox);
+			}
+
+			sandbox = finishSandboxGame(sandbox, { ...DEMO_RESULT, gameType });
+
+			assert.equal(sandbox.gradedCount, 3);
+			assert.equal(sandbox.attemptedCount, 3);
+			assert.equal(sandbox.result?.gameType, gameType);
+
+			assert.equal(
+				storage.writes,
+				writesBefore,
+				`la partida guiada de ${gameType} escribió en localStorage`,
+			);
+			assert.equal(storage.snapshot(), before);
+		});
+	}
+
+	test("por defecto el ejemplo es Países (D030)", () => {
+		assert.equal(createSandboxState().configuration.gameType, "countries");
+	});
+
 	test("los países del ejemplo son Norteamérica completa, del catálogo real", () => {
 		const demoCountries = getTutorialCountries();
 
@@ -357,6 +407,20 @@ function importedNames(source: string): string[] {
 	return names;
 }
 
+const SESSION_DIR = join(ROOT, "src", "components", "game", "session");
+
+/**
+ * Las pantallas de sesión que la partida guiada puede montar, con el nombre de
+ * su interfaz de props: las dos reciben el `runtime` desde fuera (D072, D121).
+ */
+const SESSION_SCREENS = [
+	{
+		path: join(SESSION_DIR, "countries", "CountriesPractice.tsx"),
+		props: "CountriesPracticeProps",
+	},
+	{ path: join(SESSION_DIR, "Session.tsx"), props: "SessionProps" },
+] as const;
+
 function listTutorialFiles(): string[] {
 	const tutorialDir = join(ROOT, "src", "components", "game", "tutorial");
 
@@ -370,17 +434,13 @@ function listTutorialFiles(): string[] {
 		join(ROOT, "src", "utils", "tutorial-gate.ts"),
 		// Lo importa `CountriesPractice` para sonar: tampoco puede escribir.
 		join(ROOT, "src", "utils", "sound.ts"),
-		// La pantalla que monta la partida guiada: si recupera `useGame`, la
-		// partida de ejemplo vuelve a escribir progreso.
-		join(
-			ROOT,
-			"src",
-			"components",
-			"game",
-			"session",
-			"countries",
-			"CountriesPractice.tsx",
-		),
+		// Las pantallas que monta la partida guiada: si alguna recupera
+		// `useGame`, la partida de ejemplo vuelve a escribir progreso.
+		// `CountriesPractice` para Países; `Session`, con sus tarjetas y su
+		// cola SRS, para Banderas y Capitales (D121).
+		...SESSION_SCREENS.map(({ path }) => path),
+		join(SESSION_DIR, "session-cards.tsx"),
+		join(ROOT, "src", "hooks", "usePracticeQueue.ts"),
 	];
 }
 
@@ -409,29 +469,20 @@ describe("nada del tutorial puede escribir progreso", () => {
 		});
 	}
 
-	test("CountriesPractice recibe el runtime como prop obligatoria", () => {
-		const source = readFileSync(
-			join(
-				ROOT,
-				"src",
-				"components",
-				"game",
-				"session",
-				"countries",
-				"CountriesPractice.tsx",
-			),
-			"utf8",
-		);
+	for (const { path, props } of SESSION_SCREENS) {
+		test(`${basename(path)} recibe el runtime como prop obligatoria`, () => {
+			const source = readFileSync(path, "utf8");
 
-		// Declarada sin `?` y sin valor por defecto: cualquiera de las dos
-		// cosas sería la vía por la que se olvidaría inyectarlo y la partida
-		// guiada volvería a caer en el juego real sin que nada fallara.
-		assert.match(source, /\bruntime:\s*SessionRuntime;/);
-		assert.doesNotMatch(source, /\bruntime\?:/);
-		assert.doesNotMatch(source, /\bruntime\s*=/);
+			// Declarada sin `?` y sin valor por defecto: cualquiera de las dos
+			// cosas sería la vía por la que se olvidaría inyectarlo y la partida
+			// guiada volvería a caer en el juego real sin que nada fallara.
+			assert.match(source, /\bruntime:\s*SessionRuntime;/);
+			assert.doesNotMatch(source, /\bruntime\?:/);
+			assert.doesNotMatch(source, /\bruntime\s*=/);
 
-		// Y se usa: llega por props, no de un hook de dentro.
-		assert.match(source, /\}:\s*CountriesPracticeProps\)/);
-		assert.match(source, /=\s*runtime;/);
-	});
+			// Y se usa: llega por props, no de un hook de dentro.
+			assert.match(source, new RegExp(`\\}:\\s*${props}\\)`));
+			assert.match(source, /=\s*runtime;/);
+		});
+	}
 });

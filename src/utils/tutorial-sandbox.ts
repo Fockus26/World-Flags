@@ -52,8 +52,9 @@ export function getTutorialCountries() {
 /**
  * Con lo que arranca la partida de ejemplo: Países en modo práctica (D030, el
  * juego con el que se encuentra un usuario nuevo), sin temporizador, en orden
- * alfabético y en fácil. Los pasos del recorrido dejan tocar orden, dificultad
- * y temporizador antes de jugar; el modo se explica pero la partida guiada
+ * alfabético y en fácil. Los pasos del recorrido dejan tocar el juego (Países,
+ * Banderas o Capitales, D121), el orden, la dificultad y el temporizador antes
+ * de jugar; el modo se explica pero la partida guiada
  * siempre es práctica (el competitivo es una carrera contra el reloj, no algo
  * que se aprenda con tres tarjetas).
  */
