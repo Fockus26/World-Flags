@@ -126,14 +126,22 @@ const structuredData = {
 	</head>
 
 	<body>
-		<!-- Anillo en `primary-hover` (D101): el `primary-border` de antes daba
+		<!-- Dentro de un `nav` con nombre (D131): fuera de todo landmark axe lo
+		     marcaba (`region`). Sigue siendo lo primero del `body`, así que el
+		     primer Tab lo sigue alcanzando antes que nada. `nav` y no `header`:
+		     un `header` suelto en el `body` sería el `banner` de la página y
+		     solo contendría este enlace.
+		     ⚠️ Copy provisional (CONTENT_CHECKLIST.md #42): el `aria-label`.
+		     Anillo en `primary-hover` (D101): el `primary-border` de antes daba
 		     ~2:1 contra el fondo, por debajo del 3:1 de un anillo de foco. -->
-		<a
-			href="#main-content"
-			class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-1000 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:font-bold focus:text-primary-soft focus:outline-3 focus:outline-offset-3 focus:outline-primary-hover"
-		>
-			Saltar al contenido principal
-		</a>
+		<nav aria-label="Accesos directos">
+			<a
+				href="#main-content"
+				class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-1000 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:font-bold focus:text-primary-soft focus:outline-3 focus:outline-offset-3 focus:outline-primary-hover"
+			>
+				Saltar al contenido principal
+			</a>
+		</nav>
 		<slot />
 	</body>
 </html>
