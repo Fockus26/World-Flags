@@ -9,12 +9,25 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
-## [2.2.2] - 2026-09-24
+## [2.3.1] - 2026-09-24
 
 ### Cambiado
 
 - El panel de la racha tiene la misma forma en todas las pantallas: tu racha y
   tu mejor racha arriba y, debajo, el calendario del mes a todo el ancho.
+
+## [2.3.0] - 2026-09-24
+
+### Añadido
+
+- En "Cómo se juega" ya puedes elegir a qué juego es la partida de ejemplo:
+  Países, Banderas o Capitales.
+
+### Cambiado
+
+- Mientras juegas la partida de ejemplo ya no hay nada encima de ella: tiene
+  el mismo tamaño que una partida normal. Que no cuenta para tu progreso se
+  dice justo antes de empezarla, y se sale con "Abandonar".
 
 ## [2.2.1] - 2026-09-24
 

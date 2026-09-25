@@ -19,6 +19,10 @@ import type { ReviewGrade, UserLearningData } from "@/types/progress";
  * sin adaptador) y el tutorial inyecta su sandbox (`useSandboxRuntime`), que no
  * tiene forma de escribir en ningún sitio.
  *
+ * Lo reciben `CountriesPractice` (Países) y `Session` (Banderas y Capitales,
+ * D121): las dos pantallas que la partida guiada puede montar, según el juego
+ * que se elija en el recorrido.
+ *
  * **Si añades algo aquí**, pregúntate si escribe progreso: si lo hace, el
  * sandbox tiene que dejarlo en un no-op, y `tests/unit/tutorial-sandbox.test.ts`
  * está para que no se te pase.
@@ -37,5 +41,16 @@ export interface SessionRuntime {
 		grade: ReviewGrade,
 		gameType: GameType,
 		markPracticed?: boolean,
+	) => void;
+	/**
+	 * Un intento del competitivo de Banderas y Capitales (`Session`). La
+	 * partida guiada siempre es Práctica (D073) y no llega a llamarlo, pero el
+	 * sandbox lo cumple igual —solo cuenta— para que el contrato no deje un
+	 * hueco por donde colar el juego real.
+	 */
+	attemptCountry: (
+		countryCode: string,
+		isCorrect: boolean,
+		gameType: GameType,
 	) => void;
 }
