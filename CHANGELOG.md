@@ -9,6 +9,13 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.3.1] - 2026-09-24
+
+### Cambiado
+
+- El panel de la racha tiene la misma forma en todas las pantallas: tu racha y
+  tu mejor racha arriba y, debajo, el calendario del mes a todo el ancho.
+
 ## [2.3.0] - 2026-09-24
 
 ### Añadido
