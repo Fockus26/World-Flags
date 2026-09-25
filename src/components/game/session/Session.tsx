@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { type SubmitEvent, useEffect, useRef, useState } from "react";
 import { ConfirmationModal } from "@/components/game/session/ConfirmationModal";
-import { useGame } from "@/hooks/useGame";
+import type { SessionRuntime } from "@/components/game/session/session-runtime";
 import { usePracticeQueue } from "@/hooks/usePracticeQueue";
 import { motionVariants } from "@/styles/animations";
 import {
@@ -42,7 +42,26 @@ const RUSH_ADVANCE_MS = 900;
 // calificarla automáticamente como "otra vez".
 const SKIP_REVEAL_MS = 1500;
 
-export function Session() {
+interface SessionProps {
+	/**
+	 * De dónde sale la partida y a dónde van sus resultados (D072, D121).
+	 * **Obligatoria a propósito**, sin valor por defecto, como en
+	 * `CountriesPractice`: `FlagGame` inyecta el `useGame()` real y la partida
+	 * guiada del tutorial su sandbox, que no escribe en ningún sitio. No vuelvas
+	 * a llamar a `useGame()` aquí dentro — la partida de ejemplo de Banderas y
+	 * Capitales empezaría a tocar el progreso del usuario sin que nadie se
+	 * entere (lo vigila `tests/unit/tutorial-sandbox.test.ts`).
+	 */
+	runtime: SessionRuntime;
+	/**
+	 * Sustituye el texto del aviso de abandonar, como en `CountriesPractice`:
+	 * en la partida guiada no hay progreso que perder. Sin pasar nada, el juego
+	 * real no cambia.
+	 */
+	exitDescription?: string;
+}
+
+export function Session({ runtime, exitDescription }: SessionProps) {
 	const {
 		activeGame,
 		learningData,
@@ -50,11 +69,12 @@ export function Session() {
 		finishGame,
 		attemptCountry,
 		gradeCountryReview,
-	} = useGame();
+	} = runtime;
 
 	const countries = activeGame?.countries ?? [];
-	// `FlagGame` solo monta `Session` para los juegos de tarjeta (Países tiene
-	// los suyos); el "flags" de respaldo es solo para que el tipo cierre.
+	// `FlagGame` y el tutorial solo montan `Session` para los juegos de tarjeta
+	// (Países tiene los suyos); el "flags" de respaldo es solo para que el
+	// tipo cierre.
 	const configuredGameType = activeGame?.configuration.gameType;
 	const gameType: CardGameType =
 		configuredGameType !== undefined && isCardGameType(configuredGameType)
@@ -457,6 +477,7 @@ export function Session() {
 				isOpen={isExitModalOpen}
 				onCancel={handleCancelExit}
 				onConfirm={exitGame}
+				description={exitDescription}
 			/>
 		</>
 	);
