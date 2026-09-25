@@ -11,6 +11,12 @@
  * hover se queda "pegado" en móvil tras tocar) y se suma `:active`, que dura
  * lo que dura la pulsación. Afecta solo a las clases `hover:`/`group-hover:`
  * de `src/`: el CSS de HeroUI trae sus propios `:hover`/`[data-pressed]`.
+ *
+ * `[data-pressed="true"]` (D130): en los componentes de React Aria/HeroUI la
+ * pulsación la marca ese atributo, que no depende de que el navegador aplique
+ * `:active` (iOS Safari no siempre lo hace). Así un `hover:` puesto sobre un
+ * primitivo de HeroUI (p. ej. el disparador del acordeón de Novedades) también
+ * se ve al tocar. Se quita al soltar: tampoco se queda pegado.
  */
 @custom-variant hover {
 	@media (hover: hover) {
@@ -20,6 +26,74 @@
 	}
 	&:active {
 		@slot;
+	}
+	&[data-pressed="true"] {
+		@slot;
+	}
+}
+
+/*
+ * `transition-colors` sin `outline-color` (D129). La utilidad de Tailwind
+ * también anima `outline-color`, y el anillo de foco (`focus-visible:outline-*`)
+ * aparecía del color del texto (`currentColor`, el valor por defecto del
+ * contorno) y viraba a su color en 150 ms. Solo se redefine la lista de
+ * propiedades (la de Tailwind 4.3 menos `outline-color`); curva y duración
+ * siguen saliendo de la utilidad original y de `duration-*`. Los 10
+ * componentes que la usan no se tocan.
+ *
+ * Regla en `@layer utilities` y no `@utility transition-colors`: un `@utility`
+ * con el nombre de una utilidad de Tailwind no la sustituye, se funde con ella
+ * en una sola regla y la `transition-property` original, que queda detrás,
+ * gana (comprobado en el CSS compilado). Esta sale al final de la capa, detrás
+ * de la generada, y con la misma especificidad gana por orden.
+ */
+@layer utilities {
+	.transition-colors {
+		transition-property:
+			color, background-color, border-color, text-decoration-color, fill,
+			stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+	}
+}
+
+/*
+ * Estado pulsado de los primitivos de HeroUI con el aspecto de su hover (D130).
+ * Su hover vive en el CSS de HeroUI dentro de `@media (hover: hover)`, así que
+ * al tocar en el móvil no se veía nada y la variante `hover` de arriba (D103)
+ * no llega a él. Se usa `[data-pressed="true"]`, que React Aria pone mientras
+ * dura la pulsación (dedo, ratón o Intro/Espacio) y quita al soltar: nada se
+ * queda pegado tras tocar. Mismas exclusiones que su hover (pestaña elegida,
+ * acordeón abierto, deshabilitado). En la capa `components`, como el CSS de
+ * HeroUI, y después de él: con la misma especificidad gana por orden, y las
+ * utilidades de `src/` (p. ej. `hover:bg-surface-hover` del acordeón de
+ * Novedades) siguen mandando.
+ */
+@layer components {
+	.tabs__tab[data-pressed="true"]:not([data-selected="true"]):not(
+		[data-disabled="true"]
+	) {
+		opacity: 0.7;
+	}
+
+	.select__trigger[data-pressed="true"] {
+		background-color: var(--field-hover);
+		border-color: var(--field-border-hover);
+	}
+
+	.select--secondary .select__trigger[data-pressed="true"] {
+		background-color: var(--select-trigger-bg-hover);
+	}
+
+	.accordion__trigger[data-pressed="true"]:not([aria-expanded="true"]) {
+		background-color: color-mix(
+			in oklab,
+			var(--foreground) 3%,
+			transparent 90%
+		);
+	}
+
+	.accordion--surface
+		.accordion__trigger[data-pressed="true"]:not([aria-expanded="true"]) {
+		background-color: var(--default);
 	}
 }
 
