@@ -15,8 +15,6 @@ import {
 	syncSucceeded,
 } from "@/store/slices/syncSlice";
 
-import { GAME_TYPES, type GameType, LEADERBOARD_SCOPES } from "@/types/country";
-
 import type { UserLearningData } from "@/types/progress";
 
 import {
@@ -26,15 +24,17 @@ import {
 	upsertLeaderboardEntry,
 } from "@/utils/cloud-storage";
 
-import { shouldRetryLeaderboardUpload } from "@/utils/leaderboard-validation";
+import {
+	collectLeaderboardMarks,
+	createLeaderboardUploadQueue,
+	type LeaderboardUploadQueue,
+} from "@/utils/leaderboard-upload";
 
 import {
 	clearLearningData,
 	createDefaultLearningData,
-	getGameProgress,
 	getLearningData,
 	getSyncBase,
-	getWorldBestTime,
 	hasPendingChanges,
 	mergeLearningData,
 	saveLearningData,
@@ -127,8 +127,12 @@ export function GameEffects() {
 	/** `status` del render anterior: distingue un logout real de un invitado normal. */
 	const previousStatusRef = useRef<typeof status | null>(null);
 
-	/** Última marca de "Todo el mundo" subida al ranking, por juego. */
-	const pushedWorldBestRef = useRef<Partial<Record<GameType, number>>>({});
+	/** Cola de subidas al ranking de la cuenta actual (D140). */
+	const leaderboardQueueRef = useRef<LeaderboardUploadQueue | null>(null);
+
+	/** Lo que la cola del ranking lee entre subida y subida: si puede subir y con qué datos. */
+	const canUploadLeaderboardRef = useRef(false);
+	const leaderboardDataRef = useRef<UserLearningData>(learningData);
 
 	/** Último perfil (usuario, nombre, avatar) que quedó al día en el ranking. */
 	const syncedLeaderboardProfileRef = useRef<string | null>(null);
@@ -579,62 +583,56 @@ export function GameEffects() {
 	}, [syncRequestId]);
 
 	/**
-	 * Ranking público: cada vez que mejora el mejor tiempo de "Todo el mundo"
-	 * de un juego, se sube a su scope (`LEADERBOARD_SCOPES`, D033) — mejor
-	 * esfuerzo, ver upsertLeaderboardEntry. No espera a las subidas agrupadas
-	 * porque esto no compite en frecuencia con el resto de `learningData`
-	 * (solo cambia al batir una marca). Si falla (sin conexión), se reintenta
-	 * tras la siguiente sincronización buena (`lastSyncedAt`); si el servidor
-	 * la rechaza por imposible, no (D113). Un solo efecto
-	 * para todos los juegos (D061), con la última marca subida de cada uno.
+	 * Ranking público (D033, D137): las mejores marcas de la regla vigente de
+	 * cada juego, de "Todo el mundo" y de cada continente completo, se suben a
+	 * su scope — mejor esfuerzo, ver `upsertLeaderboardEntry`. No espera a las
+	 * subidas agrupadas porque esto no compite en frecuencia con el resto de
+	 * `learningData` (solo cambia al batir una marca).
+	 *
+	 * Lo hace una cola por cuenta (D140, `leaderboard-upload.ts`): en serie,
+	 * con la última marca subida de cada scope, y si una subida falla (red o
+	 * servidor) reintenta con espera creciente, no con cada respuesta de la
+	 * partida (P14). Si el servidor la rechaza por imposible, no la reintenta
+	 * (D113); vuelve a probarse en la próxima carga.
 	 */
-	// biome-ignore lint/correctness/useExhaustiveDependencies: lastSyncedAt re-dispara el reintento de una marca que no se pudo subir
 	useEffect(() => {
-		if (
-			status !== "authenticated" ||
-			!user ||
-			hydrationStatus !== "ready" ||
-			hydratedUserRef.current !== user.id ||
-			connectivity === "offline"
-		) {
-			return;
-		}
+		if (!userId) return;
 
-		for (const gameType of GAME_TYPES) {
-			// Solo la marca de la regla vigente (D076): el `world` de la regla
-			// vieja se queda en los datos, pero no vuelve a subir a ningún sitio.
-			const worldBestMs = getWorldBestTime(
-				getGameProgress(learningData, gameType).regionBestTimes,
-				gameType,
-			);
+		const queue = createLeaderboardUploadQueue({
+			getMarks: () => collectLeaderboardMarks(leaderboardDataRef.current),
+			canUpload: () => canUploadLeaderboardRef.current,
+			upload: (mark) =>
+				upsertLeaderboardEntry(
+					userId,
+					mark.scope,
+					leaderboardDataRef.current.profile,
+					mark.bestTimeMs,
+				),
+		});
 
-			if (
-				worldBestMs === undefined ||
-				pushedWorldBestRef.current[gameType] === worldBestMs
-			) {
-				continue;
+		leaderboardQueueRef.current = queue;
+
+		return () => {
+			queue.dispose();
+			if (leaderboardQueueRef.current === queue) {
+				leaderboardQueueRef.current = null;
 			}
+		};
+	}, [userId]);
 
-			pushedWorldBestRef.current[gameType] = worldBestMs;
+	useEffect(() => {
+		leaderboardDataRef.current = learningData;
+		canUploadLeaderboardRef.current =
+			status === "authenticated" &&
+			userId !== null &&
+			hydrationStatus === "ready" &&
+			hydratedUserRef.current === userId &&
+			connectivity !== "offline";
 
-			void upsertLeaderboardEntry(
-				user.id,
-				LEADERBOARD_SCOPES[gameType],
-				learningData.profile,
-				worldBestMs,
-			).then((result) => {
-				// Una marca rechazada por el servidor (D113) se queda como
-				// "subida": reintentarla con cada cambio de `learningData` solo
-				// repetiría el rechazo. Vuelve a probarse en la próxima carga.
-				if (
-					shouldRetryLeaderboardUpload(result) &&
-					pushedWorldBestRef.current[gameType] === worldBestMs
-				) {
-					pushedWorldBestRef.current[gameType] = undefined;
-				}
-			});
+		if (canUploadLeaderboardRef.current) {
+			void leaderboardQueueRef.current?.run();
 		}
-	}, [learningData, status, user, hydrationStatus, connectivity, lastSyncedAt]);
+	}, [learningData, status, userId, hydrationStatus, connectivity]);
 
 	const { name, avatarStyle, avatarSeed } = learningData.profile;
 

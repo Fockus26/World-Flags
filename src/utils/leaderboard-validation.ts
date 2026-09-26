@@ -1,18 +1,27 @@
 import { countries } from "@/data/countries";
-import { GAME_TYPES, LEADERBOARD_SCOPES } from "@/types/country";
+import {
+	GAME_TYPES,
+	getLeaderboardScope,
+	LEADERBOARD_REGIONS,
+	type PracticeRegion,
+} from "@/types/country";
+import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
 
 /**
  * Validación del ranking en el servidor (D112–D114). La hace un trigger en
- * `leaderboard_entries` (`supabase/leaderboard-validacion.sql`, local): este
- * módulo solo guarda los números de los que sale ese SQL, para que un test
- * los compare con el catálogo, y el código con el que el trigger rechaza.
+ * `leaderboard_entries` (`supabase/leaderboard-validacion.sql`, ampliado a los
+ * continentes en `supabase/leaderboard-continentes.sql`, locales): este
+ * módulo guarda los números de los que sale ese SQL, para que un test los
+ * compare con el catálogo, y el código con el que el trigger rechaza. El
+ * cliente usa los mismos mínimos para no guardar como mejor marca un tiempo
+ * imposible (D139).
  *
- * Tiempo mínimo por respuesta que ningún humano baja en un rush completo de
- * "Todo el mundo" (D112). 300 ms × 197 países = 59,1 s: para ganarle hay que
- * escribir sin pensar a más de ~27 teclas por segundo (Países: 1648 letras;
- * Banderas: 1648 + un Enter por bandera; Capitales: 1386 + Enter), más del
- * doble del récord de mecanografía sostenida. Es generoso a propósito: mejor
- * dejar pasar un tramposo que rechazar a alguien honesto.
+ * Tiempo mínimo por respuesta que ningún humano baja en un rush completo
+ * (D112). 300 ms × 197 países = 59,1 s en "Todo el mundo": para ganarle hay
+ * que escribir sin pensar a más de ~27 teclas por segundo (Países: 1648
+ * letras; Banderas: 1648 + un Enter por bandera; Capitales: 1386 + Enter),
+ * más del doble del récord de mecanografía sostenida. Es generoso a
+ * propósito: mejor dejar pasar un tramposo que rechazar a alguien honesto.
  */
 export const LEADERBOARD_MIN_MS_PER_ANSWER = 300;
 
@@ -23,16 +32,43 @@ export const LEADERBOARD_MIN_MS_PER_ANSWER = 300;
 export const LEADERBOARD_TIME_REJECTED_CODE = "PT422";
 
 /**
- * Mínimo de cada scope que se lee hoy (`LEADERBOARD_SCOPES`). Los tres
- * recorren el catálogo entero. Los scopes viejos ("world",
- * "capitals:world") y los desconocidos no tienen mínimo: nadie los lee
- * (D114).
+ * Mínimo de un rush completo de `region` (cualquier juego): nº de países del
+ * alcance × 300 ms (D112, D138).
+ */
+export function getRushMinTimeMs(region: PracticeRegion): number {
+	const countryCount =
+		region === "world" ? countries.length : REGION_COUNTRY_COUNTS[region];
+
+	return countryCount * LEADERBOARD_MIN_MS_PER_ANSWER;
+}
+
+/**
+ * ¿Un rush completo de `region` pudo durar `elapsedMs`? Lo que no, no se
+ * guarda como mejor marca (D139): un salto del reloj a mitad de partida
+ * dejaba un tiempo que ninguna partida real mejora y que el servidor
+ * rechaza, así que nada más volvía a subir al ranking.
+ */
+export function isPlausibleRushTime(
+	region: PracticeRegion,
+	elapsedMs: number,
+): boolean {
+	return Number.isFinite(elapsedMs) && elapsedMs >= getRushMinTimeMs(region);
+}
+
+/**
+ * Mínimo de cada scope que se lee hoy: los 3 de "Todo el mundo" y los 24 de
+ * continente (D138), todos con `getRushMinTimeMs`. Los scopes viejos
+ * ("world", "capitals:world") y los desconocidos no tienen mínimo: nadie los
+ * lee (D114).
  */
 export function getLeaderboardMinimums(): Record<string, number> {
-	const minTimeMs = countries.length * LEADERBOARD_MIN_MS_PER_ANSWER;
-
 	return Object.fromEntries(
-		GAME_TYPES.map((gameType) => [LEADERBOARD_SCOPES[gameType], minTimeMs]),
+		GAME_TYPES.flatMap((gameType) =>
+			LEADERBOARD_REGIONS.map((region) => [
+				getLeaderboardScope(gameType, region),
+				getRushMinTimeMs(region),
+			]),
+		),
 	);
 }
 

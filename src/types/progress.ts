@@ -3,6 +3,7 @@ import type {
 	GameType,
 	PracticeRegion,
 	Region,
+	RegionBestTimeKey,
 	WorldBestTimeKey,
 } from "./country";
 
@@ -51,11 +52,13 @@ export type RegionGameScores = Partial<Record<Region, number[]>>;
 /**
  * Mejor tiempo (ms) logrado en modo competitivo ("rush") por continente, o
  * de "Todo el mundo" bajo la clave de su regla de castigo (`"world"` o
- * `"world@2"`, ver `WORLD_BEST_TIME_KEYS`, D076). Léelo con
- * `getWorldBestTime`, nunca con `.world` a secas.
+ * `"world@2"`, ver `WORLD_BEST_TIME_KEYS`, D076). Los continentes, igual:
+ * `"europe"` o `"europe@2"` según la regla del juego (D137). Léelo con
+ * `getRegionBestTime`/`getWorldBestTime`, nunca con `.world` o `.europe` a
+ * secas.
  */
 export type RegionBestTimes = Partial<
-	Record<PracticeRegion | WorldBestTimeKey, number>
+	Record<PracticeRegion | WorldBestTimeKey | RegionBestTimeKey, number>
 >;
 
 /** Clave de un mejor tiempo: un continente o una de las de "Todo el mundo". */

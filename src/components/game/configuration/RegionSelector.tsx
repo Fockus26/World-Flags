@@ -2,7 +2,6 @@ import { Fieldset } from "@/components/ui/Fieldset";
 import { countries } from "@/data/countries";
 import {
 	type GameMode,
-	type PracticeRegion,
 	type PracticeScope,
 	REGION_LABELS,
 	REGIONS,
@@ -20,7 +19,8 @@ interface RegionSelectorProps {
 	scope: PracticeScope;
 	onScopeChange: (scope: PracticeScope) => void;
 	regionGameScores: Partial<Record<Region, number[]>>;
-	regionBestTimes: Partial<Record<PracticeRegion, number>>;
+	/** Mejor tiempo de cada continente con la regla vigente del juego (`getContinentBestTimes`, D137). */
+	regionBestTimes: Partial<Record<Region, number>>;
 	/**
 	 * Mejor tiempo de "Todo el mundo" con la regla vigente del juego (D076).
 	 * Va aparte porque su clave en `regionBestTimes` depende del juego: el

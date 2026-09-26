@@ -64,16 +64,19 @@ export function CountriesRush() {
 
 	// El reloj corre desde que se monta la sesión hasta que se completa o se
 	// decide ver los resultados tras rendirse (igual que el rush de banderas).
+	// Con `performance.now()`, que es monótono: `Date.now()` sigue al reloj
+	// del sistema, y si este se ajustaba a mitad de partida salía un tiempo
+	// absurdo que se quedaba como mejor marca (D139).
 	useEffect(() => {
 		if (startTimeRef.current === null) {
-			startTimeRef.current = Date.now();
+			startTimeRef.current = performance.now();
 		}
 	}, []);
 
 	useEffect(() => {
 		const intervalId = window.setInterval(() => {
 			if (startTimeRef.current !== null && !isClockPausedRef.current) {
-				setElapsedMs(Date.now() - startTimeRef.current);
+				setElapsedMs(performance.now() - startTimeRef.current);
 			}
 		}, 100);
 		return () => window.clearInterval(intervalId);
@@ -115,7 +118,7 @@ export function CountriesRush() {
 	/** Corrige `startTimeRef` por el tiempo que estuvo abierto un modal, sin contarlo para la carrera. */
 	function applyModalPauseCorrection() {
 		if (modalOpenedAtRef.current !== null) {
-			const pausedMs = Date.now() - modalOpenedAtRef.current;
+			const pausedMs = performance.now() - modalOpenedAtRef.current;
 			if (startTimeRef.current !== null) {
 				startTimeRef.current += pausedMs;
 			}
@@ -125,7 +128,7 @@ export function CountriesRush() {
 
 	function handleOpenExitModal() {
 		isClockPausedRef.current = true;
-		modalOpenedAtRef.current = Date.now();
+		modalOpenedAtRef.current = performance.now();
 		setIsExitModalOpen(true);
 	}
 
@@ -137,7 +140,7 @@ export function CountriesRush() {
 
 	function handleOpenSurrenderModal() {
 		isClockPausedRef.current = true;
-		modalOpenedAtRef.current = Date.now();
+		modalOpenedAtRef.current = performance.now();
 		setIsSurrenderModalOpen(true);
 	}
 
@@ -188,7 +191,7 @@ export function CountriesRush() {
 		isClockPausedRef.current = true;
 		const finalElapsedMs =
 			startTimeRef.current !== null
-				? Date.now() - startTimeRef.current
+				? performance.now() - startTimeRef.current
 				: elapsedMs;
 
 		finishGame({
@@ -207,7 +210,7 @@ export function CountriesRush() {
 	function handleSeeResults() {
 		const finalElapsedMs =
 			startTimeRef.current !== null
-				? Date.now() - startTimeRef.current
+				? performance.now() - startTimeRef.current
 				: elapsedMs;
 
 		finishGame({

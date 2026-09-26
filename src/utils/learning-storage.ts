@@ -1,4 +1,5 @@
 import {
+	BEST_TIME_RULE_SUFFIXES,
 	DEFAULT_GAME_MODE,
 	DEFAULT_GAME_TYPE,
 	DEFAULT_SCOPE,
@@ -819,27 +820,57 @@ export function registerRegionGame(
 }
 
 /**
- * Dónde se guarda el mejor tiempo de un rush de `region` en `gameType`: el
- * continente tal cual, o la clave de "Todo el mundo" de la regla vigente de
- * ese juego (D076).
+ * Dónde se guarda el mejor tiempo de un rush de `region` en `gameType`, con
+ * la regla vigente de ese juego: la clave de "Todo el mundo" (D076) o la del
+ * continente con su sufijo (`"europe"` en Países, `"europe@2"` en Banderas y
+ * Capitales, D137). Las claves viejas se quedan en los datos sin leerse.
  */
 export function getBestTimeKey(
 	region: PracticeRegion,
 	gameType: GameType,
 ): BestTimeKey {
-	return region === "world" ? WORLD_BEST_TIME_KEYS[gameType] : region;
+	return region === "world"
+		? WORLD_BEST_TIME_KEYS[gameType]
+		: `${region}${BEST_TIME_RULE_SUFFIXES[gameType]}`;
 }
 
 /**
- * El mejor tiempo de "Todo el mundo" de `gameType` con la regla vigente: el
- * que se muestra y el que se sube al ranking. Las marcas de una regla
- * anterior no cuentan (D076).
+ * El mejor tiempo de `region` en `gameType` con la regla vigente: el que se
+ * muestra y el que se sube al ranking. Las marcas de una regla anterior no
+ * cuentan (D076, D137).
  */
+export function getRegionBestTime(
+	regionBestTimes: RegionBestTimes,
+	region: PracticeRegion,
+	gameType: GameType,
+): number | undefined {
+	return regionBestTimes[getBestTimeKey(region, gameType)];
+}
+
+/**
+ * El mejor tiempo de cada continente en `gameType` con la regla vigente
+ * (D137), por continente: lo que muestra el selector de continentes.
+ */
+export function getContinentBestTimes(
+	regionBestTimes: RegionBestTimes,
+	gameType: GameType,
+): Partial<Record<Region, number>> {
+	const times: Partial<Record<Region, number>> = {};
+
+	for (const region of REGIONS) {
+		const time = getRegionBestTime(regionBestTimes, region, gameType);
+		if (time !== undefined) times[region] = time;
+	}
+
+	return times;
+}
+
+/** `getRegionBestTime` de "Todo el mundo" (D076). */
 export function getWorldBestTime(
 	regionBestTimes: RegionBestTimes,
 	gameType: GameType,
 ): number | undefined {
-	return regionBestTimes[WORLD_BEST_TIME_KEYS[gameType]];
+	return getRegionBestTime(regionBestTimes, "world", gameType);
 }
 
 /**

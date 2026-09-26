@@ -27,6 +27,7 @@ import { isCatalogCountryCode } from "@/utils/country-catalog";
 import {
 	calculateLearningProgress,
 	countLearnedCountries,
+	getContinentBestTimes,
 	getDueCountries,
 	getWorldBestTime,
 	toGameView,
@@ -366,7 +367,10 @@ export function Configuration() {
 							setBlockedMessage(null);
 						}}
 						regionGameScores={gameView.regionGameScores}
-						regionBestTimes={gameView.regionBestTimes}
+						regionBestTimes={getContinentBestTimes(
+							gameView.regionBestTimes,
+							gameType,
+						)}
 						worldBestTime={getWorldBestTime(gameView.regionBestTimes, gameType)}
 						mode={mode}
 						getRegionPracticeProgress={(region) =>

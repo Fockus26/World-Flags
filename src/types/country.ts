@@ -112,7 +112,8 @@ export const GAME_TYPE_NOUNS: Record<GameType, string> = {
  * incorrecta y cada salto suman este tiempo al cronómetro. El rush de Países
  * no tiene castigo (se completa o se rinde, D033). Cambiar estos números
  * cambia la regla: los tiempos dejan de ser comparables y hace falta una
- * clave nueva en `WORLD_BEST_TIME_KEYS` y en `LEADERBOARD_SCOPES` (D076).
+ * clave nueva en `WORLD_BEST_TIME_KEYS`, `BEST_TIME_RULE_SUFFIXES` y
+ * `LEADERBOARD_SCOPES` (D076, D137).
  */
 export const RUSH_WRONG_PENALTY_MS = 10_000;
 export const RUSH_SKIP_PENALTY_MS = 20_000;
@@ -153,12 +154,59 @@ export const WORLD_BEST_TIME_KEYS: Record<GameType, WorldBestTimeKey> = {
  * `WORLD_BEST_TIME_KEYS`: con la regla 2 (D076) Banderas y Capitales
  * estrenan scope, así el ranking empieza vacío y lo que siguen subiendo los
  * clientes viejos (a "world" y "capitals:world") cae donde ya nadie lee.
+ * Para cualquier alcance, también de continente, usa `getLeaderboardScope`.
  */
 export const LEADERBOARD_SCOPES: Record<GameType, string> = {
 	countries: "countries:world",
 	flags: "flags:world@2",
 	capitals: "capitals:world@2",
 };
+
+/**
+ * Sufijo de la regla de castigo vigente de cada juego en las claves de
+ * continente (D137). Es la misma marca de versión que `"world@2"`: en
+ * Banderas y Capitales, `"europe"` mezcla tiempos de la regla vieja y de la 2
+ * (solo "world" se había versionado, D076), así que desde el ranking por
+ * continente sus marcas van a `"europe@2"`. Países no cambió de regla y sigue
+ * en `"europe"`. Va a la par de `WORLD_BEST_TIME_KEYS` (un test lo comprueba).
+ */
+export const BEST_TIME_RULE_SUFFIXES: Record<GameType, "" | "@2"> = {
+	countries: "",
+	flags: "@2",
+	capitals: "@2",
+};
+
+/**
+ * Clave de un continente en `regionBestTimes`: la de siempre (Países, o la
+ * mezcla vieja de Banderas y Capitales, que se queda en los datos sin leerse)
+ * o la de la regla 2 (D137).
+ */
+export type RegionBestTimeKey = Region | `${Region}@2`;
+
+/**
+ * Alcances con ranking (D137): "Todo el mundo" y cada continente completo, en
+ * el orden del selector del ranking (el de `RegionSelector`). Una combinación
+ * de continentes o una selección de países a mano no tiene ranking.
+ */
+export const LEADERBOARD_REGIONS: readonly PracticeRegion[] = [
+	"world",
+	...REGIONS,
+];
+
+/**
+ * Scope del ranking de `gameType` en `region` (D137). "Todo el mundo" no
+ * cambia (`LEADERBOARD_SCOPES`, para no vaciar el ranking de hoy); un
+ * continente es `"<juego>:<continente>"` más el sufijo de la regla vigente:
+ * `countries:europe`, `flags:europe@2`, `capitals:europe@2`.
+ */
+export function getLeaderboardScope(
+	gameType: GameType,
+	region: PracticeRegion,
+): string {
+	if (region === "world") return LEADERBOARD_SCOPES[gameType];
+
+	return `${gameType}:${region}${BEST_TIME_RULE_SUFFIXES[gameType]}`;
+}
 
 /**
  * Qué se va a practicar en una sesión:

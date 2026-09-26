@@ -485,15 +485,20 @@ export async function syncLeaderboardProfile(
 }
 
 /**
- * Se llama solo cuando el usuario mejora su marca (ver GameEffects.tsx) — no
- * hace falta un merge, cada mejora reemplaza la fila entera del usuario.
+ * Se llama cuando cambia la mejor marca de un scope (ver la cola de
+ * `leaderboard-upload.ts`, D140): reemplaza la fila del usuario en ese scope.
+ * Que una marca peor no pise una mejor que ya está en el ranking (p. ej. si
+ * el progreso local se perdió) lo resuelve el trigger del servidor con
+ * `least(...)` (`supabase/leaderboard-continentes.sql`, D139): así vale
+ * también para los clientes viejos y no cuesta una lectura antes de cada
+ * subida.
  * Es un "mejor esfuerzo": si falla (p. ej. la tabla todavía no existe en
  * Supabase, ver supabase/leaderboard.sql) no debe romper el juego, solo se
  * registra el error. Devuelve cómo acabó: una marca que no subió (`failed`,
- * p. ej. sin conexión) se reintenta después de la siguiente sincronización
- * buena (D050); una que el servidor rechazó por imposible (`rejected`, el
- * trigger de `supabase/leaderboard-validacion.sql`) no se reintenta: volvería
- * a rechazarse (D113).
+ * p. ej. sin conexión) se reintenta con espera creciente (D140); una que el
+ * servidor rechazó por imposible (`rejected`, el trigger de
+ * `supabase/leaderboard-validacion.sql`) no se reintenta: volvería a
+ * rechazarse (D113).
  */
 export async function upsertLeaderboardEntry(
 	userId: string,
