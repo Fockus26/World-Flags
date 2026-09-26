@@ -1,7 +1,7 @@
 {
 	"name": "world-flags",
 	"type": "module",
-	"version": "2.4.2",
+	"version": "2.4.3",
 	"engines": {
 		"node": ">=22.12.0"
 	},
@@ -33,6 +33,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.7",
+		"@changesets/cli": "^3.0.3",
 		"@playwright/test": "^1.63.0",
 		"@tailwindcss/vite": "^4.3.3",
 		"@types/react": "^19.2.18",

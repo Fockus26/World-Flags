@@ -16,6 +16,9 @@ reglas ya retiradas (la regla del ranking de 2.0.0).
 
 ## D107 — `sw.js` lleva la versión de `package.json`, vigilada por test
 
+> Desde D135 (`33-changesets.md`) `APP_VERSION` no se toca a mano: lo sube `scripts/release.ts`
+> en el PR de versión, junto con `package.json` y el CHANGELOG. El test sigue vigilándolo.
+
 `public/sw.js` declara `const APP_VERSION = "x.y.z";` y
 `tests/unit/sw-version.test.ts` falla si no es la de `package.json` (como
 `changelog.test.ts` con la primera entrada del `CHANGELOG.md`). Al subir la
