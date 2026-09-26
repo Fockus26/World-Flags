@@ -34,8 +34,17 @@ salto, constantes en `types/country.ts`) no cambia.
   así que antes el castigo solo se veía al avanzar. `applyPenalty` en `Session`
   resta el castigo al `startTimeRef` **y** hace `setElapsedMs` al momento. El
   tiempo final es el mismo: la pausa se sigue descontando al reanudar.
-- **Tutorial.** La partida guiada monta el mismo `Session`, así que el "+10 s"
-  se ve igual allí sin código aparte.
+- **Reloj monótono (de P15).** Todo el reloj de `Session` (inicio, cronómetro,
+  castigos, pausa entre tarjetas y la del modal de abandonar) mide con
+  `performance.now()` en vez de `Date.now()`: si la hora del sistema cambia a
+  mitad del rush (ajuste manual, sincronización NTP), el tiempo ya no salta ni
+  sale negativo. Solo se usan diferencias, así que el tiempo final es el mismo.
+  `finishedAt` sigue siendo `new Date()` (es una fecha, no una duración).
+- **Tutorial.** La partida guiada monta el mismo `Session`, pero siempre en
+  práctica (`TUTORIAL_CONFIGURATION.mode = "practice"`; elegir "Competitivo" en
+  el paso de modo solo explica qué implica): allí no hay cronómetro ni castigo,
+  así que el "+10 s" no aparece. Verificado en el navegador. Si algún día la
+  partida guiada se juega en competitivo, lo hereda sin código aparte.
 
 ## D133 — Vida del badge por temporizador y uno por evento
 

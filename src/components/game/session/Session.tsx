@@ -108,6 +108,10 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 	const [isSkipPending, setIsSkipPending] = useState(false);
 	const firstAttemptResultsRef = useRef<Record<string, boolean>>({});
 	const skippedAnswersRef = useRef(0);
+	// Todo el reloj de la sesión (inicio, pausas, castigos) va en
+	// `performance.now()`, monótono: si el usuario o la sincronización cambian
+	// la hora del sistema a mitad de partida, `Date.now()` saltaría y el rush
+	// daría un tiempo absurdo (negativo o de horas) (D132, P15).
 	const startTimeRef = useRef<number | null>(null);
 	// El cronómetro se pausa mientras se muestra el resultado de una bandera
 	// (antes de pasar a la siguiente) y mientras está abierto el modal de
@@ -157,7 +161,9 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 				skippedAnswers: skippedAnswersRef.current,
 				finishedAt: new Date().toISOString(),
 				elapsedMs:
-					startTimeRef.current !== null ? Date.now() - startTimeRef.current : 0,
+					startTimeRef.current !== null
+						? performance.now() - startTimeRef.current
+						: 0,
 				totalCountries: countries.length,
 				scope: activeGame?.configuration.scope ?? { type: "world" },
 				regionBreakdown,
@@ -183,7 +189,7 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 	// competitivo es mostrarlo, pausarlo y penalizarlo.
 	useEffect(() => {
 		if (startTimeRef.current === null) {
-			startTimeRef.current = Date.now();
+			startTimeRef.current = performance.now();
 		}
 	}, []);
 
@@ -194,7 +200,7 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 		if (!isCompetitiveMode) return;
 		const intervalId = window.setInterval(() => {
 			if (startTimeRef.current !== null && !isClockPausedRef.current) {
-				setElapsedMs(Date.now() - startTimeRef.current);
+				setElapsedMs(performance.now() - startTimeRef.current);
 			}
 		}, 100);
 		return () => window.clearInterval(intervalId);
@@ -280,7 +286,7 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 		if (isLastCountry) {
 			const finalElapsedMs =
 				startTimeRef.current !== null
-					? Date.now() - startTimeRef.current
+					? performance.now() - startTimeRef.current
 					: elapsedMs;
 
 			finishGame({
@@ -321,7 +327,7 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 	function applyPenalty(penaltyMs: number) {
 		if (startTimeRef.current === null) return;
 		startTimeRef.current -= penaltyMs;
-		setElapsedMs(Date.now() - startTimeRef.current);
+		setElapsedMs(performance.now() - startTimeRef.current);
 		penaltyIdRef.current += 1;
 		const id = penaltyIdRef.current;
 		setPenalties((current) => [...current, { id, penaltyMs }]);
@@ -384,14 +390,14 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 	/** Pausa el temporizador de práctica y el cronómetro del rush mientras se decide si abandonar. */
 	function handleOpenExitModal() {
 		isClockPausedRef.current = true;
-		exitModalOpenedAtRef.current = Date.now();
+		exitModalOpenedAtRef.current = performance.now();
 		setIsExitModalOpen(true);
 	}
 
 	/** Al seguir practicando, el tiempo que estuvo abierto el modal no cuenta para el cronómetro del rush. */
 	function handleCancelExit() {
 		if (exitModalOpenedAtRef.current !== null) {
-			const pausedMs = Date.now() - exitModalOpenedAtRef.current;
+			const pausedMs = performance.now() - exitModalOpenedAtRef.current;
 			if (startTimeRef.current !== null) {
 				startTimeRef.current += pausedMs;
 			}
