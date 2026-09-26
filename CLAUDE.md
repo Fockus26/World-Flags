@@ -25,14 +25,14 @@ Detalle técnico más profundo en `docs/` (estado, tokens, componentes), en el
 En git solo están los documentos **fijos** de `context/`: `PROJECT_CONTEXT`,
 `DESIGN_RULES`, `COLORS`, `DESIGN_TOKENS`, `TYPOGRAPHY`, `DECISIONS_INDEX` y `decisions/`.
 
-Son **locales** (gitignored) y no existen en un checkout limpio ni en un worktree nuevo:
-`CURRENT_PHASE.md`, `CONTENT_CHECKLIST.md`, los inventarios (`*_INVENTORY.md`),
-`PHASE_LOG/`, `plans/` (incluidos los diseños de Claude Design, `*.dc.html`) y todo
-`supabase/` salvo su `README.md` (esquema SQL y edge functions son privados).
-Si trabajas en un worktree y te faltan, léelos (y actualízalos) en la carpeta principal
-del repo: `C:\Users\Admin\Documents\Work\world-flags\`. Nunca los agregues a git
-(ni con `git add -f`). `GIT_STATE.md` quedó obsoleto con el flujo de PRs: el estado
-de las ramas es `gh pr list`.
+Son **locales** (gitignored): `CURRENT_PHASE.md`, `CONTENT_CHECKLIST.md`, los
+inventarios (`*_INVENTORY.md`), `PHASE_LOG/`, `plans/` (incluidos los `*.dc.html` de
+Claude Design), `.env*` y todo `supabase/` salvo su `README.md` (SQL y edge functions
+son privados). Nunca van a git (ni con `git add -f`).
+Los slots del pool de worktrees (`orchestrate`, `..\world-flags-wt\wtN`, D136) traen los
+`.env*` copiados, pero **no** `context/` local: se lee (y actualiza) en la carpeta
+principal, `C:\Users\Admin\Documents\Work\world-flags\`. Un subagente en un slot que no
+pueda escribir ahí lo devuelve en su informe. El estado de las ramas es `gh pr list`.
 
 ---
 
@@ -57,7 +57,7 @@ bun install
 bun run build          # sí puedes correr esto
 bunx astro check       # typecheck — sí
 bunx biome check ./src # lint — sí (hoy src/ trae errores previos; en CI no bloquea)
-bun run test           # capa pura de sync/merge y formato del CHANGELOG (tests/unit) — sí
+bun run test           # tests/unit: sync/merge, CHANGELOG, changesets… — sí
 bun run test:e2e       # Playwright (necesita el server corriendo)
 ```
 
@@ -78,7 +78,7 @@ Todo cambio llega a `main` **por Pull Request**. `main` está protegida.
 ```
 git switch main && git pull  →  git switch -c <tipo>/<descripcion>
    →  implementar  →  [skill a11y]  →  [skill seo si aplica]
-   →  si quien juega lo nota: versión en package.json + entrada en CHANGELOG.md
+   →  si quien juega lo nota: .changeset/<desc>.md
    →  bunx astro check + bunx biome check ./src + bun run test + bun run build
    →  actualizar context/ (local)  →  commit(s) Conventional Commits en la rama
    →  git push -u origin <rama>  →  gh pr create (rellena la plantilla)
@@ -86,13 +86,12 @@ git switch main && git pull  →  git switch -c <tipo>/<descripcion>
 ```
 
 - Base siempre `main`. Una unidad = una rama = un PR.
-- **Changelog y versión (D057–D060):** cada PR con un cambio que nota quien juega sube
-  `version` en `package.json` (MAJOR rompe progreso guardado o quita algo · MINOR función
-  nueva · PATCH arreglos) y añade su entrada arriba de `CHANGELOG.md`, en español y en
-  lenguaje de jugador, texto plano. Es lo que muestra el modal "Novedades": solo cambios
-  reales, nada inventado. Sin sección "Sin publicar" (cada merge se despliega). Docs, tests,
-  CI o refactors no suben versión. `bun run test` falla si el formato no cuadra o la
-  primera entrada no es la versión de `package.json`. Detalle en `CONTRIBUTING.md`.
+- **Versión (D057–D060, D135):** nadie toca `version`, `CHANGELOG.md` ni `APP_VERSION`
+  de `public/sw.js`. Cambio que nota quien juega → `.changeset/<desc>.md` escrito a mano
+  (patch/minor/major; cuerpo = trozo del CHANGELOG en español, lenguaje de jugador,
+  texto plano; formato en `.changeset/README.md`). Es lo que mostrará "Novedades": nada
+  inventado. Docs, tests, CI o refactors: sin changeset. El PR `chore(release): versión`
+  lo abre la Action y lo mergea el dueño; ningún agente lo edita ni lo mergea.
 - En **tu rama** puedes commitear y hacer push sin pedir permiso: la aprobación del
   dueño es la revisión del PR. `git add` solo de los archivos de la unidad, nunca `-A` a ciegas.
 - **Nunca** hagas push a `main`, **nunca** ejecutes `gh pr merge` ni actives auto-merge.
@@ -103,10 +102,8 @@ git switch main && git pull  →  git switch -c <tipo>/<descripcion>
   el pull los borra del disco — cópialos fuera del repo antes y restáuralos después.
 - Nada destructivo: sin `reset --hard`, sin `push --force`, sin reescribir historia,
   sin borrar ramas ajenas.
-- **Sobre la skill global `git-flow`:** en este repo aplican sus nombres de rama
-  (`feat fix refactor style docs chore perf test design a11y seo`), Conventional Commits
-  y prohibiciones. **No aplican** su pausa antes del commit (2.2), su merge local (2.4)
-  ni su regla de push (2.5): los reemplaza el flujo de PR de arriba. Tampoco `GIT_STATE.md`.
+- **Skill `git-flow`:** aplica en modo `pr` (ramas, Conventional Commits, changesets §2.1.3,
+  prohibiciones). No aplican su pausa antes del commit ni su merge local. Sin `GIT_STATE.md`.
 
 ### Puertas de calidad (skills)
 

@@ -24,7 +24,7 @@
 - [ ] `bunx biome check ./src` passes
 - [ ] `bun run test` passes
 - [ ] `bun run build` passes
-- [ ] User-visible change → version bumped in `package.json` + entry at the top of `CHANGELOG.md` (see `CONTRIBUTING.md` › Changelog and versioning). No visible change → neither
+- [ ] User-visible change → `.changeset/<desc>.md` (see `.changeset/README.md`), without touching `version`, `CHANGELOG.md` or `APP_VERSION` in `public/sw.js`. No visible change → no changeset
 - [ ] UI changes meet WCAG 2.1 AA (keyboard, visible focus, 4.5:1 contrast, no state conveyed by color only, no horizontal scroll at 320px)
 - [ ] No magic color/spacing/radius values — only design tokens
 - [ ] Persistence only through `src/utils/learning-storage.ts`; Redux only through `src/hooks/`

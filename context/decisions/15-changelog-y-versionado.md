@@ -1,5 +1,8 @@
 # 15 — Changelog, versión y "Novedades"
 
+> **Mecánica de versión reemplazada por D135 (`33-changesets.md`):** los PRs ya no suben la
+> versión; lo hace el PR de versión de Changesets. Semver y lo que es MAJOR/MINOR/PATCH siguen.
+>
 > Unidad `feat/changelog`. El dueño eligió el enfoque (**`CHANGELOG.md` en el
 > repo + modal "Novedades" en la app + semver en `package.json`, escrito a
 > mano**, no generado desde commits) y el número de arranque (**1.0.0**). El
