@@ -37,6 +37,7 @@
 | warning | `#d97a13` · soft `#fdf0dc` | "Difícil" |
 | danger | `#e0435f` · soft `#fde8ec` | incorrecto, "Otra vez", "Cerrar"/"Abandonar" |
 | neutral | `#57536b` · soft `#eeedf6` | botones neutros, "Cancelar" |
+| medal-gold / -silver / -bronze | `#835600` · soft `#fcefc7` / `#545d6e` · soft `#e9edf3` / `#8f481e` · soft `#f9e4d6` | podio del ranking (D147): el tono vale como texto, icono y borde (≥4,5:1 sobre su soft, el modal y `primary-soft`); el soft es el fondo de la fila |
 | overlay (`--overlay`) | `#ffffff` | **fondo** de modal/popover/tooltip de HeroUI (opaco) |
 | skeleton (`--surface-tertiary`) | = `surface-border` (`#e2dff1`) | relleno del `Skeleton` de HeroUI (al 70 %, brillo al 100 %). Puenteado con `var()`, no es un color nuevo — en oscuro sale `#34304a` solo (D043) |
 | backdrop (`--backdrop`) | `rgb(28 20 46 / 55%)` | scrim tras el modal |
@@ -57,6 +58,7 @@
 | field-background | `#2b2740` · field-border `#6f6a94` — **más claro** que `surface`/`overlay` (`#1b1930`) a propósito: en oscuro, elevar un control se lee aclarándolo, no oscureciéndolo. No se tocó al ajustar el de claro |
 | success | `#4fd399` · hover `#7fe0b5` · warning `#f2a53d` · danger `#f2748c` (soft = versiones oscuras) |
 | neutral | `#c8c4dc` |
+| medal-gold / -silver / -bronze | `#f2c94c` · soft `#3a3015` / `#c5ccd8` · soft `#2c2f3d` / `#eba273` · soft `#3e2619` |
 | backdrop | `rgb(8 6 16 / 70%)` |
 
 ## Notas de contraste
@@ -80,3 +82,7 @@
   da 2.71:1 en claro. El nombre se queda en `text-surface-soft`, el icono en
   `text-success-hover` (icono informativo, solo necesita 3:1). Ver
   `decisions/06-ajustes-logros.md`.
+- Medallas del podio (D147–D148): el color del puesto nunca va solo; el número
+  ("#1") es texto real y la medalla de `iconoir-react` es `aria-hidden`. Con el
+  hover de la fila encima (D149, 6 % del texto mezclado en el fondo) el tono de
+  medalla sigue ≥4,8:1 en claro. Tabla medida en `decisions/37-ranking-podio.md`.
