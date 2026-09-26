@@ -63,6 +63,17 @@
 	--color-neutral-border: var(--app-color-neutral-border);
 
 	/* ===========================
+	   Medallas del podio del ranking (D147)
+	=========================== */
+
+	--color-medal-gold: var(--app-color-medal-gold);
+	--color-medal-gold-soft: var(--app-color-medal-gold-soft);
+	--color-medal-silver: var(--app-color-medal-silver);
+	--color-medal-silver-soft: var(--app-color-medal-silver-soft);
+	--color-medal-bronze: var(--app-color-medal-bronze);
+	--color-medal-bronze-soft: var(--app-color-medal-bronze-soft);
+
+	/* ===========================
 	   Overlay
 	   OJO: HeroUI usa el namespace `overlay` de Tailwind para el FONDO de sus
 	   superficies flotantes (modal, popover, menú, tooltip) — tiene que ser

@@ -44,6 +44,17 @@
 	--app-color-neutral-soft: #eeedf6;
 	--app-color-neutral-border: #d8d5e8;
 
+	/* Medallas del podio del ranking (D147). Cada tono da ≥4,5:1 contra su
+	   `-soft`, contra el fondo del modal (`--overlay`) y contra `primary-soft`
+	   (tu fila en el podio), y ≥4,5:1 aún con el hover de la fila encima (D149):
+	   vale como texto, icono y borde. */
+	--app-color-medal-gold: #835600;
+	--app-color-medal-gold-soft: #fcefc7;
+	--app-color-medal-silver: #545d6e;
+	--app-color-medal-silver-soft: #e9edf3;
+	--app-color-medal-bronze: #8f481e;
+	--app-color-medal-bronze-soft: #f9e4d6;
+
 	/* Overlay */
 	--app-color-overlay: rgb(28 20 46 / 55%);
 }
@@ -94,6 +105,14 @@
 		--app-color-neutral-soft: #262238;
 		--app-color-neutral-border: #3c3854;
 
+		/* Medallas del podio (D147) */
+		--app-color-medal-gold: #f2c94c;
+		--app-color-medal-gold-soft: #3a3015;
+		--app-color-medal-silver: #c5ccd8;
+		--app-color-medal-silver-soft: #2c2f3d;
+		--app-color-medal-bronze: #eba273;
+		--app-color-medal-bronze-soft: #3e2619;
+
 		/* Overlay */
 		--app-color-overlay: rgb(8 6 16 / 70%);
 	}
@@ -143,6 +162,14 @@
 	--app-color-neutral-hover: #dedbea;
 	--app-color-neutral-soft: #262238;
 	--app-color-neutral-border: #3c3854;
+
+	/* Medallas del podio (D147) */
+	--app-color-medal-gold: #f2c94c;
+	--app-color-medal-gold-soft: #3a3015;
+	--app-color-medal-silver: #c5ccd8;
+	--app-color-medal-silver-soft: #2c2f3d;
+	--app-color-medal-bronze: #eba273;
+	--app-color-medal-bronze-soft: #3e2619;
 
 	/* Overlay */
 	--app-color-overlay: rgb(8 6 16 / 70%);
