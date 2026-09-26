@@ -14,11 +14,16 @@
  * - `top`: tu fila entra en el top (puesto `OWN_RANK_IN_TOP`). Sin ella queda
  *   fuera (puesto `OWN_RANK_OUTSIDE_TOP`), bajo el separador.
  * - `sin-mi`: sin tu fila (como un invitado o alguien sin tiempo).
- * - un número (`0`…`30`): cuántas personas falsas hay, sin contarte. Por
- *   defecto `DEMO_SIZE`. `0,sin-mi` deja el ranking vacío; `1,sin-mi`, una
- *   sola fila.
+ * - `podio`: tu fila en el puesto `OWN_RANK_PODIUM`, con su medalla (D148).
+ * - `lejos`: tu fila queda en el puesto `OWN_RANK_FAR` (tres cifras, para ver
+ *   el ancho de la columna del puesto, D150). Sin número, sube el tamaño a
+ *   `FAR_DEMO_SIZE`.
+ * - un número (`0`…`DEMO_MAX_SIZE`): cuántas personas falsas hay, sin
+ *   contarte. Por defecto `DEMO_SIZE`. `0,sin-mi` deja el ranking vacío;
+ *   `1,sin-mi`, una sola fila.
  *
- * Ej.: `?demo-ranking`, `?demo-ranking=lento`, `?demo-ranking=1,sin-mi,lento`.
+ * Ej.: `?demo-ranking`, `?demo-ranking=lento`, `?demo-ranking=1,sin-mi,lento`,
+ * `?demo-ranking=podio`, `?demo-ranking=lejos`.
  *
  * Los datos salen de un generador con semilla fija por scope: cada juego
  * tiene su ranking, y es el mismo en cada apertura y en cada recarga.
@@ -37,10 +42,16 @@ import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
 
 /** Cuántas personas falsas hay por defecto (P8). */
 const DEMO_SIZE = 30;
+/** Tope del número de personas (D150): hasta tres cifras de puesto. */
+const DEMO_MAX_SIZE = 200;
+/** Tamaño por defecto con `lejos`: cabe tu puesto de tres cifras. */
+const FAR_DEMO_SIZE = 150;
 const FAST_DELAY_MS = 250;
 const SLOW_DELAY_MS = 3000;
 const OWN_RANK_IN_TOP = 4;
 const OWN_RANK_OUTSIDE_TOP = 27;
+const OWN_RANK_FAR = 123;
+const OWN_RANK_PODIUM = 2;
 
 /** Nombres variados como los que se ponen de verdad: nombre, nombre + inicial, apodos. */
 const FIRST_NAMES = [
@@ -195,18 +206,25 @@ function parseOptions(param: string): DemoOptions {
 		.map((token) => token.trim().toLowerCase())
 		.filter(Boolean);
 	const sizeToken = tokens.find((token) => /^\d+$/.test(token));
+	const isFar = tokens.includes("lejos");
 
 	return {
 		size:
 			sizeToken === undefined
-				? DEMO_SIZE
-				: Math.min(Number(sizeToken), DEMO_SIZE),
+				? isFar
+					? FAR_DEMO_SIZE
+					: DEMO_SIZE
+				: Math.min(Number(sizeToken), DEMO_MAX_SIZE),
 		delayMs: tokens.includes("lento") ? SLOW_DELAY_MS : FAST_DELAY_MS,
 		ownRank: tokens.includes("sin-mi")
 			? null
-			: tokens.includes("top")
-				? OWN_RANK_IN_TOP
-				: OWN_RANK_OUTSIDE_TOP,
+			: tokens.includes("podio")
+				? OWN_RANK_PODIUM
+				: tokens.includes("top")
+					? OWN_RANK_IN_TOP
+					: isFar
+						? OWN_RANK_FAR
+						: OWN_RANK_OUTSIDE_TOP,
 	};
 }
 
@@ -225,8 +243,9 @@ export async function fetchDemoLeaderboard(
 	const { minMs, maxMs } = getTimeRange(scope);
 
 	// Tiempos ordenados con más gente cerca de la cabeza que de la cola.
+	// Con 30 o menos se generan 30, como siempre: la demo de siempre no cambia.
 	const times = Array.from(
-		{ length: DEMO_SIZE },
+		{ length: Math.max(DEMO_SIZE, size) },
 		() => minMs + (maxMs - minMs) * random() ** 1.6,
 	)
 		.map(Math.round)

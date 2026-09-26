@@ -1,3 +1,4 @@
+import { Medal } from "iconoir-react";
 import { useEffect, useRef, useState } from "react";
 import { AnimatedHeight } from "@/components/ui/AnimatedHeight";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
@@ -54,7 +55,79 @@ const ROW_AVATAR_CLASS = "size-8 shrink-0 rounded-full";
 
 /** Clases de una fila, compartidas por la real y la de skeleton. */
 const ROW_CLASS =
-	"flex items-center justify-between gap-3 rounded-md px-3 py-2";
+	"flex items-center justify-between gap-3 rounded-md px-2 py-2 sm:px-3";
+
+/**
+ * Puesto, avatar y nombre (D150): entre el puesto y el avatar siempre
+ * `gap-3` (antes `gap-2.5`), para que el número no se pegue al avatar. Bajo
+ * `sm` el resto va a `gap-2` y la fila a `px-2`: a 320 px cada píxel es del
+ * nombre, que es lo que se trunca.
+ */
+const ROW_LEAD_CLASS = "flex min-w-0 items-center gap-2 sm:gap-3";
+
+/** Caja del puesto (D150): el ancho lo pone `rankColumnWidth`, igual en todas las filas. */
+const RANK_CLASS = "me-1 shrink-0 text-right font-black tabular-nums sm:me-0";
+
+/**
+ * Ancho de la columna del puesto (D150): tantos `ch` como caracteres tenga
+ * el puesto más alto que se ve ("#" + dígitos), el mismo para todas las filas
+ * y para la tuya bajo el separador. Con un `w-7` fijo, "#100" se salía hacia
+ * el avatar.
+ */
+function rankColumnWidth(highestRank: number): string {
+	return `${String(highestRank).length + 1}ch`;
+}
+
+/**
+ * El podio (D147–D148): cada puesto con su medalla. El color nunca va solo:
+ * el número sigue ahí como texto y la medalla es un icono (decorativo).
+ * Clases completas y literales para que Tailwind las encuentre.
+ *
+ * - `row`: fondo de la fila de otra persona y su hover (D149: el tinte se
+ *   ahonda mezclando un 6 % del texto, como el hover de los botones `soft`).
+ * - `ownRing`: tu fila en el podio conserva su fondo y suma un borde del
+ *   color del puesto.
+ * - `rank`: el número, en el tono de la medalla (≥4,5:1 en los dos temas).
+ * - `badge`: la medalla sobre la esquina del avatar.
+ */
+const PODIUM_STYLES: Record<
+	1 | 2 | 3,
+	{ row: string; ownRing: string; rank: string; badge: string }
+> = {
+	1: {
+		row: "bg-medal-gold-soft hover:bg-[color-mix(in_oklab,var(--color-medal-gold-soft),var(--color-surface-soft)_6%)]",
+		ownRing: "ring-2 ring-inset ring-medal-gold",
+		rank: "text-medal-gold",
+		badge: "border-medal-gold text-medal-gold",
+	},
+	2: {
+		row: "bg-medal-silver-soft hover:bg-[color-mix(in_oklab,var(--color-medal-silver-soft),var(--color-surface-soft)_6%)]",
+		ownRing: "ring-2 ring-inset ring-medal-silver",
+		rank: "text-medal-silver",
+		badge: "border-medal-silver text-medal-silver",
+	},
+	3: {
+		row: "bg-medal-bronze-soft hover:bg-[color-mix(in_oklab,var(--color-medal-bronze-soft),var(--color-surface-soft)_6%)]",
+		ownRing: "ring-2 ring-inset ring-medal-bronze",
+		rank: "text-medal-bronze",
+		badge: "border-medal-bronze text-medal-bronze",
+	},
+};
+
+function getPodiumStyle(rank: number) {
+	return rank === 1 || rank === 2 || rank === 3 ? PODIUM_STYLES[rank] : null;
+}
+
+/**
+ * Fondo de la fila (D149). Hover solo visual: la fila no es enfocable ni
+ * enseña nada nuevo, así que `cursor` normal. `hover:` es la variante de D103
+ * (ratón, o mientras dura el toque: sin hover pegado). La transición de
+ * color usa los 150 ms de siempre; con movimiento reducido la acorta el
+ * bloque global.
+ */
+const ROW_BG_OWN =
+	"bg-primary-soft hover:bg-[color-mix(in_oklab,var(--color-primary-soft),var(--color-surface-soft)_6%)]";
+const ROW_BG_DEFAULT = "hover:bg-surface-hover";
 
 /**
  * Sin el punto final: en un continente se le añade "de Europa" (D141).
@@ -124,11 +197,14 @@ function loadLeaderboard(scope: string): Promise<LeaderboardEntry[]> {
 
 function LeaderboardRow({
 	rank,
+	rankWidth,
 	entry,
 	isMe,
 	isOnline,
 }: {
 	rank: number;
+	/** Ancho de la columna del puesto, compartido por toda la lista (D150). */
+	rankWidth: string;
 	entry: LeaderboardEntry;
 	isMe: boolean;
 	isOnline: boolean;
@@ -136,27 +212,46 @@ function LeaderboardRow({
 	const avatarUrl = entry.avatar
 		? getAvatarUrl(entry.avatar.style, entry.avatar.seed)
 		: null;
+	const podium = getPodiumStyle(rank);
+
+	// Tu fila: fondo y texto de marca (`primary-hover` como texto: `primary`
+	// sobre `primary-soft` daba 3,97:1 en claro, D148). En el podio suma el
+	// borde del color del puesto; la de otra persona en el podio lleva el
+	// tinte de su medalla.
+	const rowColors = isMe
+		? `${ROW_BG_OWN} text-primary-hover ${podium?.ownRing ?? ""}`
+		: `${podium?.row ?? ROW_BG_DEFAULT} text-surface-soft`;
 
 	return (
-		<li
-			className={`${ROW_CLASS} ${
-				isMe ? "bg-primary-soft text-primary" : "text-surface-soft"
-			}`}
-		>
-			<span className="flex min-w-0 items-center gap-2.5">
-				<span className="w-7 shrink-0 text-right font-black tabular-nums">
+		<li className={`${ROW_CLASS} ${rowColors} transition-colors duration-150`}>
+			<span className={ROW_LEAD_CLASS}>
+				<span
+					className={`${RANK_CLASS} ${podium?.rank ?? ""}`}
+					style={{ width: rankWidth }}
+				>
 					#{rank}
 				</span>
-				{/* Decorativo: el nombre va al lado. Al volver la red se remonta
-				    para reintentar un avatar que no cargó (como en `UserSummary`). */}
-				<UserAvatar
-					key={`${avatarUrl}|${isOnline}`}
-					src={avatarUrl}
-					name={entry.displayName}
-					className={ROW_AVATAR_CLASS}
-					initialClassName="text-sm"
-					loading="lazy"
-				/>
+				<span className="relative flex shrink-0">
+					{/* Decorativo: el nombre va al lado. Al volver la red se remonta
+					    para reintentar un avatar que no cargó (como en `UserSummary`). */}
+					<UserAvatar
+						key={`${avatarUrl}|${isOnline}`}
+						src={avatarUrl}
+						name={entry.displayName}
+						className={ROW_AVATAR_CLASS}
+						initialClassName="text-sm"
+						loading="lazy"
+					/>
+					{/* La medalla (D148) es decorativa: el puesto ya se lee en "#1". */}
+					{podium && (
+						<span
+							className={`absolute -right-1 -bottom-1 grid size-4.5 place-items-center rounded-full border bg-overlay ${podium.badge}`}
+							aria-hidden="true"
+						>
+							<Medal className="size-3" strokeWidth={2} />
+						</span>
+					)}
+				</span>
 				<span className="truncate font-bold">{entry.displayName}</span>
 				{/* Tu fila no se distingue solo por el color. ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #27). */}
 				{isMe && (
@@ -178,11 +273,17 @@ function LeaderboardRow({
  * `immediate` (D115): el ranking va siempre a la red, así que la espera de
  * 300 ms solo dejaba ver un hueco del alto del skeleton sin nada dentro.
  */
-function LeaderboardSkeletonRow({ rank }: { rank: number }) {
+function LeaderboardSkeletonRow({
+	rank,
+	rankWidth,
+}: {
+	rank: number;
+	rankWidth: string;
+}) {
 	return (
 		<li className={`${ROW_CLASS} text-surface-soft`} aria-hidden="true">
-			<span className="flex min-w-0 items-center gap-2.5">
-				<span className="w-7 shrink-0 text-right font-black tabular-nums">
+			<span className={ROW_LEAD_CLASS}>
+				<span className={RANK_CLASS} style={{ width: rankWidth }}>
 					<Skeleton shape="line" className="ml-auto rounded-sm" immediate>
 						#{rank}
 					</Skeleton>
@@ -296,12 +397,22 @@ export function LeaderboardModal({
 	const myIndex = entries?.findIndex((entry) => entry.userId === ownId) ?? -1;
 	const myRank = myIndex >= 0 ? myIndex + 1 : null;
 	const isMeInTop = myRank !== null && myRank <= TOP_COUNT;
+	// El puesto más alto que se ve: el último del top o el tuyo, si va aparte (D150).
+	const highestRank = Math.max(
+		Math.min(entries?.length ?? 0, TOP_COUNT),
+		myRank ?? 0,
+	);
+	const rankWidth = rankColumnWidth(highestRank);
 
+	// Ancho del modal (D150): 34 rem, para que el puesto, el avatar y el nombre
+	// respiren; a 320 px sigue mandando el 92vw. `max-w-none` quita el tope de
+	// `modal__dialog--md` (28 rem), como en `AchievementsModal`: sin él, el
+	// `30rem` de antes nunca llegaba a aplicarse.
 	return (
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			className="w-[min(30rem,92vw)] text-left"
+			className="w-[min(34rem,92vw)] max-w-none text-left"
 			ariaLabelledby="leaderboard-title"
 		>
 			<header className="mb-3 flex items-center justify-between gap-3">
@@ -377,11 +488,14 @@ export function LeaderboardModal({
 						aria-busy="true"
 						aria-labelledby="leaderboard-title"
 					>
+						{/* Columna del puesto del ancho de un top lleno ("#20", D150): es lo
+						    habitual, y así al llegar los datos el avatar no se mueve. */}
 						{Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
 							<LeaderboardSkeletonRow
 								// biome-ignore lint/suspicious/noArrayIndexKey: filas de relleno fijas, sin identidad propia
 								key={index}
 								rank={index + 1}
+								rankWidth={rankColumnWidth(TOP_COUNT)}
 							/>
 						))}
 					</ol>
@@ -402,6 +516,7 @@ export function LeaderboardModal({
 							<LeaderboardRow
 								key={entry.userId}
 								rank={index + 1}
+								rankWidth={rankWidth}
 								entry={entry}
 								isMe={entry.userId === ownId}
 								isOnline={isOnline}
@@ -421,6 +536,7 @@ export function LeaderboardModal({
 						>
 							<LeaderboardRow
 								rank={myRank}
+								rankWidth={rankWidth}
 								entry={entries[myIndex]}
 								isMe
 								isOnline={isOnline}
