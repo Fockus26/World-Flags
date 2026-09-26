@@ -18,7 +18,9 @@ dos juegos que usan `Session`.
 **Países no cambia.** Su rush (`CountriesRush`) no tiene castigo: se completa o
 se rinde (D033). No se inventa uno; su ranking y sus tiempos no se tocan.
 
-**Se dice al jugador.** Al fallar o saltar en competitivo, el aviso de fallo
+**Se dice al jugador.** *(La línea dentro del aviso la sustituye D132: desde
+`feat/castigo-animado` el "+10 s" sube junto al cronómetro. Ver
+`32-castigo-animado.md`.)* Al fallar o saltar en competitivo, el aviso de fallo
 lleva una línea "+10 s al cronómetro" / "+20 s al cronómetro" (dentro del
 aviso, para que se anuncie con él; `AnswerForm.penaltyLabel`). El cronómetro
 está congelado durante la transición (900 ms), así que el salto del número
