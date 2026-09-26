@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useSelectSound } from "@/hooks/useSelectSound";
 
 interface OptionTileProps {
 	name: string;
@@ -11,6 +12,9 @@ interface OptionTileProps {
 /**
  * Opción segmentada de selección única (radio nativo accesible) alineada con
  * los tokens de HeroUI (`--accent`, `--default`, `--border`, `--radius`).
+ *
+ * Suena el "tic" de selección al elegir (D143), por dentro: quien la usa no
+ * cambia nada.
  */
 export function OptionTile({
 	name,
@@ -19,6 +23,8 @@ export function OptionTile({
 	onChange,
 	children,
 }: OptionTileProps) {
+	const withSelectSound = useSelectSound();
+
 	return (
 		<label
 			className="
@@ -39,7 +45,7 @@ export function OptionTile({
 				name={name}
 				value={value}
 				checked={checked}
-				onChange={onChange}
+				onChange={withSelectSound(onChange)}
 				className="pointer-events-none absolute size-px opacity-0"
 			/>
 			<span className="px-3 py-2 text-xs font-bold sm:text-sm">{children}</span>

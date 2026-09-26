@@ -1,6 +1,7 @@
 import { type CSSProperties, useId } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useSelectSound } from "@/hooks/useSelectSound";
 import { useTheme } from "@/hooks/useTheme";
 import { formatScore } from "@/utils/learning-storage";
 import { getScoreBackgroundColor, getScoreColor } from "@/utils/score";
@@ -58,6 +59,8 @@ export function RegionOption({
 	const tooltipId = useId();
 	const { resolvedTheme } = useTheme();
 	const isDarkTheme = resolvedTheme === "dark";
+	// Marcar o desmarcar la tarjeta suena el "tic" de selección (D143).
+	const withSelectSound = useSelectSound();
 
 	const scoreStyle: ScoreStyle = {
 		"--app-score-color":
@@ -115,7 +118,7 @@ export function RegionOption({
 				value={value}
 				tabIndex={0}
 				checked={checked}
-				onChange={onChange}
+				onChange={withSelectSound(onChange)}
 				// Cubre la tarjeta entera (sigue invisible y sin eventos): al
 				// tabular dentro de la sección con scroll, el navegador trae a la
 				// vista el input enfocado, no el <label>. Con 1px en el centro, la
