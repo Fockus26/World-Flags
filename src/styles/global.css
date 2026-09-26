@@ -231,3 +231,39 @@
 		animation-iteration-count: 1;
 	}
 }
+
+/*
+ * Confeti del nuevo récord (D155, `RecordConfetti.tsx`). Cada partícula trae
+ * por variables CSS cuánto cae, cuánto se desvía de lado, cuánto gira y su
+ * duración/retraso: una sola animación sirve para las 20. Cae una vez
+ * (`both`: invisible antes de su retraso y al terminar) y se desvanece al
+ * final; nada parpadea. Con movimiento reducido la capa ni se pinta
+ * (`motion-reduce:hidden`), y el bloque global de arriba la acortaría igual.
+ */
+@keyframes confetti-fall {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 0, 0) rotate(0deg);
+	}
+
+	10% {
+		opacity: 1;
+	}
+
+	75% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+		transform: translate3d(var(--confetti-drift), var(--confetti-fall), 0)
+			rotate(var(--confetti-spin));
+	}
+}
+
+@layer components {
+	.record-confetti-piece {
+		animation: confetti-fall var(--confetti-duration) ease-in
+			var(--confetti-delay) both;
+	}
+}

@@ -37,6 +37,9 @@ Clases: `rounded-sm/md/lg/xl/2xl` ya heredan estos valores. Modales HeroUI usan
 
 - `--default-transition-duration` (HeroUI): `0.15s`.
 - Transiciones CSS propias: `duration-150` / `duration-180` / `duration-200` según componente.
+- Celebración de Resultados (D154–D156): `COUNT_UP_DURATION_MS` = 600 ms
+  (`hooks/useCountUp.ts`, números que cuentan); insignia de récord `duration-300`
+  (como el badge de castigo, D132); confeti `confetti-fall` de 1,2–1,7 s, una vez.
 - `tw-animate-css` (viene con `@heroui/styles`): `animate-in fade-in-0 slide-in-from-*
   duration-200` para entradas de vista y paneles de tabs.
 - Skeleton (`ui/Skeleton.tsx`, D042): brillo de HeroUI (`skeleton 2s linear
