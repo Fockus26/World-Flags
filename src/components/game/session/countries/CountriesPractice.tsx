@@ -249,9 +249,9 @@ export function CountriesPractice({
 		if (!currentCountry || answerStatus !== "idle") return;
 
 		skippedAnswersRef.current += 1;
-		// Como en `Session`: saltar (o agotar el temporizador) se ve y suena
-		// como un fallo (D083).
-		playSound("incorrect");
+		// Como en `Session`: saltar (o agotar el temporizador) se ve como un
+		// fallo (D083) y suena con su nota neutra (D144).
+		playSound("skip");
 		recordFirstAttempt(currentCountry.code, false);
 		setIsSkipPending(true);
 		setAnswerStatus("incorrect");

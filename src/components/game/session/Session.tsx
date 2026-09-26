@@ -323,6 +323,9 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 	 * este `setElapsedMs` el número saltaría 900 ms después del "+10 s", al
 	 * avanzar; así saltan juntos. El tiempo final no cambia: la pausa se
 	 * descuenta igual al reanudar.
+	 *
+	 * El golpe de castigo suena a la vez que aparece el badge, encima del
+	 * fallo o del salto que ya sonó en este mismo gesto (D145).
 	 */
 	function applyPenalty(penaltyMs: number) {
 		if (startTimeRef.current === null) return;
@@ -331,6 +334,7 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 		penaltyIdRef.current += 1;
 		const id = penaltyIdRef.current;
 		setPenalties((current) => [...current, { id, penaltyMs }]);
+		playSound("penalty");
 	}
 
 	function removePenalty(id: number) {
@@ -431,10 +435,12 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 		skippedAnswersRef.current += 1;
 
 		// Saltar se ve como un fallo en los dos modos (aviso rojo con la
-		// respuesta) y suena como tal: en competitivo penaliza, y en práctica
-		// se califica "otra vez" sola (D083). Vale también para el
-		// temporizador de práctica que se agota.
-		playSound("incorrect");
+		// respuesta): en competitivo penaliza, y en práctica se califica "otra
+		// vez" sola (D083). Pero suena con su nota neutra, no como un fallo:
+		// saltar es "no lo sé" (D144). En competitivo, además, el golpe del
+		// castigo (`applyPenalty`). Vale también para el temporizador de
+		// práctica que se agota.
+		playSound("skip");
 
 		if (configuration.mode === "competitive") {
 			attemptCountry(currentCountry.code, false, gameType);

@@ -274,6 +274,12 @@ export interface CompetitiveGameResult extends GameResultBase {
 	 * todos los países: el mejor tiempo solo se registra cuando es `true`.
 	 */
 	completed: boolean;
+	/**
+	 * Este rush mejoró una marca que ya existía (D146). Lo pone `finishGame`
+	 * (la sesión no sabe cuál era la marca); `Results` lo muestra y a la vez
+	 * suena la fanfarria de récord.
+	 */
+	isNewRecord?: boolean;
 }
 
 export type GameResult = PracticeGameResult | CompetitiveGameResult;

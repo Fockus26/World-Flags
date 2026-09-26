@@ -2,6 +2,7 @@ import { City, Globe, TriangleFlag } from "iconoir-react";
 import { useId } from "react";
 import { Fieldset } from "@/components/ui/Fieldset";
 import { Select } from "@/components/ui/Select";
+import { useSelectSound } from "@/hooks/useSelectSound";
 import { GAME_TYPE_LABELS, GAME_TYPES, type GameType } from "@/types/country";
 
 interface GameTypeToggleProps {
@@ -78,6 +79,9 @@ export function GameTypeToggle({
 }: GameTypeToggleProps) {
 	const name = useId();
 	const selectedIndex = GAME_TYPES.indexOf(value);
+	// El "tic" de selección (D143) en las dos formas, sin tocar `ui/Select`.
+	const withSelectSound = useSelectSound();
+	const handleChange = withSelectSound(onChange);
 
 	return (
 		<Fieldset legend={legend} hideLegend={hideLegend} className={className}>
@@ -91,7 +95,7 @@ export function GameTypeToggle({
 				// todavía; sin él, HeroUI pone "Select an item" en inglés.
 				// ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #21).
 				placeholder="Elige un juego"
-				onChange={(selected) => onChange(selected as GameType)}
+				onChange={(selected) => handleChange(selected as GameType)}
 			/>
 
 			<div className="relative hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--default)] p-1 min-[30rem]:flex">
@@ -144,7 +148,7 @@ export function GameTypeToggle({
 								name={name}
 								value={type}
 								checked={checked}
-								onChange={() => onChange(type)}
+								onChange={() => handleChange(type)}
 								className="pointer-events-none absolute size-px opacity-0"
 							/>
 							<Icon className="size-[18px] shrink-0" strokeWidth={2} />

@@ -17,6 +17,7 @@ import {
 	type Region,
 } from "@/types/country";
 import type {
+	BestTimeKey,
 	ReviewGrade,
 	SessionRecord,
 	UserLearningData,
@@ -50,6 +51,25 @@ import {
 } from "@/utils/practice-scope";
 import { prepareCountries } from "@/utils/prepare-countries";
 import { calculateScore } from "@/utils/score";
+import { playSound } from "@/utils/sound";
+
+/**
+ * La marca que este rush puede mejorar o crear, o `null` si no cuenta para
+ * marca. El mejor tiempo solo se registra si el rush se completó al 100 %
+ * (D033): un rush de Países abandonado a medio camino no debe mejorar ni
+ * crear una marca. Un tiempo imposible (el reloj saltó a mitad de partida)
+ * tampoco: bloquearía la marca para siempre (D139). Un scope mixto no tiene
+ * continente al que atribuirla. La clave es la de la regla vigente del juego
+ * (D076, D137): una marca nueva nunca compite con una de la regla vieja.
+ */
+function getRushBestTimeKey(result: GameResult): BestTimeKey | null {
+	if (result.mode !== "competitive" || !result.completed) return null;
+
+	const region = getScopeRegionKey(result.scope);
+	if (!region || !isPlausibleRushTime(region, result.elapsedMs)) return null;
+
+	return getBestTimeKey(region, result.gameType);
+}
 
 /**
  * Varias acciones seguidas (calificar una bandera y de paso marcarla como
@@ -180,11 +200,31 @@ export function useGame() {
 			}),
 		);
 
+		// Aquí y no en cada botón: "Comenzar" y "Jugar de nuevo" pasan por
+		// aquí, y solo suena si la partida arranca de verdad (D144).
+		playSound("start");
+
 		return true;
 	};
 
 	const finishGame = (result: GameResult) => {
-		dispatch(setLastResult(result));
+		const bestTimeKey = getRushBestTimeKey(result);
+		const previousBest =
+			bestTimeKey === null
+				? undefined
+				: toGameView(getCurrentLearningData(), result.gameType).regionBestTimes[
+						bestTimeKey
+					];
+		// Batir la marca (D146) es mejorar una que ya existía: el primer rush
+		// completado de un alcance crea la marca, no la bate.
+		const isNewRecord =
+			previousBest !== undefined && result.elapsedMs < previousBest;
+
+		dispatch(
+			setLastResult(
+				result.mode === "competitive" ? { ...result, isNewRecord } : result,
+			),
+		);
 		dispatch(setActiveGame(null));
 
 		const { gameType } = result;
@@ -246,30 +286,20 @@ export function useGame() {
 					});
 				}
 			}
-		} else {
-			const region = getScopeRegionKey(result.scope);
-
-			// El mejor tiempo solo se registra si el rush se completó al 100 %
-			// (D033): un rush de Países abandonado a medio camino no debe
-			// mejorar ni crear una marca. Un tiempo imposible (el reloj saltó a
-			// mitad de partida) tampoco: bloquearía la marca para siempre (D139).
-			if (
-				region &&
-				result.completed &&
-				isPlausibleRushTime(region, result.elapsedMs)
-			) {
-				// La clave de la regla vigente del juego (D076, D137): una marca
-				// nueva nunca compite con una de la regla vieja.
-				const view = registerRegionBestTime(
-					toGameView(updatedData, gameType),
-					getBestTimeKey(region, gameType),
-					result.elapsedMs,
-				);
-				updatedData = fromGameView(updatedData, view, gameType);
-			}
+		} else if (bestTimeKey !== null) {
+			const view = registerRegionBestTime(
+				toGameView(updatedData, gameType),
+				bestTimeKey,
+				result.elapsedMs,
+			);
+			updatedData = fromGameView(updatedData, view, gameType);
 		}
 
 		dispatch(setLearningData(updatedData));
+
+		// La fanfarria espera a que termine el acierto del último país (D146);
+		// `Results` muestra "¡Nuevo récord!" a la vez (D082).
+		if (isNewRecord) playSound("record");
 	};
 
 	const exitGame = () => {
@@ -391,6 +421,7 @@ export function useGame() {
 		if (dueCodes.length === 0) return;
 
 		dispatch(setDailyPracticeQueue({ gameType, codes: dueCodes }));
+		playSound("start");
 	};
 
 	/** La práctica diaria sí completada: entra al historial y cierra la cola. */

@@ -61,6 +61,13 @@ function CompetitiveResults({
 				¡Completado!
 			</h1>
 
+			{/* Lo que se ve de la fanfarria de récord (D146): el sonido nunca es
+			    la única señal (D082). ⚠️ Copy provisional
+			    (`CONTENT_CHECKLIST.md` #47). */}
+			{result.isNewRecord && (
+				<p className="m-0 font-bold text-primary">¡Nuevo récord!</p>
+			)}
+
 			<div className="my-4 flex h-26 w-auto min-w-26 shrink-0 flex-col place-items-center justify-center rounded-full border-[0.45rem] border-primary-border bg-primary-soft px-5 text-primary sm:my-6 sm:h-[clamp(7.5rem,20vw,9rem)] sm:min-w-[clamp(7.5rem,20vw,9rem)]">
 				<strong className="text-[1.35rem] leading-none tabular-nums whitespace-nowrap sm:text-[clamp(1.5rem,4.2vw,2.1rem)]">
 					{formatElapsedTime(result.elapsedMs)}
