@@ -9,6 +9,29 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.5.0] - 2026-09-26
+
+### Añadido
+
+- El ranking ahora también tiene clasificación por continente: elige el
+  continente arriba de la lista. Cuenta un rush de un continente completo.
+
+### Cambiado
+
+- En el modo competitivo de Banderas y Capitales, el castigo por fallar o saltar
+  ahora aparece como +10 s o +20 s junto al cronómetro, que salta en ese mismo
+  momento; el aviso de fallo ya no lo repite.
+- En Banderas y Capitales, los mejores tiempos por continente empiezan de cero
+  con la regla de castigo actual (+10 s por fallo, +20 s por saltar), igual que
+  pasó con Todo el mundo. En Países se conservan.
+
+### Corregido
+
+- Un tiempo imposible (por ejemplo, si el reloj del dispositivo cambia a mitad
+  de partida) ya no se guarda como mejor marca.
+- Tu mejor tiempo en el ranking ya no puede ser sustituido por uno peor.
+- El enlace "Saltar al contenido principal" se lee mejor en el tema claro.
+
 ## [2.4.3] - 2026-09-24
 
 ### Corregido
