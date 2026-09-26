@@ -1,4 +1,6 @@
+import { Trophy } from "iconoir-react";
 import { Button } from "@/components/ui/Button";
+import { useCountUp } from "@/hooks/useCountUp";
 import { useTheme } from "@/hooks/useTheme";
 import { GAME_TYPE_NOUNS, type GameResult } from "@/types/country";
 import { formatElapsedTime } from "@/utils/learning-storage";
@@ -8,6 +10,45 @@ import {
 	getScoreColor,
 	getScoreMessage,
 } from "@/utils/score";
+import { RecordConfetti } from "./RecordConfetti";
+
+/**
+ * Número de Resultados que cuenta de 0 a `value` (D154). Lo que se ve está
+ * `aria-hidden`: un lector de pantalla no debe leer cada fotograma. El valor
+ * final va aparte, en una región `aria-live` visualmente oculta que está
+ * vacía mientras cuenta y se llena una sola vez al terminar (con movimiento
+ * reducido, justo después de montar). Debajo del número animado va el final
+ * invisible, apilado en la misma celda: reserva su ancho desde el principio y
+ * el círculo no crece mientras cuenta ("0.00" → "1:23.45").
+ */
+function CountUpNumber({
+	value,
+	format,
+	className,
+}: {
+	value: number;
+	format: (value: number) => string;
+	className: string;
+}) {
+	const countUp = useCountUp(value);
+	const finalLabel = format(value);
+
+	return (
+		<>
+			<strong aria-hidden="true" className={`grid ${className}`}>
+				<span className="invisible col-start-1 row-start-1">{finalLabel}</span>
+				<span className="col-start-1 row-start-1">{format(countUp.value)}</span>
+			</strong>
+			<span className="sr-only" aria-live="polite">
+				{countUp.done ? finalLabel : ""}
+			</span>
+		</>
+	);
+}
+
+function formatCount(value: number): string {
+	return String(Math.round(value));
+}
 
 interface ResultsProps {
 	result: GameResult;
@@ -36,9 +77,11 @@ function CompetitiveResults({
 				</h1>
 
 				<div className="my-4 flex h-26 w-auto min-w-26 shrink-0 flex-col place-items-center justify-center rounded-full border-[0.45rem] border-primary-border bg-primary-soft px-5 text-primary sm:my-6 sm:h-[clamp(7.5rem,20vw,9rem)] sm:min-w-[clamp(7.5rem,20vw,9rem)]">
-					<strong className="text-[1.35rem] leading-none tabular-nums whitespace-nowrap sm:text-[clamp(1.5rem,4.2vw,2.1rem)]">
-						{result.correctAnswers}/{result.totalCountries}
-					</strong>
+					<CountUpNumber
+						value={result.correctAnswers}
+						format={(count) => `${formatCount(count)}/${result.totalCountries}`}
+						className="text-[1.35rem] leading-none tabular-nums whitespace-nowrap sm:text-[clamp(1.5rem,4.2vw,2.1rem)]"
+					/>
 					<span className="mt-1 text-[0.7rem] font-bold">encontrados</span>
 				</div>
 
@@ -62,16 +105,25 @@ function CompetitiveResults({
 			</h1>
 
 			{/* Lo que se ve de la fanfarria de récord (D146): el sonido nunca es
-			    la única señal (D082). ⚠️ Copy provisional
-			    (`CONTENT_CHECKLIST.md` #47). */}
+			    la única señal (D082). Insignia con zoom-in y confeti (D155),
+			    montados en el mismo render en que `finishGame` pide el sonido
+			    `record`. ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #47). */}
 			{result.isNewRecord && (
-				<p className="m-0 font-bold text-primary">¡Nuevo récord!</p>
+				<>
+					<RecordConfetti />
+					<p className="m-0 inline-flex items-center gap-1.5 rounded-full border border-medal-gold bg-medal-gold-soft px-3 py-1 font-bold text-medal-gold motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-50 motion-safe:duration-300 motion-safe:ease-out">
+						<Trophy className="size-4 shrink-0" aria-hidden="true" />
+						¡Nuevo récord!
+					</p>
+				</>
 			)}
 
 			<div className="my-4 flex h-26 w-auto min-w-26 shrink-0 flex-col place-items-center justify-center rounded-full border-[0.45rem] border-primary-border bg-primary-soft px-5 text-primary sm:my-6 sm:h-[clamp(7.5rem,20vw,9rem)] sm:min-w-[clamp(7.5rem,20vw,9rem)]">
-				<strong className="text-[1.35rem] leading-none tabular-nums whitespace-nowrap sm:text-[clamp(1.5rem,4.2vw,2.1rem)]">
-					{formatElapsedTime(result.elapsedMs)}
-				</strong>
+				<CountUpNumber
+					value={result.elapsedMs}
+					format={formatElapsedTime}
+					className="text-[1.35rem] leading-none tabular-nums whitespace-nowrap sm:text-[clamp(1.5rem,4.2vw,2.1rem)]"
+				/>
 				<span className="mt-1 text-[0.7rem] font-bold">tiempo</span>
 			</div>
 
@@ -114,9 +166,11 @@ function PracticeResults({
 					color: scoreColor,
 				}}
 			>
-				<strong className="text-[1.8rem] leading-none sm:text-[clamp(2rem,6vw,2.8rem)]">
-					{result.score}
-				</strong>
+				<CountUpNumber
+					value={result.score}
+					format={formatCount}
+					className="text-[1.8rem] leading-none tabular-nums sm:text-[clamp(2rem,6vw,2.8rem)]"
+				/>
 				<span className="mt-[-0.35rem] text-[0.9rem] font-bold">/10</span>
 			</div>
 
@@ -136,7 +190,7 @@ export function Results({ result, onRestart, onExit }: ResultsProps) {
 	const scopeLabel = getScopeLabel(result.scope);
 
 	return (
-		<section className="flex max-h-full w-[min(100%,38rem)] flex-col items-center overflow-auto rounded-2xl border border-surface-border bg-surface p-4 text-center shadow-xl sm:p-[clamp(1.5rem,4vh,2.5rem)]">
+		<section className="relative flex max-h-full w-[min(100%,38rem)] flex-col items-center overflow-auto rounded-2xl border border-surface-border bg-surface p-4 text-center shadow-xl sm:p-[clamp(1.5rem,4vh,2.5rem)]">
 			{result.mode === "competitive" ? (
 				<CompetitiveResults result={result} />
 			) : (
