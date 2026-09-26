@@ -1,5 +1,5 @@
 import { City, Globe, TriangleFlag } from "iconoir-react";
-import { useId } from "react";
+import { useId, useState } from "react";
 import { Fieldset } from "@/components/ui/Fieldset";
 import { Select } from "@/components/ui/Select";
 import { useSelectSound } from "@/hooks/useSelectSound";
@@ -82,6 +82,11 @@ export function GameTypeToggle({
 	// El "tic" de selección (D143) en las dos formas, sin tocar `ui/Select`.
 	const withSelectSound = useSelectSound();
 	const handleChange = withSelectSound(onChange);
+	// "Pop" de la píldora al elegir (D158). Es un contador que sirve de `key`
+	// del relleno: cada elección lo remonta y la animación vuelve a empezar.
+	// Arranca en 0 (sin clase de animación), así que ni el montaje ni el valor
+	// guardado que llega al terminar la carga lo disparan.
+	const [popCount, setPopCount] = useState(0);
 
 	return (
 		<Fieldset legend={legend} hideLegend={hideLegend} className={className}>
@@ -108,12 +113,23 @@ export function GameTypeToggle({
 						// En alto contraste el navegador pintaría la píldora del color
 						// del fondo y no se vería cuál está elegida: ahí va en los
 						// colores de sistema de "seleccionado" (Highlight/HighlightText).
-						className="absolute inset-y-1 left-1 rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] transition-transform duration-200 ease-in-out forced-color-adjust-none forced-colors:bg-[Highlight]"
+						//
+						// Dos capas (D158): la de fuera se desliza con el `transform`
+						// en línea y la de dentro pinta el relleno y hace el pop. El
+						// pop de `tw-animate-css` anima `transform`: en la misma capa
+						// pisaría el `translateX` y la píldora saltaría a la primera
+						// opción mientras dura.
+						className="absolute inset-y-1 left-1 transition-transform duration-200 ease-in-out"
 						style={{
 							width: `calc((100% - 0.5rem) / ${GAME_TYPES.length})`,
 							transform: `translateX(${selectedIndex * 100}%)`,
 						}}
-					/>
+					>
+						<div
+							key={popCount}
+							className={`size-full rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] forced-color-adjust-none forced-colors:bg-[Highlight] ${popCount > 0 ? "duration-200 motion-safe:animate-in motion-safe:zoom-in-95" : ""}`}
+						/>
+					</div>
 				)}
 
 				{GAME_TYPES.map((type) => {
@@ -134,13 +150,20 @@ export function GameTypeToggle({
 							// había reportado dos veces. El texto va en
 							// `--btn-contained-fg` (el de los botones rellenos): 4,66:1
 							// en claro y 6,64:1 en oscuro.
+							//
+							// Movimiento (D157): pulsar encoge a 0,98 todas; subir 2 px
+							// con `shadow-sm` y el fondo de hover solo las no elegidas,
+							// porque la elegida va sobre la píldora, que no sube con
+							// ella (el texto se despegaría del relleno). Sin
+							// `transition-colors` (D129: no anima `outline-color`).
 							className={`
 								relative z-10 flex flex-1 cursor-pointer items-center justify-center gap-1.5
 								min-h-11 rounded-[calc(var(--radius)-2px)] py-2
-								transition-colors duration-150 ease-in-out
+								transition-[color,background-color,box-shadow,translate,scale] duration-150 ease-in-out
+								motion-safe:active:translate-y-0 motion-safe:active:scale-98
 								has-focus-visible:outline has-focus-visible:outline-2 has-focus-visible:outline-offset-2
 								has-focus-visible:outline-[var(--focus)]
-								${checked ? "text-[var(--btn-contained-fg)] forced-color-adjust-none forced-colors:text-[HighlightText]" : "text-[var(--default-foreground)]"}
+								${checked ? "text-[var(--btn-contained-fg)] forced-color-adjust-none forced-colors:text-[HighlightText]" : "text-[var(--default-foreground)] hover:bg-[var(--default-hover)] hover:shadow-sm motion-safe:hover:-translate-y-0.5"}
 							`}
 						>
 							<input
@@ -148,7 +171,10 @@ export function GameTypeToggle({
 								name={name}
 								value={type}
 								checked={checked}
-								onChange={() => handleChange(type)}
+								onChange={() => {
+									handleChange(type);
+									setPopCount((count) => count + 1);
+								}}
 								className="pointer-events-none absolute size-px opacity-0"
 							/>
 							<Icon className="size-[18px] shrink-0" strokeWidth={2} />

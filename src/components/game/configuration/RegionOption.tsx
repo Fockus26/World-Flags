@@ -1,4 +1,9 @@
-import { type CSSProperties, useId } from "react";
+import {
+	type AnimationEvent,
+	type CSSProperties,
+	useId,
+	useState,
+} from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useSelectSound } from "@/hooks/useSelectSound";
@@ -61,6 +66,14 @@ export function RegionOption({
 	const isDarkTheme = resolvedTheme === "dark";
 	// Marcar o desmarcar la tarjeta suena el "tic" de selección (D143).
 	const withSelectSound = useSelectSound();
+	// "Pop" al marcarla (D158): solo desde el `onChange` del usuario, así que
+	// ni el montaje ni la selección guardada que llega tras la carga lo
+	// disparan. Desmarcar no lo hace: el pop confirma que quedó elegida.
+	const [isPopping, setIsPopping] = useState(false);
+	// `animationend` burbujea (skeleton, tooltip): solo cuenta el del pop.
+	const endPop = (event: AnimationEvent<HTMLLabelElement>) => {
+		if (event.target === event.currentTarget) setIsPopping(false);
+	};
 
 	const scoreStyle: ScoreStyle = {
 		"--app-score-color":
@@ -88,6 +101,13 @@ export function RegionOption({
 	return (
 		<label
 			style={scoreStyle}
+			onAnimationEnd={endPop}
+			// Elevación (D157): el anillo de 2 px del color de la nota es `ring-2`
+			// y no un `shadow-[0_0_0_2px_…]` para poder sumarle la sombra
+			// `shadow-md` del hover (Tailwind compone `--tw-ring-shadow` y
+			// `--tw-shadow` en un solo `box-shadow`). Subir y encoger van con
+			// `motion-safe:`; el pop anima `transform`, que no pisa las
+			// propiedades `translate`/`scale` del hover y el pulsado.
 			className={`
 	relative flex min-h-16 min-w-0 touch-manipulation cursor-pointer items-center rounded-md border-2 border-l-4
 	border-(--app-score-color)
@@ -98,13 +118,16 @@ export function RegionOption({
 	has-checked:[&_.region-check]:border-(--app-score-color)
 	has-checked:[&_.region-check]:bg-(--app-score-color)
 	transition duration-200 ease-in-out
-	hover:-translate-y-0.5
-	has-focus-visible:-translate-y-0.5
-	active:translate-y-0
-	active:scale-[0.98]
-	hover:shadow-[0_0_0_2px_var(--app-score-color)]
-	has-focus-visible:shadow-[0_0_0_2px_var(--app-score-color)]
-	has-checked:shadow-[0_0_0_2px_var(--app-score-color)]
+	motion-safe:hover:-translate-y-0.5
+	motion-safe:has-focus-visible:-translate-y-0.5
+	motion-safe:active:translate-y-0
+	motion-safe:active:scale-98
+	ring-(--app-score-color)
+	hover:ring-2
+	has-focus-visible:ring-2
+	has-checked:ring-2
+	hover:shadow-md
+	${isPopping ? "motion-safe:animate-in motion-safe:zoom-in-95" : ""}
 	outline-(--app-score-ring)
 	has-focus-visible:outline-[3px]
 	has-focus-visible:outline-offset-3
@@ -118,7 +141,10 @@ export function RegionOption({
 				value={value}
 				tabIndex={0}
 				checked={checked}
-				onChange={withSelectSound(onChange)}
+				onChange={withSelectSound(() => {
+					onChange();
+					if (!checked) setIsPopping(true);
+				})}
 				// Cubre la tarjeta entera (sigue invisible y sin eventos): al
 				// tabular dentro de la sección con scroll, el navegador trae a la
 				// vista el input enfocado, no el <label>. Con 1px en el centro, la
