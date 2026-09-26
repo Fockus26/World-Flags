@@ -24,8 +24,16 @@
  * tiene su ranking, y es el mismo en cada apertura y en cada recarga.
  */
 
+import { countries } from "@/data/countries";
+import {
+	GAME_TYPES,
+	getLeaderboardScope,
+	LEADERBOARD_SCOPES,
+	REGIONS,
+} from "@/types/country";
 import { AVATAR_STYLES, type AvatarStyle } from "@/types/progress";
 import type { LeaderboardEntry } from "@/utils/cloud-storage";
+import { REGION_COUNTRY_COUNTS } from "@/utils/region-stats";
 
 /** Cuántas personas falsas hay por defecto (P8). */
 const DEMO_SIZE = 30;
@@ -94,6 +102,35 @@ const TIME_RANGES: Record<string, { minMs: number; maxMs: number }> = {
 	"capitals:world@2": { minMs: 14 * 60_000, maxMs: 70 * 60_000 },
 };
 const DEFAULT_TIME_RANGE = { minMs: 10 * 60_000, maxMs: 50 * 60_000 };
+
+/**
+ * Rango de tiempos de un scope. Los de continente (D137) salen del de "Todo
+ * el mundo" de su juego, en proporción a sus países: Centroamérica no tarda
+ * lo mismo que África.
+ */
+function getTimeRange(scope: string): { minMs: number; maxMs: number } {
+	const known = TIME_RANGES[scope];
+	if (known) return known;
+
+	const region = REGIONS.find((candidate) =>
+		GAME_TYPES.some(
+			(gameType) => getLeaderboardScope(gameType, candidate) === scope,
+		),
+	);
+	const gameType = GAME_TYPES.find((candidate) =>
+		scope.startsWith(`${candidate}:`),
+	);
+	const worldRange = gameType && TIME_RANGES[LEADERBOARD_SCOPES[gameType]];
+
+	if (!region || !worldRange) return DEFAULT_TIME_RANGE;
+
+	const ratio = REGION_COUNTRY_COUNTS[region] / countries.length;
+
+	return {
+		minMs: Math.round(worldRange.minMs * ratio),
+		maxMs: Math.round(worldRange.maxMs * ratio),
+	};
+}
 
 /** Generador pseudoaleatorio pequeño con semilla (mulberry32). */
 function createRandom(seed: number): () => number {
@@ -185,7 +222,7 @@ export async function fetchDemoLeaderboard(
 ): Promise<LeaderboardEntry[]> {
 	const { size, delayMs, ownRank } = parseOptions(param);
 	const random = createRandom(hashString(scope));
-	const { minMs, maxMs } = TIME_RANGES[scope] ?? DEFAULT_TIME_RANGE;
+	const { minMs, maxMs } = getTimeRange(scope);
 
 	// Tiempos ordenados con más gente cerca de la cabeza que de la cola.
 	const times = Array.from(

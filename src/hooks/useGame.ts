@@ -22,6 +22,7 @@ import type {
 	UserLearningData,
 	UserProfile,
 } from "@/types/progress";
+import { isPlausibleRushTime } from "@/utils/leaderboard-validation";
 import {
 	createSessionRecord,
 	fromGameView,
@@ -250,10 +251,15 @@ export function useGame() {
 
 			// El mejor tiempo solo se registra si el rush se completó al 100 %
 			// (D033): un rush de Países abandonado a medio camino no debe
-			// mejorar ni crear una marca.
-			if (region && result.completed) {
-				// "Todo el mundo" va a la clave de la regla vigente del juego
-				// (D076): una marca nueva nunca compite con una de la regla vieja.
+			// mejorar ni crear una marca. Un tiempo imposible (el reloj saltó a
+			// mitad de partida) tampoco: bloquearía la marca para siempre (D139).
+			if (
+				region &&
+				result.completed &&
+				isPlausibleRushTime(region, result.elapsedMs)
+			) {
+				// La clave de la regla vigente del juego (D076, D137): una marca
+				// nueva nunca compite con una de la regla vieja.
 				const view = registerRegionBestTime(
 					toGameView(updatedData, gameType),
 					getBestTimeKey(region, gameType),

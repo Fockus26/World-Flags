@@ -1,13 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatedHeight } from "@/components/ui/AnimatedHeight";
 import { FeedbackMessage } from "@/components/ui/FeedbackMessage";
 import { LoadingAnnouncer } from "@/components/ui/LoadingAnnouncer";
 import { Modal } from "@/components/ui/Modal";
 import { ModalCloseButton } from "@/components/ui/ModalCloseButton";
+import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
-import { type GameType, LEADERBOARD_SCOPES } from "@/types/country";
+import {
+	type GameType,
+	getLeaderboardScope,
+	LEADERBOARD_REGIONS,
+	type PracticeRegion,
+	REGION_LABELS,
+} from "@/types/country";
 import { getAvatarUrl } from "@/utils/avatar";
 import {
 	fetchLeaderboard,
@@ -23,6 +30,12 @@ interface LeaderboardModalProps {
 	onClose: () => void;
 	/** El juego activo en la configuración: con qué arranca el selector del ranking. */
 	defaultGameType: GameType;
+	/**
+	 * Con qué alcance arranca el selector de continente (D141). Por defecto
+	 * "Todo el mundo"; quien abra el ranking justo después de jugar un
+	 * continente puede pasarlo para enseñar ese.
+	 */
+	defaultRegion?: PracticeRegion;
 }
 
 /** Cuántas filas enseña el ranking (D077). Si estás más abajo, tu fila va aparte, bajo un separador. */
@@ -43,12 +56,37 @@ const ROW_AVATAR_CLASS = "size-8 shrink-0 rounded-full";
 const ROW_CLASS =
 	"flex items-center justify-between gap-3 rounded-md px-3 py-2";
 
-/** ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #10 y #21). */
+/**
+ * Sin el punto final: en un continente se le añade "de Europa" (D141).
+ * ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #10, #21 y #44).
+ */
 const LEADERBOARD_DESCRIPTIONS: Record<GameType, string> = {
-	countries: "Mejor tiempo en modo competitivo practicando todos los países.",
-	flags: "Mejor tiempo en modo competitivo practicando todas las banderas.",
-	capitals: "Mejor tiempo en modo competitivo practicando todas las capitales.",
+	countries: "Mejor tiempo en modo competitivo practicando todos los países",
+	flags: "Mejor tiempo en modo competitivo practicando todas las banderas",
+	capitals: "Mejor tiempo en modo competitivo practicando todas las capitales",
 };
+
+/**
+ * "de Europa", "del Caribe"…: para la descripción y el anuncio del cambio de
+ * continente (D141). ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #44).
+ */
+const REGION_PHRASES: Record<PracticeRegion, string> = {
+	world: "de todo el mundo",
+	"north-america": "de Norteamérica",
+	"central-america": "de Centroamérica",
+	caribbean: "del Caribe",
+	"south-america": "de Sudamérica",
+	europe: "de Europa",
+	oceania: "de Oceanía",
+	asia: "de Asia",
+	africa: "de África",
+};
+
+/** Opciones del selector de continente: los nombres de `RegionSelector`. */
+const REGION_OPTIONS = LEADERBOARD_REGIONS.map((region) => ({
+	value: region,
+	label: REGION_LABELS[region],
+}));
 
 /** Id de tu fila en el ranking de demostración (D117): la demo no depende de tener sesión. */
 const DEMO_OWN_ID = "demo-ranking-tu";
@@ -169,10 +207,19 @@ export function LeaderboardModal({
 	isOpen,
 	onClose,
 	defaultGameType,
+	defaultRegion = "world",
 }: LeaderboardModalProps) {
 	const { user, status } = useAuth();
 	const { isOnline } = useSyncStatus();
 	const [gameType, setGameType] = useState<GameType>(defaultGameType);
+	const [region, setRegion] = useState<PracticeRegion>(defaultRegion);
+	/**
+	 * Anuncio del cambio de continente para lectores de pantalla (D141): la
+	 * lista cambia entera y el `LoadingAnnouncer` calla si la carga es rápida.
+	 */
+	const [regionAnnouncement, setRegionAnnouncement] = useState("");
+	/** Se eligió otro continente y falta anunciarlo cuando haya algo que leer. */
+	const announceRegionRef = useRef(false);
 	const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	/** El ranking es público y vive solo en la nube: sin conexión no hay nada que mostrar (D052). */
@@ -182,8 +229,16 @@ export function LeaderboardModal({
 	// momento en la configuración — no se queda pegado a lo último que se
 	// vio en una apertura anterior.
 	useEffect(() => {
-		if (isOpen) setGameType(defaultGameType);
-	}, [isOpen, defaultGameType]);
+		if (isOpen) {
+			setGameType(defaultGameType);
+			setRegion(defaultRegion);
+			setRegionAnnouncement("");
+			announceRegionRef.current = false;
+		}
+	}, [isOpen, defaultGameType, defaultRegion]);
+
+	// Un scope por juego (D033), por regla de castigo (D076) y por continente (D137).
+	const scope = getLeaderboardScope(gameType, region);
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -193,17 +248,31 @@ export function LeaderboardModal({
 		setError(null);
 		setIsOffline(!isOnline);
 
+		// El anuncio del cambio de continente sale cuando ya hay algo que leer
+		// (filas, vacío, error o sin conexión), no al elegir: así no se pisa
+		// con "Cargando el ranking…". ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #45).
+		const announceRegion = () => {
+			if (!announceRegionRef.current) return;
+			announceRegionRef.current = false;
+			setRegionAnnouncement(`Mostrando el ranking ${REGION_PHRASES[region]}.`);
+		};
+
 		// Sin conexión ni se intenta; al volver, este efecto se repite solo
 		// (`isOnline` en las dependencias) y el ranking aparece.
-		if (!isOnline) return;
+		if (!isOnline) {
+			announceRegion();
+			return;
+		}
 
-		// Un scope por juego (D033), y por regla de castigo (D076).
-		loadLeaderboard(LEADERBOARD_SCOPES[gameType])
+		loadLeaderboard(scope)
 			.then((result) => {
-				if (!cancelled) setEntries(result);
+				if (cancelled) return;
+				setEntries(result);
+				announceRegion();
 			})
 			.catch((fetchError: unknown) => {
 				if (cancelled) return;
+				announceRegion();
 
 				if (isNetworkFailure(fetchError)) {
 					setIsOffline(true);
@@ -215,7 +284,7 @@ export function LeaderboardModal({
 		return () => {
 			cancelled = true;
 		};
-	}, [isOpen, gameType, isOnline]);
+	}, [isOpen, scope, region, isOnline]);
 
 	const isLoading = isOpen && !error && !isOffline && entries === null;
 
@@ -237,7 +306,7 @@ export function LeaderboardModal({
 		>
 			<header className="mb-3 flex items-center justify-between gap-3">
 				<h2 id="leaderboard-title" className="m-0">
-					Ranking — Todo el mundo
+					Ranking — {REGION_LABELS[region]}
 				</h2>
 				<ModalCloseButton onClose={onClose} />
 			</header>
@@ -249,8 +318,29 @@ export function LeaderboardModal({
 				className="mb-3"
 			/>
 
+			{/* Continente (D141): un Select y no pestañas, porque 9 opciones no
+			    caben a 320 px. ⚠️ Copy provisional (`CONTENT_CHECKLIST.md` #44). */}
+			<Select
+				id="leaderboard-region"
+				label="Continente"
+				options={REGION_OPTIONS}
+				value={region}
+				onChange={(selected) => {
+					const next = selected as PracticeRegion;
+					if (next === region) return;
+					setRegion(next);
+					announceRegionRef.current = true;
+				}}
+				className="mb-3"
+			/>
+
 			<p className="mt-0 mb-3 text-[0.85rem] text-text-placeholder">
 				{LEADERBOARD_DESCRIPTIONS[gameType]}
+				{region === "world" ? "" : ` ${REGION_PHRASES[region]}`}.
+			</p>
+
+			<p role="status" className="sr-only">
+				{regionAnnouncement}
 			</p>
 
 			{/* Fuera de la lista ocupada: si no, el anuncio no se oiría (D042).
@@ -345,7 +435,7 @@ export function LeaderboardModal({
 					myRank === null && (
 						<p className="mt-3 mb-0 text-[0.8rem] text-text-placeholder">
 							Todavía no tienes un tiempo registrado: completa una práctica
-							competitiva de "Todo el mundo" para entrar al ranking.
+							competitiva de "{REGION_LABELS[region]}" para entrar al ranking.
 						</p>
 					)}
 			</AnimatedHeight>

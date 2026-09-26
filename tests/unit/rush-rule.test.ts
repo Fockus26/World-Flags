@@ -219,8 +219,10 @@ describe("la marca vieja no cuenta (D076)", () => {
 		assert.deepEqual(updated.regionBestTimes, {});
 	});
 
-	test("los continentes siguen en su clave de siempre", () => {
-		assert.equal(getBestTimeKey("europe", "flags"), "europe");
+	test("los continentes de Banderas y Capitales van a su clave @2; Países sigue en la de siempre (D137)", () => {
+		assert.equal(getBestTimeKey("europe", "flags"), "europe@2");
+		assert.equal(getBestTimeKey("africa", "capitals"), "africa@2");
+		assert.equal(getBestTimeKey("europe", "countries"), "europe");
 		assert.equal(getBestTimeKey("world", "countries"), "world");
 	});
 });
