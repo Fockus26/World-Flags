@@ -9,6 +9,13 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.6.1] - 2026-09-26
+
+### Cambiado
+
+- Resultados más vivos: los números cuentan hacia arriba y batir tu récord se
+  celebra con confeti.
+
 ## [2.6.0] - 2026-09-26
 
 ### Añadido
