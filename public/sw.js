@@ -9,7 +9,7 @@ const OFFLINE_URL = "/";
 // cuando alguien se acordaba de tocar un comentario (la última vez, 1.2.0).
 // `CACHE_NAME` no cambia a propósito: las banderas ya precargadas (D054)
 // siguen valiendo.
-const APP_VERSION = "2.5.0";
+const APP_VERSION = "2.6.0";
 
 // Sin `skipWaiting()` automático a propósito: así el service worker nuevo se
 // queda "esperando" (`registration.waiting`) en vez de tomar el control de
