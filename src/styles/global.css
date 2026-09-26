@@ -231,3 +231,51 @@
 		animation-iteration-count: 1;
 	}
 }
+
+/*
+ * Respuesta de la tarjeta en `StimulusFrame` (D151, P19). Se usan con
+ * `motion-safe:` y el bloque de `prefers-reduced-motion` de arriba las deja
+ * en 0,01 ms de todos modos. Colores por `--app-color-*` (no el puente
+ * `--color-*` de `@theme inline`, que no llega a `:root`); desplazamientos en
+ * múltiplos de `--spacing` (0,25 rem = 4 px).
+ *
+ * - `stimulus-ring`: acierto, anillo verde que crece 0 → 3 × spacing y se
+ *   desvanece. 600 ms (D152): con 200 ms no se llegaba a ver; cabe dentro de
+ *   los 900 ms que la tarjeta se queda antes de avanzar en competitivo.
+ * - `stimulus-shake`: fallo, ±4 px en 200 ms, amortiguada (4 → 2 px). Dos
+ *   vaivenes y se queda quieta: no es un parpadeo (nada > 3 veces/s).
+ */
+@theme {
+	--animate-stimulus-ring: stimulus-ring 600ms ease-out;
+	--animate-stimulus-shake: stimulus-shake 200ms ease-in-out;
+
+	@keyframes stimulus-ring {
+		from {
+			box-shadow: 0 0 0 0
+				color-mix(in oklab, var(--app-color-success) 70%, transparent);
+		}
+		to {
+			box-shadow: 0 0 0 calc(var(--spacing) * 3)
+				color-mix(in oklab, var(--app-color-success) 0%, transparent);
+		}
+	}
+
+	@keyframes stimulus-shake {
+		0%,
+		100% {
+			transform: translateX(0);
+		}
+		20% {
+			transform: translateX(calc(var(--spacing) * -1));
+		}
+		40% {
+			transform: translateX(var(--spacing));
+		}
+		60% {
+			transform: translateX(calc(var(--spacing) * -0.5));
+		}
+		80% {
+			transform: translateX(calc(var(--spacing) * 0.5));
+		}
+	}
+}

@@ -1,3 +1,4 @@
+import type { AnswerStatus } from "@/types/country";
 import { StimulusFrame } from "../StimulusFrame";
 
 /**
@@ -12,9 +13,18 @@ import { StimulusFrame } from "../StimulusFrame";
  * escala sola. Hallazgo de QA de diseño; excepción de tamaño registrada en
  * D067.
  */
-export function CapitalCard({ countryName }: { countryName: string }) {
+export function CapitalCard({
+	countryName,
+	feedback,
+}: {
+	countryName: string;
+	feedback?: AnswerStatus;
+}) {
 	return (
-		<StimulusFrame className="bg-surface-hover px-2 [container-type:size] min-[43rem]:px-6">
+		<StimulusFrame
+			feedback={feedback}
+			className="bg-surface-hover px-2 [container-type:size] min-[43rem]:px-6"
+		>
 			{/* `key` por país: la entrada se repite en cada tarjeta, no solo en la primera. */}
 			<p
 				key={countryName}
