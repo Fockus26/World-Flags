@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
-import type { Country, Difficulty, GameType } from "@/types/country";
+import type {
+	AnswerStatus,
+	Country,
+	Difficulty,
+	GameType,
+} from "@/types/country";
 import {
 	getAcceptedCapitals,
 	getCapital,
@@ -22,8 +27,12 @@ export function isCardGameType(gameType: GameType): gameType is CardGameType {
  * (cola, cronómetro, calificación, resultados) es igual para todos.
  */
 export interface SessionCard {
-	/** Lo que se pregunta: la bandera, o el nombre del país en Capitales. */
-	renderStimulus: (country: Country) => ReactNode;
+	/**
+	 * Lo que se pregunta: la bandera, o el nombre del país en Capitales.
+	 * `feedback` anima el marco al acertar o fallar (D151); la práctica
+	 * diaria no lo pasa.
+	 */
+	renderStimulus: (country: Country, feedback?: AnswerStatus) => ReactNode;
 	/** La respuesta que se enseña al acertar, fallar o revelar. */
 	getAnswer: (country: Country) => string;
 	isCorrect: (
@@ -74,7 +83,9 @@ export const SESSION_CARDS: Record<CardGameType, SessionCard> = {
 	// Banderas compara con `isCorrectAnswer` tal cual, no con el comparador de
 	// Capitales: así acepta exactamente lo mismo que antes (D068).
 	flags: {
-		renderStimulus: (country) => <FlagDisplay countryCode={country.code} />,
+		renderStimulus: (country, feedback) => (
+			<FlagDisplay countryCode={country.code} feedback={feedback} />
+		),
 		getAnswer: (country) => country.name,
 		isCorrect: (answer, country, difficulty) =>
 			isCorrectAnswer(answer, country.name, difficulty),
@@ -82,7 +93,9 @@ export const SESSION_CARDS: Record<CardGameType, SessionCard> = {
 		placeholder: "Escribe el nombre del país",
 	},
 	capitals: {
-		renderStimulus: (country) => <CapitalCard countryName={country.name} />,
+		renderStimulus: (country, feedback) => (
+			<CapitalCard countryName={country.name} feedback={feedback} />
+		),
 		// `startGame` solo arma partidas con países del catálogo y
 		// `capitals.test.ts` exige una capital por cada uno: el "" no debería
 		// verse nunca.

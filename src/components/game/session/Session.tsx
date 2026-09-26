@@ -482,7 +482,7 @@ export function Session({ runtime, exitDescription }: SessionProps) {
 				/>
 
 				<div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-[0.65rem] min-[30rem]:gap-[clamp(0.75rem,2vh,1.5rem)]">
-					{card.renderStimulus(currentCountry)}
+					{card.renderStimulus(currentCountry, answerStatus)}
 					<AnswerForm
 						countryName={card.getAnswer(currentCountry)}
 						label={card.getQuestion(currentCountry)}
