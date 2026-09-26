@@ -114,6 +114,15 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 /**
+ * Si ya se avisó en esta carga de que falta `PUBLIC_VAPID_PUBLIC_KEY` (D142).
+ * Cada reintento de activar el recordatorio volvía a escribirlo y en la
+ * consola de prod salía repetido; el aviso se queda (es la única pista de que
+ * el build salió sin la clave), pero una sola vez por carga. Vive a nivel de
+ * módulo y fuera de cualquier componente: el React Compiler no lo toca.
+ */
+let missingVapidKeyWarned = false;
+
+/**
  * Suscribe este dispositivo (ya con permiso) y guarda la suscripción vía la
  * Edge Function `subscribe-push` (no se toca la tabla `push_subscriptions`
  * directo desde el cliente — ver `supabase/notifications.sql`).
@@ -121,9 +130,12 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 async function saveSubscription(userId: string | null): Promise<boolean> {
 	const publicKey = import.meta.env.PUBLIC_VAPID_PUBLIC_KEY;
 	if (!publicKey) {
-		console.error(
-			"Daily reminder: PUBLIC_VAPID_PUBLIC_KEY is not set, cannot subscribe.",
-		);
+		if (!missingVapidKeyWarned) {
+			missingVapidKeyWarned = true;
+			console.error(
+				"Daily reminder: PUBLIC_VAPID_PUBLIC_KEY is not set, cannot subscribe.",
+			);
+		}
 		return false;
 	}
 
