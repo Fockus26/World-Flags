@@ -9,6 +9,21 @@ las versiones siguen el [Versionado Semántico](https://semver.org/lang/es/).
 Cómo se añade una entrada y cuándo se sube cada número: ver
 [CONTRIBUTING.md](./CONTRIBUTING.md#changelog-and-versioning).
 
+## [2.6.0] - 2026-09-26
+
+### Añadido
+
+- Nuevos sonidos: al elegir opciones, al empezar, al saltar, en el castigo del
+  competitivo y al batir tu récord.
+- Al terminar un rush con mejor tiempo que tu marca anterior, los resultados lo
+  dicen: "¡Nuevo récord!".
+
+### Cambiado
+
+- Saltar una bandera ya no suena como un fallo: tiene su propia nota.
+- Ranking: el podio se destaca con oro, plata y bronce, y las filas se leen
+  mejor.
+
 ## [2.5.0] - 2026-09-26
 
 ### Añadido
