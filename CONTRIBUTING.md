@@ -87,7 +87,7 @@ fix(sesion): asegura el foco del input al entrar a cualquier partida
 ### Pull requests
 
 1. Push your branch and open a PR against `main`. Fill in the template. If players will
-   notice the change, it bumps the version and adds a changelog entry (see
+   notice the change, it adds a changeset (see
    [Changelog and versioning](#changelog-and-versioning)).
 2. CI must be green (type-check and build; lint is being brought to green — see below).
 3. Add screenshots for any UI change: light and dark, mobile (320–375px) and desktop.
@@ -100,47 +100,53 @@ Never rewrite shared history (`push --force`, `reset --hard` on pushed branches)
 
 ### Changelog and versioning
 
-[`CHANGELOG.md`](./CHANGELOG.md) is written by hand, in **Spanish**, for players — not
-generated from commits. The app shows the same text in its "Novedades" dialog, so every
-line is something a player notices. Rationale:
-[`context/decisions/15-changelog-y-versionado.md`](./context/decisions/15-changelog-y-versionado.md).
+[`CHANGELOG.md`](./CHANGELOG.md) is in **Spanish**, for players — not generated from
+commits. The app shows the same text in its "Novedades" dialog, so every line is
+something a player notices. Rationale:
+[`context/decisions/15-changelog-y-versionado.md`](./context/decisions/15-changelog-y-versionado.md)
+and [`context/decisions/33-changesets.md`](./context/decisions/33-changesets.md).
 
-**Every PR with a user-visible change bumps the version and adds its own entry, in the
-same PR.** Each merge to `main` is deployed, so each PR is a release: there is no
-"Unreleased" section.
+**PRs don't touch `version`, `CHANGELOG.md` or `APP_VERSION` in `public/sw.js`.** Every PR
+with a user-visible change adds a [changeset](https://github.com/changesets/changesets)
+instead, written by hand (`bunx changeset` asks questions and writes another format):
 
-1. Bump `version` in `package.json` ([Semantic Versioning](https://semver.org/)):
-   - **MAJOR** — breaks compatibility with saved progress (something an older client
-     can't read, a leaderboard reset) or removes something players used.
-   - **MINOR** — new visible functionality (a game mode, an option, new achievements).
-   - **PATCH** — fixes and small adjustments with no new functionality.
-2. Add the entry at the top of `CHANGELOG.md`, dated the day you open the PR. For example:
+1. Add `.changeset/<short-kebab-description>.md` (unique name). The header picks the bump
+   ([Semantic Versioning](https://semver.org/)); the body is that change's piece of the
+   changelog, **without** a version heading:
 
    ```md
-   ## [1.1.0] - 2026-10-02
+   ---
+   "world-flags": minor
+   ---
 
    ### Añadido
 
    - Modo Capitales: ves un país y escribes su capital.
-
-   ### Corregido
-
-   - El temporizador ya no se congela al volver a la app.
    ```
 
-   Sections (only the ones you need, in this order): `Añadido`, `Cambiado`, `Obsoleto`,
-   `Eliminado`, `Corregido`, `Seguridad`. Plain text only — no bold, code or links inside
-   an item (the dialog shows it as-is). Long items can wrap onto indented lines.
-3. Set the same version in `const APP_VERSION = "x.y.z";` at the top of `public/sw.js`.
-   That changes the service worker's bytes, so open tabs get the "Actualizar" prompt
-   (`context/decisions/25-actualizacion-obligatoria.md`, D107). Don't touch `CACHE_NAME`.
-4. PRs with no user-visible change (docs, tests, CI, refactors, tooling) don't bump the
-   version and don't add an entry.
+   - **major** — breaks compatibility with saved progress (something an older client
+     can't read, a leaderboard reset) or removes something players used.
+   - **minor** — new visible functionality (a game mode, an option, new achievements).
+   - **patch** — fixes and small adjustments with no new functionality.
 
-`bun run test` fails if the changelog doesn't follow this format, if its first entry
-isn't the version in `package.json`, or if `APP_VERSION` in `public/sw.js` doesn't match
-it. If two open PRs claim the same version, whoever
-merges second renumbers theirs when updating from `main`.
+   Sections (only the ones you need): `Añadido`, `Cambiado`, `Obsoleto`, `Eliminado`,
+   `Corregido`, `Seguridad`. Plain text only — no bold, code or links inside an item (the
+   dialog shows it as-is). Long items can wrap onto indented lines.
+2. PRs with no user-visible change (docs, tests, CI, refactors, tooling) add no changeset.
+
+On every push to `main`, the `Release` workflow (`.github/workflows/release.yml`) opens or
+updates a single **"chore(release): versión"** PR. It runs `scripts/release.ts`, which
+bumps `version` with Changesets, writes the new `## [x.y.z] - YYYY-MM-DD` entry at the top
+of `CHANGELOG.md` (sections from every pending changeset, in order) and sets the same
+version in `APP_VERSION`, so open tabs get the "Actualizar" prompt (D107). The maintainer
+merges that PR to publish a version; contributors never edit it.
+
+Every merge to `main` is still deployed, but the version number, "Novedades" and the
+"Actualizar" prompt only move when the release PR is merged.
+
+`bun run test` fails if a pending changeset doesn't follow this format, if the changelog
+doesn't, if its first entry isn't the version in `package.json`, or if `APP_VERSION`
+doesn't match it.
 
 ---
 
@@ -152,7 +158,7 @@ Run these before opening a PR:
 bunx astro check         # type-check
 bunx biome check ./src   # lint + format (bun run lint applies safe fixes)
 bun run build            # production build
-bun run test             # unit tests (sync/merge layer, changelog format) in tests/unit
+bun run test             # unit tests (sync/merge layer, changelog, changesets) in tests/unit
 bun run test:e2e         # Playwright, with the dev server running
 ```
 

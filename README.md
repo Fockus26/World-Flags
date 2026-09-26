@@ -101,7 +101,7 @@ what works without it and how to request access.
 | `bun run preview` | Preview the production build |
 | `bunx astro check` | Type-check |
 | `bunx biome check ./src` | Lint and format check |
-| `bun run test` | Unit tests of the progress merge/sync layer and the changelog format (`tests/unit`) |
+| `bun run test` | Unit tests of the progress merge/sync layer, the changelog and pending changesets (`tests/unit`) |
 | `bun run test:e2e` | Playwright end-to-end tests (needs the dev server running) |
 
 > **Service worker tip:** the SW caches aggressively. If you don't see your changes in dev,

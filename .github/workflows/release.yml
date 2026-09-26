@@ -1,0 +1,50 @@
+# PR de versión con Changesets (D135–D136).
+#
+# Los PRs de trabajo no tocan `version`, CHANGELOG.md ni `APP_VERSION` de public/sw.js:
+# cada uno con cambio visible trae un `.changeset/<desc>.md` (formato en .changeset/README.md).
+# Al llegar a main, esta Action abre (o actualiza) un único PR "chore(release): versión" que
+# corre scripts/release.ts: junta los changesets en la entrada nueva del CHANGELOG (la que
+# muestra "Novedades"), sube `version` y `APP_VERSION`. El dueño lo mergea cuando quiere
+# publicar; ningún agente lo edita ni lo mergea.
+#
+# Una vez por repo, en GitHub: Settings › Actions › General › "Allow GitHub Actions to
+# create and approve pull requests". Sin eso la Action falla al abrir el PR.
+#
+# Un PR abierto con GITHUB_TOKEN no dispara el CI: si `main` exige checks, ese PR no los
+# tendrá (se mergea saltándose la protección, o se cambia el token por uno de una GitHub
+# App). Solo cambia package.json, CHANGELOG.md, public/sw.js y borra los changesets.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      # Sin `publish-script`: la app no se publica en npm, solo se versiona.
+      # scripts/release.ts corre `changeset version` (con `--bun`: Changesets 3 pide
+      # Node ≥ 22.11) y después escribe CHANGELOG.md y public/sw.js.
+      - uses: changesets/action@v2
+        with:
+          version-script: bun scripts/release.ts
+          pr-title: "chore(release): versión"
+          commit-message: "chore(release): versión"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
